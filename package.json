@@ -1,0 +1,37 @@
+{
+  "name": "aether",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered website builder that creates professional websites in 30 seconds",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "task:complete": "node scripts/task-manager.js complete",
+    "task:start": "node scripts/task-manager.js start",
+    "task:status": "node scripts/task-manager.js status",
+    "progress:update": "node scripts/update-progress.js",
+    "daily:summary": "node scripts/daily-summary.js",
+    "task": "node scripts/task-manager.js"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "prettier": "^3.3.3",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "pnpm@9.7.0",
+  "keywords": [
+    "ai",
+    "website-builder",
+    "nextjs",
+    "no-code"
+  ],
+  "author": "Aether Team",
+  "license": "MIT"
+}

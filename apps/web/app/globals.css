@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+  }
+  
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply antialiased;
+  }
+}
+
+@layer utilities {
+  .ai-gradient {
+    @apply bg-gradient-to-r from-ai-from via-ai-via to-ai-to;
+  }
+  
+  .ai-gradient-text {
+    @apply bg-gradient-to-r from-ai-from via-ai-via to-ai-to bg-clip-text text-transparent;
+  }
+  
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-black/10 backdrop-blur-md border border-black/20;
+  }
+}

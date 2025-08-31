@@ -162,13 +162,24 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Env sanity (preview)
+        run: |
+          pwd
+          node -v
+          pnpm -v
+          which pnpm || true
+          which sh || true
+          ls -la
+      
       - name: Build with Vercel (preview)
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_DEBUG: '1'
 
       - name: Show Vercel build outputs (preview)
+        if: always()
         run: |
           ls -la .vercel || true
           ls -la .vercel/output || true
@@ -229,13 +240,24 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Env sanity (production)
+        run: |
+          pwd
+          node -v
+          pnpm -v
+          which pnpm || true
+          which sh || true
+          ls -la
+
       - name: Build with Vercel (production)
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_DEBUG: '1'
 
       - name: Show Vercel build outputs (production)
+        if: always()
         run: |
           ls -la .vercel || true
           ls -la .vercel/output || true

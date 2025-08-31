@@ -16,7 +16,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "type-check": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -18,6 +18,17 @@
       "dependsOn": ["^test"],
       "inputs": ["$TURBO_DEFAULT$", "tests/**"]
     },
+    "test:unit": {
+      "dependsOn": ["^test:unit"],
+      "inputs": ["$TURBO_DEFAULT$", "tests/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "tests/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
     "clean": {
       "cache": false
     }

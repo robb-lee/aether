@@ -162,6 +162,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      # Optional sanity info
       - name: Env sanity (preview)
         run: |
           pwd
@@ -170,25 +171,11 @@ jobs:
           which pnpm || true
           which sh || true
           ls -la
-      
-      - name: Build with Vercel (preview)
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_DEBUG: '1'
 
-      - name: Show Vercel build outputs (preview)
-        if: always()
-        run: |
-          ls -la .vercel || true
-          ls -la .vercel/output || true
-          sed -n '1,200p' .vercel/output/config.json || true
-
-      - name: Deploy to Vercel Preview (prebuilt)
+      - name: Deploy to Vercel Preview
         id: deploy
         run: |
-          url="$(vercel deploy --prebuilt --yes --token=${{ secrets.VERCEL_TOKEN }})"
+          url="$(vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }})"
           echo "url=$url" >> $GITHUB_OUTPUT
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -240,6 +227,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      # Optional sanity info
       - name: Env sanity (production)
         run: |
           pwd
@@ -249,22 +237,8 @@ jobs:
           which sh || true
           ls -la
 
-      - name: Build with Vercel (production)
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_DEBUG: '1'
-
-      - name: Show Vercel build outputs (production)
-        if: always()
-        run: |
-          ls -la .vercel || true
-          ls -la .vercel/output || true
-          sed -n '1,200p' .vercel/output/config.json || true
-
-      - name: Deploy to Vercel (prebuilt)
-        run: vercel deploy --prebuilt --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        run: vercel deploy --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

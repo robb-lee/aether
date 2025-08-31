@@ -16,7 +16,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:unit": "echo 'No tests yet for UI package'"
   },
   "dependencies": {
     "clsx": "^2.1.1",

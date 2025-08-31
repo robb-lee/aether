@@ -162,6 +162,11 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Show Vercel project info (preview)
+        run: |
+          echo "Contents of .vercel/project.json:" 
+          cat .vercel/project.json || true
+
       # Optional sanity info
       - name: Env sanity (preview)
         run: |
@@ -199,7 +204,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: https://aether.vercel.app
+      url: ${{ steps.deploy_prod.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -227,6 +232,11 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Show Vercel project info (production)
+        run: |
+          echo "Contents of .vercel/project.json:" 
+          cat .vercel/project.json || true
+
       # Optional sanity info
       - name: Env sanity (production)
         run: |
@@ -238,7 +248,10 @@ jobs:
           ls -la
 
       - name: Deploy to Vercel
-        run: vercel deploy --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy_prod
+        run: |
+          url="$(vercel deploy --yes --prod --token=${{ secrets.VERCEL_TOKEN }})"
+          echo "url=$url" >> $GITHUB_OUTPUT
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

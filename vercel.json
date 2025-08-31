@@ -22,9 +22,15 @@
     "env": {
       "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
-      "OPENAI_API_KEY": "@openai-api-key",
-      "ANTHROPIC_API_KEY": "@anthropic-api-key",
-      "REDIS_URL": "@redis-url"
+      "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
+      "LITELLM_API_BASE": "@litellm-api-base",
+      "LITELLM_API_KEY": "@litellm-api-key",
+      "AI_PRIMARY_MODEL": "@ai-primary-model",
+      "AI_FALLBACK_MODEL": "@ai-fallback-model",
+      "AI_IMAGE_MODEL": "@ai-image-model",
+      "REDIS_URL": "@redis-url",
+      "VERCEL_TOKEN": "@vercel-token",
+      "VERCEL_TEAM_ID": "@vercel-team-id"
     }
   },
   "headers": [

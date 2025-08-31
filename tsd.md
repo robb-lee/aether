@@ -7,7 +7,7 @@ Aether는 AI 기반 웹사이트 빌더로, GPT-4와 Next.js 14를 활용하여 
 **핵심 기술 결정:**
 - **Monorepo**: Turborepo로 패키지 관리 최적화
 - **Runtime**: Vercel Edge Runtime으로 콜드 스타트 제거
-- **AI Strategy**: GPT-4 구조 생성 + Claude-3 콘텐츠 최적화
+- **AI Strategy**: LiteLLM 통합 게이트웨이로 모든 AI 모델 관리 (GPT-4, Claude, DALL-E)
 - **State Management**: Zustand + Immer로 불변성 관리
 - **Deployment**: Vercel API 직접 통합으로 30초 내 배포
 
@@ -137,25 +137,31 @@ aether/
 
 ### AI/ML
 
-**Primary LLM: GPT-4-turbo**
-- 이유: 128K 컨텍스트, JSON 모드 지원, 구조화된 출력 보장
-- 용도: 사이트 구조 생성, 컴포넌트 생성
-- 비용: $0.01/1K input, $0.03/1K output
+**AI Gateway: LiteLLM**
+- 이유: 통합 AI 게이트웨이로 모든 모델을 단일 인터페이스로 관리
+- 장점: 자동 폴백, 비용 추적, 로드 밸런싱, 통합 모니터링
+- 지원 모델: 100+ AI 모델 (OpenAI, Anthropic, Google, Meta 등)
 
-**Fallback LLM: Claude-3-haiku**
-- 이유: GPT-4 대비 10배 빠름, 비용 효율적
-- 용도: 콘텐츠 생성, 텍스트 최적화
-- 비용: $0.00025/1K input, $0.00125/1K output
+**Primary Model: GPT-4-turbo (via LiteLLM)**
+- 용도: 사이트 구조 생성, 복잡한 로직
+- 특징: 128K 컨텍스트, JSON 모드 지원
+- 비용: LiteLLM이 자동 계산
 
-**Image Generation: DALL-E 3**
-- 이유: 프롬프트 준수율 최고, 안전한 콘텐츠 보장
+**Fallback Model: Claude-3-haiku (via LiteLLM)**
+- 용도: 콘텐츠 생성, 빠른 응답이 필요한 작업
+- 특징: GPT-4 대비 10배 빠른 속도
+- 자동 폴백: LiteLLM이 GPT-4 실패 시 자동 전환
+
+**Image Generation: DALL-E 3 (via LiteLLM)**
 - 용도: 히어로 이미지, 아이콘 생성
-- 비용: $0.04/이미지
+- 특징: 프롬프트 준수율 최고
+- 통합: LiteLLM 단일 엔드포인트로 관리
 
-**Embeddings: text-embedding-3-small**
-- 이유: 1536 차원으로 충분한 정확도, 빠른 속도
-- 용도: 템플릿 매칭, 유사도 검색
-- 비용: $0.00002/1K tokens
+**Model Router Configuration**
+- 구조 생성 → GPT-4-turbo
+- 콘텐츠 작성 → Claude-3-opus
+- 빠른 응답 → Claude-3-haiku
+- 이미지 생성 → DALL-E 3
 
 ### Infrastructure
 
@@ -306,9 +312,18 @@ export interface IAIEngine {
 }
 
 // packages/ai-engine/generators/structure.ts
+import { LiteLLMClient } from '../lib/litellm-client';
+
 export class StructureGenerator {
-  private readonly openai: OpenAI;
+  private readonly litellm: LiteLLMClient;
   private readonly cache: Map<string, TSiteStructure>;
+  
+  constructor() {
+    this.litellm = new LiteLLMClient({
+      apiBase: process.env.LITELLM_API_BASE,
+      apiKey: process.env.LITELLM_API_KEY,
+    });
+  }
   
   async generate(prompt: string): Promise<TSiteStructure> {
     // 캐시 확인
@@ -318,21 +333,30 @@ export class StructureGenerator {
     // 프롬프트 강화
     const enhanced = await this.enhancePrompt(prompt);
     
-    // GPT-4 호출 with JSON mode
-    const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+    // LiteLLM으로 GPT-4 호출 (자동 폴백 포함)
+    const completion = await this.litellm.chat.completions.create({
+      model: process.env.AI_PRIMARY_MODEL || 'gpt-4-turbo-preview',
       messages: [
         { role: 'system', content: STRUCTURE_SYSTEM_PROMPT },
         { role: 'user', content: enhanced }
       ],
       response_format: { type: 'json_object' },
       temperature: 0.7,
-      max_tokens: 4000
+      max_tokens: 4000,
+      // LiteLLM이 자동으로 폴백 및 비용 추적
+      metadata: {
+        task: 'structure_generation',
+        user_id: this.userId
+      }
     });
     
     // 파싱 및 검증
     const structure = this.parseResponse(completion.choices[0].message.content);
     await this.validateStructure(structure);
+    
+    // 비용 정보 추출 (LiteLLM 제공)
+    const cost = completion._hidden_params?.response_cost;
+    await this.trackUsage(cost);
     
     // 캐싱
     this.cache.set(this.hashPrompt(prompt), structure);
@@ -511,8 +535,18 @@ export async function middleware(request: NextRequest) {
 import { z } from 'zod';
 
 const envSchema = z.object({
-  OPENAI_API_KEY: z.string().min(1),
-  ANTHROPIC_API_KEY: z.string().min(1),
+  // LiteLLM Configuration (통합 AI 게이트웨이)
+  LITELLM_API_BASE: z.string().url(),
+  LITELLM_API_KEY: z.string().min(1),
+  AI_PRIMARY_MODEL: z.string().default('gpt-4-turbo-preview'),
+  AI_FALLBACK_MODEL: z.string().default('claude-3-haiku'),
+  AI_IMAGE_MODEL: z.string().default('dall-e-3'),
+  
+  // Optional: Direct API keys for fallback
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  
+  // Other services
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   VERCEL_TOKEN: z.string().min(1)
@@ -944,10 +978,16 @@ Git 2.x
 # .env.local
 NODE_ENV=development
 
-# API Keys
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-DALLE_API_KEY=sk-...
+# LiteLLM Configuration (Unified AI Gateway)
+LITELLM_API_BASE=http://localhost:4000  # or https://your-litellm-proxy.com
+LITELLM_API_KEY=your_litellm_key
+AI_PRIMARY_MODEL=gpt-4-turbo-preview
+AI_FALLBACK_MODEL=claude-3-haiku
+AI_IMAGE_MODEL=dall-e-3
+
+# Optional: Direct API Keys (for LiteLLM proxy or fallback)
+OPENAI_API_KEY=sk-...  # Used by LiteLLM proxy
+ANTHROPIC_API_KEY=sk-ant-...  # Used by LiteLLM proxy
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -957,6 +997,9 @@ SUPABASE_SERVICE_KEY=eyJ...
 # Vercel
 VERCEL_TOKEN=xxx
 VERCEL_TEAM_ID=team_xxx
+
+# Redis (for caching)
+REDIS_URL=redis://xxx
 
 # Blob Storage
 BLOB_READ_WRITE_TOKEN=vercel_blob_xxx
@@ -983,6 +1026,8 @@ NEXT_PUBLIC_ENABLE_STREAMING=true
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "litellm:start": "litellm --config ./litellm-config.yaml",
+    "litellm:test": "curl http://localhost:4000/health",
     "analyze": "ANALYZE=true pnpm build",
     "clean": "turbo clean && rm -rf node_modules"
   }

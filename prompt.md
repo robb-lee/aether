@@ -13,7 +13,7 @@
 - **Frontend**: Next.js 14 (App Router), React 18, Tailwind CSS, Framer Motion
 - **State**: Zustand + Immer
 - **Backend**: Vercel Edge Runtime, Supabase (PostgreSQL)
-- **AI**: OpenAI GPT-4, Claude-3, DALL-E 3
+- **AI**: LiteLLM (통합 게이트웨이) → GPT-4, Claude-3, DALL-E
 - **Deployment**: Vercel
 - **Testing**: Vitest, Playwright
 
@@ -232,62 +232,74 @@ Output: Complete SQL migration file
 
 ## 2. AI Integration Prompts
 
-### 2.1 OpenAI GPT-4 Integration
+### 2.1 LiteLLM Integration
 
-**Purpose**: GPT-4 API 통합 및 사이트 생성 엔진 구현
+**Purpose**: LiteLLM 통합 게이트웨이를 통한 AI 모델 통합 및 사이트 생성 엔진 구현
 
 **Context Template**:
 """
-You are an AI engineer specializing in OpenAI API integration.
+You are an AI engineer specializing in LiteLLM integration.
 Project: Aether - AI Website Builder
-Tech Stack: Next.js 14, TypeScript, OpenAI SDK
-Current Task: Implement GPT-4 site generation engine
+Tech Stack: Next.js 14, TypeScript, LiteLLM
+Current Task: Implement unified AI generation engine with automatic fallback
 """
 
 **Input Variables**:
-- {api_key}: OpenAI API key
-- {model}: GPT-4 model version (gpt-4-turbo-preview)
+- {litellm_api_base}: LiteLLM API endpoint
+- {litellm_api_key}: LiteLLM API key
+- {primary_model}: Primary model (gpt-4-turbo-preview)
+- {fallback_model}: Fallback model (claude-3-haiku)
 - {max_tokens}: Maximum tokens per request
 
 **Main Prompt**:
 """
-Implement a GPT-4 powered site generation engine for Aether that:
+Implement a LiteLLM-powered site generation engine for Aether that:
 
-1. Takes user prompt and generates complete website structure
-2. Uses JSON mode for structured output
-3. Implements streaming for real-time progress
-4. Handles rate limiting and retries
-5. Caches responses for efficiency
+1. Uses LiteLLM as a unified gateway for all AI models
+2. Automatically handles model fallback (GPT-4 → Claude)
+3. Tracks costs across all models automatically
+4. Routes tasks to optimal models:
+   - Structure generation → GPT-4
+   - Content writing → Claude-3
+   - Image generation → DALL-E
+5. Implements streaming for real-time progress
+6. Caches responses for efficiency
 
 Create these components:
 ```typescript
 interface AISiteGenerator {
+  litellm: LiteLLMClient;
   generateSite(prompt: string): Promise<SiteStructure>;
   generateComponent(description: string): Promise<Component>;
   optimizeContent(content: string, context: BusinessContext): Promise<string>;
+  generateImage(prompt: string): Promise<string>;
   streamGeneration(prompt: string): AsyncGenerator<GenerationProgress>;
 }
 ```
 
 Requirements:
+- Configure LiteLLM with automatic fallback chain
 - 30-second generation target
-- Error handling with fallbacks
-- Token usage tracking
-- Prompt enhancement pipeline
+- Built-in cost tracking from LiteLLM
+- Model selection based on task type
 - Response validation with Zod
+- Single API endpoint for all models
 
 Output Format:
-Complete TypeScript implementation with error handling
+Complete TypeScript implementation with LiteLLM integration
 """
 
 **Example Usage**:
 ```typescript
 const generator = new AISiteGenerator({
-  apiKey: process.env.OPENAI_API_KEY,
-  model: 'gpt-4-turbo-preview',
+  litellmBase: process.env.LITELLM_API_BASE,
+  litellmKey: process.env.LITELLM_API_KEY,
+  primaryModel: 'gpt-4-turbo-preview',
+  fallbackModel: 'claude-3-haiku',
   temperature: 0.7
 });
 
+// LiteLLM automatically handles model selection and fallback
 const site = await generator.generateSite(
   "Create a SaaS landing page for an AI writing tool"
 );
@@ -425,41 +437,64 @@ Output: Complete streaming implementation with TypeScript
 
 ---
 
-### 2.5 AI Error Handling & Fallbacks
+### 2.5 AI Error Handling with LiteLLM
 
-**Purpose**: 강건한 AI 에러 처리 및 폴백 시스템
+**Purpose**: LiteLLM의 자동 폴백을 활용한 강건한 에러 처리 시스템
 
 **Context Template**:
 """
 You are a reliability engineer for AI systems.
 Project: Aether
-Current Task: Implement comprehensive error handling
+Tech Stack: LiteLLM with automatic fallback
+Current Task: Configure LiteLLM error handling and fallback chain
 """
 
 **Main Prompt**:
 """
-Design an error handling system for AI operations:
+Configure LiteLLM's error handling and automatic fallback system:
 
-Error types to handle:
-1. Rate limiting (429)
-2. Token limits exceeded
-3. API timeouts
-4. Invalid responses
-5. Service outages
+LiteLLM Configuration:
+1. Set up fallback chain:
+   - Primary: GPT-4-turbo
+   - Fallback 1: Claude-3-opus 
+   - Fallback 2: Claude-3-haiku
+   - Emergency: Cached responses
 
-Implement fallback strategies:
-- GPT-4 → Claude-3 fallback
-- Template-based generation fallback
-- Cached response serving
-- Graceful degradation
+2. Configure retry settings:
+   - Max retries: 3
+   - Timeout: 30 seconds
+   - Exponential backoff
 
-Features:
-- Exponential backoff with jitter
-- Circuit breaker pattern
-- Error logging and monitoring
-- User-friendly error messages
+3. Error handling:
+   - Rate limiting (429) → automatic model switch
+   - Token limits → automatic truncation
+   - API timeouts → fallback to faster model
+   - Service outages → circuit breaker activation
 
-Output: Complete error handling module with retry logic
+4. Cost optimization:
+   - Track fallback usage
+   - Alert on cost spikes
+   - Prefer cheaper models when possible
+
+Implementation:
+```typescript
+const litellmConfig = {
+  fallbacks: [
+    { model: 'gpt-4-turbo', weight: 1.0 },
+    { model: 'claude-3-opus', weight: 0.8 },
+    { model: 'claude-3-haiku', weight: 0.6 }
+  ],
+  retry: {
+    maxAttempts: 3,
+    backoffMultiplier: 2,
+    maxTimeout: 30000
+  },
+  costTracking: true,
+  alertThreshold: 10.00 // Alert if single request costs > $10
+};
+```
+
+Output: Complete LiteLLM configuration with fallback chain
 """
 
 ---
@@ -1779,19 +1814,23 @@ Output: Complete website ready for deployment
 version: 1.0.0
 last_updated: 2024-01-20
 tested_with:
-  - gpt-4-turbo-preview
-  - gpt-4-1106-preview
-  - claude-3-opus-20240229
-  - claude-3-sonnet-20240229
+  - litellm-v1.0.0
+  - gpt-4-turbo-preview (via LiteLLM)
+  - claude-3-opus-20240229 (via LiteLLM)
+  - claude-3-haiku (via LiteLLM)
+  - dall-e-3 (via LiteLLM)
   
 compatibility_notes:
-  gpt-4: 
-    - Best for complex logic and structured output
-    - Use JSON mode for consistent formatting
-  claude-3:
-    - Better for creative content generation
-    - Faster response times
-    - Good fallback for rate limits
+  litellm:
+    - Unified interface for all models
+    - Automatic fallback handling
+    - Built-in cost tracking
+    - Load balancing across providers
+  model_selection:
+    - Structure: GPT-4 (best for JSON output)
+    - Content: Claude-3 (natural language)
+    - Speed: Claude-3-haiku (10x faster)
+    - Images: DALL-E 3 (highest quality)
     
 deprecated_prompts:
   - v0.9.0: Legacy template system

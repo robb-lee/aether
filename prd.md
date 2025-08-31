@@ -62,19 +62,26 @@ Frontend:
   - Visual Editor: Custom React-based Canvas
   - Styling: Tailwind CSS + Framer Motion
   - State: Zustand + Immer
-  - AI Integration: Vercel AI SDK
+  - AI Integration: LiteLLM Client SDK
 
 Backend:
   - Runtime: Edge Runtime (Vercel)
   - Database: PostgreSQL (Supabase)
-  - AI Gateway: OpenAI + Anthropic (fallback)
+  - AI Gateway: LiteLLM (통합 AI 게이트웨이)
+  - Cache: Upstash Redis
   - File Storage: Vercel Blob
   
-AI Stack:
-  - Primary: GPT-4-turbo (구조 생성)
-  - Secondary: Claude-3-haiku (콘텐츠)
-  - Image: DALL-E 3 / Stable Diffusion
-  - Embeddings: OpenAI text-embedding-3
+AI Stack (via LiteLLM):
+  - Gateway: LiteLLM Proxy Server
+  - Primary Model: GPT-4-turbo (구조 생성)
+  - Fallback Model: Claude-3-haiku (빠른 응답)
+  - Content Model: Claude-3-opus (콘텐츠 최적화)
+  - Image Model: DALL-E 3
+  - Features:
+    - Automatic fallback chain
+    - Built-in cost tracking
+    - Load balancing
+    - Rate limit handling
 
 Deployment:
   - Hosting: Vercel (자동 스케일링)
@@ -88,10 +95,11 @@ Deployment:
 graph TB
     U[사용자] --> V[Vercel Edge]
     V --> N[Next.js App]
-    N --> AI[AI Engine]
-    AI --> GPT[GPT-4]
-    AI --> Claude[Claude]
-    AI --> DALLE[DALL-E]
+    N --> LL[LiteLLM Gateway]
+    LL --> GPT[GPT-4]
+    LL --> Claude[Claude-3]
+    LL --> DALLE[DALL-E]
+    N --> R[(Redis Cache)]
     N --> S[(Supabase)]
     N --> B[Vercel Blob]
     N --> D[Deploy API]
@@ -103,56 +111,82 @@ graph TB
 ### 4.1 AI 사이트 생성 파이프라인
 ```typescript
 interface AISiteGenerator {
-  // 1단계: 컨텍스트 이해
+  litellm: LiteLLMClient; // 통합 AI 게이트웨이
+  
+  // 1단계: 컨텍스트 이해 (GPT-4)
   analyzePrompt(prompt: string): BusinessContext;
   
-  // 2단계: 구조 생성
+  // 2단계: 구조 생성 (GPT-4 with fallback)
   generateStructure(context: BusinessContext): SiteStructure;
   
-  // 3단계: 콘텐츠 생성
+  // 3단계: 콘텐츠 생성 (Claude-3-opus)
   generateContent(structure: SiteStructure): ContentMap;
   
-  // 4단계: 디자인 생성
+  // 4단계: 디자인 생성 (GPT-4)
   generateDesign(structure: SiteStructure): DesignSystem;
   
-  // 5단계: 컴포넌트 조립
+  // 5단계: 이미지 생성 (DALL-E 3)
+  generateImages(design: DesignSystem): ImageAssets;
+  
+  // 6단계: 컴포넌트 조립
   assembleComponents(all: GeneratedAssets): ReactComponentTree;
 }
 
 // 실행 시간 목표
 const PERFORMANCE_TARGETS = {
   total: 30, // 초
-  structure: 5,
-  content: 10,
-  design: 5,
-  assembly: 10
+  structure: 5,  // GPT-4
+  content: 10,   // Claude-3
+  design: 5,     // GPT-4
+  images: 5,     // DALL-E
+  assembly: 5    // Local
 };
+
+// LiteLLM 자동 폴백 체인
+const FALLBACK_CHAIN = [
+  'gpt-4-turbo-preview',
+  'claude-3-opus',
+  'claude-3-haiku',
+  'cached-response'
+];
 ```
 
-### 4.2 프롬프트 엔지니어링
+### 4.2 프롬프트 엔지니어링 with LiteLLM
 ```javascript
-const SYSTEM_PROMPT = `
-You are an expert web designer and developer.
-Generate a complete website structure optimized for conversion.
+// LiteLLM을 통해 모델별 최적화된 프롬프트
+const MODEL_SPECIFIC_PROMPTS = {
+  'gpt-4': {
+    system: `You are an expert web designer. Generate structured JSON output.`,
+    format: 'json_object',
+    temperature: 0.7
+  },
+  'claude-3': {
+    system: `You are a creative content writer. Generate natural, engaging text.`,
+    format: 'text',
+    temperature: 0.8
+  },
+  'dall-e-3': {
+    style: 'modern, professional, high-quality',
+    size: '1024x1024'
+  }
+};
 
-Output format: React component tree with:
-1. Semantic HTML structure
-2. Tailwind CSS classes
-3. Accessibility attributes
-4. SEO metadata
-5. Performance optimizations
-
-Style: Modern, clean, professional
-Framework: Next.js 14 with App Router
-`;
-
-const enhanceUserPrompt = (input) => ({
-  business: extractBusinessInfo(input),
-  style: detectStylePreference(input),
-  features: identifyRequiredFeatures(input),
-  industry: classifyIndustry(input),
-  tone: analyzeTone(input)
-});
+const routeToOptimalModel = async (task, prompt) => {
+  // LiteLLM이 자동으로 최적 모델 선택
+  const modelConfig = {
+    structure: { model: 'gpt-4-turbo', fallback: ['claude-3'] },
+    content: { model: 'claude-3-opus', fallback: ['gpt-4'] },
+    speed: { model: 'claude-3-haiku', fallback: ['gpt-3.5'] },
+    image: { model: 'dall-e-3', fallback: ['stable-diffusion'] }
+  };
+  
+  return await litellm.complete({
+    ...modelConfig[task],
+    prompt,
+    cache: true,
+    track_cost: true
+  });
+};
 ```
 
 ### 4.3 AI 컴포넌트 생성기

@@ -1,74 +1,14 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
+  "buildCommand": "cd ../.. && pnpm build",
+  "devCommand": "cd ../.. && pnpm dev",
+  "installCommand": "cd ../.. && pnpm install",
+  "outputDirectory": ".next",
+  "rootDirectory": "apps/web",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
   "regions": ["iad1"],
-  "functions": {
-    "apps/web/app/api/ai/generate/route.ts": {
-      "maxDuration": 30
-    },
-    "apps/web/app/api/**/*.ts": {
-      "maxDuration": 10
-    }
-  },
   "env": {
     "NODE_ENV": "production"
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "/api/robots"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/dashboard",
-      "permanent": false
-    },
-    {
-      "source": "/app",
-      "destination": "/dashboard",
-      "permanent": false
-    }
-  ]
+  }
 }

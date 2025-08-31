@@ -1,14 +1,6 @@
 {
-  "version": 2,
-  "framework": "nextjs",
-  "rootDirectory": "apps/web",
-  "buildCommand": "cd ../.. && pnpm --filter @aether/web build",
-  "devCommand": "cd ../.. && pnpm --filter @aether/web dev",
-  "installCommand": "cd ../.. && pnpm install",
-  "outputDirectory": ".next",
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
-  "regions": ["iad1"],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "apps/web/.next",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install"
 }

@@ -5,7 +5,7 @@ export default function HomePage() {
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-bold text-white">
             Welcome to{' '}
-            <span className="ai-gradient-text">Aether</span>
+            <span className="ai-gradient-text">Aether!</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
             AI-powered website builder that creates professional websites in 30 seconds

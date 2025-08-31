@@ -1,10 +1,11 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "pnpm --filter @aether/web build",
-  "devCommand": "pnpm --filter @aether/web dev",
-  "installCommand": "pnpm install",
-  "outputDirectory": "apps/web/.next",
+  "rootDirectory": "apps/web",
+  "buildCommand": "cd ../.. && pnpm --filter @aether/web build",
+  "devCommand": "cd ../.. && pnpm --filter @aether/web dev",
+  "installCommand": "cd ../.. && pnpm install",
+  "outputDirectory": ".next",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
   "regions": ["iad1"],
   "env": {

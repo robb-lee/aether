@@ -68,15 +68,23 @@ git commit -m "Task X.X: [Description] - Completed"
 
 ### Task Execution Template
 
-When asked to execute a task, follow this pattern:
+⚠️ **MANDATORY: When executing ANY task, you MUST complete ALL these steps:**
 
 1. **Read the task details** from task.md
-2. **Mark task as in progress** in task.md
+2. **Mark task as in progress**: `pnpm task:start X.X`
 3. **Execute the task** according to specifications
 4. **Test the implementation** to verify it works
-5. **Update task status** to completed in task.md
-6. **Update work-log.md** with completion details
-7. **Commit changes** with descriptive message
+5. **Complete the task tracking**:
+   ```bash
+   # REQUIRED COMMANDS - RUN THESE AFTER EVERY TASK:
+   pnpm task:complete X.X XXmin  # Mark as complete
+   pnpm progress:update          # Update progress
+   git add -A                    # Stage all changes
+   git commit -m "Task X.X: Description - Completed"
+   git push origin main          # Push to repository
+   pnpm task:status             # Show final status
+   ```
+6. **Show completion summary** with all files created/modified
 
 ### Example Task Completion Response
 

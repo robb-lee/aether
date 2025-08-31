@@ -84,6 +84,7 @@ Create a Next.js 14 project with App Router, TypeScript, Tailwind CSS, and Turbo
 
 #### Task 1.2: Supabase Setup (45min)
 **Status**: [x] Completed ✅
+**Actual Time**: 30min
 **Actual Time**: 5min
 **Type**: Setup
 **Priority**: Critical
@@ -118,32 +119,44 @@ Set up Supabase client for Next.js 14 with authentication. Create database table
 ---
 
 #### Task 1.3: Environment Configuration (15min)
+**Status**: [x] Completed ✅
+**Actual Time**: 30min
 **Type**: Setup
 **Priority**: Critical
 **Dependencies**: Task 1.2
+**Actual Time**: ___
 
 **Description**:
-Set up environment variables for all services (OpenAI, Anthropic, Vercel, Supabase) with proper validation using Zod.
+Create Zod validation for environment variables including LiteLLM configuration. Validate all API keys with type-safe access.
 
 **AI Prompt**:
 ```
-Create environment variable configuration with Zod validation for OpenAI, Anthropic, Supabase, and Vercel APIs. Include type-safe access throughout the application.
+Create environment variable validation with Zod for:
+- LiteLLM configuration (API base, key, models)
+- Supabase (URL, anon key, service key)
+- Vercel (token, team ID)
+- Other services
+
+Use the existing .env.local.example as reference.
+Create lib/env.ts with proper type validation.
 ```
 
 **Acceptance Criteria**:
-- [ ] All API keys configured
-- [ ] Zod schema validates env vars
-- [ ] Type-safe env access
+- [ ] Zod schema validates all env vars
+- [ ] Type-safe env access throughout app
+- [ ] LiteLLM config properly validated
+- [ ] Error messages for missing vars
 
 **Files to Create/Modify**:
-- `.env.local`
-- `.env.example`
-- `apps/web/lib/env.ts`
+- `lib/env.ts` (create - Zod validation)
+- `lib/env.client.ts` (create - client-side vars)
+- `lib/env.server.ts` (create - server-side vars)
 
 **Testing**:
-- [ ] Environment variables load correctly
-- [ ] Validation catches missing vars
+- [ ] Environment variables validation works
+- [ ] Missing vars show clear errors
 - [ ] Type safety enforced
+- [ ] LiteLLM connection validated
 
 ---
 

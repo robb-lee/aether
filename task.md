@@ -5,7 +5,7 @@
 ### Overall Progress
 - **Start Date**: [ ] _____
 - **Current Day**: [1] Day 1/14
-- **Tasks Completed**: [0] 0/84
+- **Tasks Completed**: [2] 2/84
 - **Current Status**: 🟡 In Progress
 
 ### Daily Progress
@@ -15,7 +15,7 @@
 
 | Day | Date | Planned Tasks | Completed | Status | Notes |
 |-----|------|--------------|-----------|--------|-------|
-| 1 | | 6 tasks | 0/6 | | |
+| 1 | | 6 tasks | 2/6 | 🔄 | Task 1.1 and 1.2 completed |
 | 2 | | 6 tasks | 0/6 | | |
 | 3 | | 4 tasks | 0/4 | | |
 | 4 | | 4 tasks | 0/4 | | |
@@ -83,6 +83,8 @@ Create a Next.js 14 project with App Router, TypeScript, Tailwind CSS, and Turbo
 ---
 
 #### Task 1.2: Supabase Setup (45min)
+**Status**: [x] Completed ✅
+**Actual Time**: 5min
 **Type**: Setup
 **Priority**: Critical
 **Dependencies**: Task 1.1

@@ -116,6 +116,20 @@ CREATE TABLE IF NOT EXISTS public.assets (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Usage tracking table (for AI cost and quota management)
+CREATE TABLE IF NOT EXISTS public.usage_tracking (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    model TEXT NOT NULL,
+    prompt_tokens INTEGER NOT NULL DEFAULT 0,
+    completion_tokens INTEGER NOT NULL DEFAULT 0,
+    total_tokens INTEGER NOT NULL DEFAULT 0,
+    cost_cents INTEGER NOT NULL DEFAULT 0,
+    request_type TEXT NOT NULL CHECK (request_type IN ('generation', 'image', 'streaming', 'analysis')),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Analytics events table
 CREATE TABLE IF NOT EXISTS public.analytics_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -142,6 +156,9 @@ CREATE INDEX idx_deployments_status ON public.deployments(status);
 CREATE INDEX idx_components_user_id ON public.components(user_id);
 CREATE INDEX idx_assets_user_id ON public.assets(user_id);
 CREATE INDEX idx_assets_site_id ON public.assets(site_id);
+CREATE INDEX idx_usage_tracking_user_id ON public.usage_tracking(user_id);
+CREATE INDEX idx_usage_tracking_model ON public.usage_tracking(model);
+CREATE INDEX idx_usage_tracking_created_at ON public.usage_tracking(created_at);
 CREATE INDEX idx_analytics_events_site_id ON public.analytics_events(site_id);
 CREATE INDEX idx_analytics_events_created_at ON public.analytics_events(created_at);
 
@@ -155,6 +172,7 @@ ALTER TABLE public.ai_generations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deployments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.components ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usage_tracking ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analytics_events ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
@@ -229,6 +247,13 @@ CREATE POLICY "Users can insert own assets" ON public.assets
 
 CREATE POLICY "Users can delete own assets" ON public.assets
     FOR DELETE USING (auth.uid() = user_id);
+
+-- Usage tracking policies
+CREATE POLICY "Users can view own usage tracking" ON public.usage_tracking
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Service can insert usage tracking" ON public.usage_tracking
+    FOR INSERT WITH CHECK (true);
 
 -- Analytics events policies (write-only for public, read for site owners)
 CREATE POLICY "Anyone can insert analytics events" ON public.analytics_events

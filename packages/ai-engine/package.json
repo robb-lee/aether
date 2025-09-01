@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.1",
+    "@upstash/redis": "^1.35.3",
     "dotenv": "^17.2.1",
     "openai": "^4.28.0",
     "zod": "^3.22.4"

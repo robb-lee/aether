@@ -34,6 +34,11 @@ import {
   modelCircuitBreaker,
 } from './fallback-config';
 import {
+  getCachedResponse,
+  setCachedResponse,
+  checkCacheHealth,
+} from './cache';
+import {
   mockGenerateCompletion,
   mockGenerateImage,
   mockStreamCompletion,
@@ -163,6 +168,26 @@ export async function generateCompletion({
   const logger = new RequestLogger('generateCompletion', { messages, model: selectedModel, metadata });
   const startTime = Date.now();
   
+  // Check cache first (skip for streaming requests)
+  if (!stream) {
+    const cached = await getCachedResponse('completion', selectedModel, messages, metadata);
+    if (cached) {
+      logger.success(cached.response, cached.model, cached.cost);
+      return {
+        response: cached.response,
+        model: cached.model,
+        cost: cached.cost,
+        fallback: false,
+        cached: true,
+        metadata: {
+          ...metadata,
+          cached: true,
+          cacheTimestamp: cached.timestamp,
+        },
+      };
+    }
+  }
+  
   let lastError: any;
   let usedModel: string = selectedModel;
   
@@ -194,6 +219,18 @@ export async function generateCompletion({
       const cost = calculateCost(currentModel, response);
       logger.success(response, currentModel, cost);
       
+      // Store in cache (skip for streaming)
+      if (!stream) {
+        await setCachedResponse(
+          'completion',
+          currentModel,
+          messages,
+          response,
+          cost,
+          metadata
+        );
+      }
+      
       // Record successful fallback metrics
       createFallbackMetric(
         currentModel,
@@ -212,6 +249,7 @@ export async function generateCompletion({
         model: currentModel,
         cost,
         fallback: currentModel !== selectedModel,
+        cached: false,
         metadata: {
           ...metadata,
           attemptedModels: fallbackChain.slice(0, fallbackChain.indexOf(currentModel) + 1),
@@ -467,6 +505,7 @@ export async function checkHealth(): Promise<{
   healthy: boolean;
   litellm: boolean;
   models: Record<string, boolean>;
+  cache: boolean;
   latency: number;
   timestamp: string;
   errors?: string[];
@@ -510,6 +549,18 @@ export async function checkHealth(): Promise<{
     }
   }
   
+  // Check cache health
+  let cacheHealthy = false;
+  try {
+    const cacheHealth = await checkCacheHealth();
+    cacheHealthy = cacheHealth.healthy;
+    if (!cacheHealth.healthy && cacheHealth.error) {
+      errors.push(`Cache: ${cacheHealth.error}`);
+    }
+  } catch (error) {
+    errors.push(`Cache check failed: ${error.message}`);
+  }
+  
   const latency = Date.now() - startTime;
   const healthy = litellmHealthy && errors.length === 0;
   
@@ -517,6 +568,7 @@ export async function checkHealth(): Promise<{
     healthy,
     litellm: litellmHealthy,
     models: modelStatus,
+    cache: cacheHealthy,
     latency,
     timestamp: new Date().toISOString(),
     errors: errors.length > 0 ? errors : undefined,

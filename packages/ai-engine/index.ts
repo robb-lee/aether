@@ -125,3 +125,48 @@ export {
   isValidSiteStructure,
   safeParseSiteStructure,
 } from './schemas/site-structure';
+
+// Export parsers and handlers
+export {
+  parseAIResponse,
+  parseSiteStructure,
+  parseComponentTree,
+  parseContextExtraction,
+  parseUniversalResponse,
+  type RawAIResponse,
+  type ParsedResponse,
+} from './parsers/response-parser';
+
+export {
+  StreamingResponseHandler,
+  handleStreamingResponse,
+  streamSiteGeneration,
+  type StreamChunk as ParserStreamChunk,
+  type StreamProgress,
+  type StreamHandlerOptions,
+} from './parsers/stream-handler';
+
+// Export validators
+export {
+  validateAIResponse,
+  validateSiteStructure as validateSiteStructureAdvanced,
+  validateComponentTree as validateComponentTreeAdvanced,
+  validateComponent,
+  validateSEO,
+  validateBatch,
+  CustomValidator,
+  CUSTOM_RULES,
+  quickValidate,
+  type ValidationIssue,
+} from './lib/validators';
+
+// Export normalizers
+export {
+  normalizeResponse,
+  normalizeModelDifferences,
+  smartNormalize,
+  batchNormalize,
+  normalizeAndValidate,
+  detectResponseType,
+  extractModelContent,
+} from './lib/normalizer';

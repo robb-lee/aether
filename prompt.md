@@ -307,54 +307,157 @@ const site = await generator.generateSite(
 
 ---
 
-### 2.2 Site Generation Pipeline
+### 2.1.5 Component Registry Selection Prompt
 
-**Purpose**: 30초 내 AI 사이트 생성 파이프라인 구현
+**Purpose**: Component Registry에서 최적의 컴포넌트 선택
 
 **Context Template**:
 """
-You are an expert in AI pipeline architecture.
-Project: Aether
-Current Task: Build multi-stage generation pipeline
-Performance Target: < 30 seconds total
+You are an AI website architect using a Component Registry system.
+Instead of generating component code, you SELECT pre-built components from a curated library.
+All available components are tested, optimized, and production-ready.
+Focus on selecting the best combination for user requirements.
+"""
+
+**Input Variables**:
+- {user_prompt}: 사용자 요구사항
+- {available_components}: Registry에서 사용 가능한 컴포넌트 목록
+- {business_context}: 분석된 비즈니스 컨텍스트
+
+**Main Prompt**:
+"""
+Analyze user requirements and select optimal components from the Component Registry.
+
+Available Components by Category:
+- **hero**: [hero-centered, hero-split, hero-video-bg]
+- **features**: [features-grid, features-cards, features-list]
+- **cta**: [cta-simple, cta-with-image]
+- **header**: [header-simple, header-with-cta, header-mega-menu]
+- **footer**: [footer-simple, footer-links, footer-newsletter]
+- **pricing**: [pricing-simple, pricing-comparison]
+- **testimonials**: [testimonials-cards, testimonials-carousel]
+- **contact**: [contact-simple, contact-with-map]
+
+User Request: "{user_prompt}"
+
+Your task:
+1. Identify required sections for the website
+2. Select the most appropriate component ID for each section
+3. Generate only props/content for each selected component
+4. Specify layout order and arrangement
+
+Output Format (JSON only):
+{
+  "businessContext": {
+    "industry": "detected industry",
+    "targetAudience": "identified audience",
+    "goalType": "conversion|information|engagement"
+  },
+  "selections": [
+    {
+      "sectionOrder": 1,
+      "componentId": "hero-split",
+      "category": "hero",
+      "props": {
+        "title": "Generated headline",
+        "subtitle": "Supporting text",
+        "ctaText": "Action button text",
+        "imagePrompt": "Image description for generation"
+      },
+      "reasoning": "Why this component was selected"
+    },
+    {
+      "sectionOrder": 2,
+      "componentId": "features-grid",
+      "category": "features",
+      "props": {
+        "title": "Features section title",
+        "features": [
+          {"title": "Feature 1", "description": "...", "icon": "..."}
+        ]
+      },
+      "reasoning": "Selection rationale"
+    }
+  ],
+  "globalSettings": {
+    "colorScheme": "primary color based on industry",
+    "typography": "font choice based on brand feel",
+    "spacing": "spacing preferences"
+  },
+  "estimatedTokens": "estimated token count for this selection"
+}
+
+CRITICAL RULES:
+- DO NOT generate component structure or HTML/JSX code
+- DO NOT create new component types
+- ONLY select from available componentIds
+- ONLY generate props and content
+- Optimize for minimal token usage while maintaining quality
+"""
+
+**Expected Output**:
+JSON with component selections and props, reducing token usage by 90% compared to full generation.
+
+**Token Efficiency**:
+- Previous method: 5,000-20,000 tokens/site
+- Registry method: 500-2,000 tokens/site
+- Reduction: 80-90%
+
+---
+
+### 2.2 Site Generation Pipeline (Component Registry Version)
+
+**Purpose**: Component Registry 기반 10초 내 AI 사이트 생성 파이프라인
+
+**Context Template**:
+"""
+You are an expert in AI pipeline architecture using Component Registry.
+Project: Aether with Component Registry System
+Current Task: Build optimized selection-based generation pipeline
+Performance Target: < 15 seconds total (66% improvement)
 """
 
 **Main Prompt**:
 """
-Design and implement a multi-stage AI generation pipeline:
+Design and implement Component Registry-based generation pipeline:
 
-Stage 1: Context Analysis (5s)
+Stage 1: Context Analysis (3s)
 - Extract business context from prompt
 - Identify industry and style preferences
-- Select appropriate template
+- Map to component categories
 
-Stage 2: Structure Generation (5s)
-- Generate page hierarchy
-- Define component layout
-- Create navigation structure
+Stage 2: Component Selection (2s)
+- Query Component Registry for candidates
+- Score components based on requirements
+- Select optimal component IDs
 
-Stage 3: Content Generation (10s)
-- Generate copy for each section
+Stage 3: Props Generation (5s)
+- Generate props/content for selected components
 - Create SEO metadata
-- Generate alt text for images
+- Generate image prompts
 
-Stage 4: Design System (5s)
-- Select color scheme
-- Choose typography
-- Generate spacing system
+Stage 4: Assembly (2s)
+- Compose site from Registry components
+- Apply global theme settings
+- Validate component tree
 
-Stage 5: Assembly & Optimization (5s)
-- Combine all elements
-- Optimize for performance
-- Validate output
+Stage 5: Optimization (3s)
+- Verify component compatibility
+- Optimize performance settings
+- Generate preview
 
 Implement with:
-- Parallel processing where possible
-- Progress streaming to client
-- Fallback strategies for failures
-- Caching for common patterns
+- Component Registry lookup instead of generation
+- Token usage optimization (90% reduction)
+- Cached component metadata
+- Parallel selection and props generation
 
-Output: Complete pipeline implementation with progress tracking
+Token Usage Comparison:
+- Previous: 5,000-20,000 tokens per site
+- Registry: 500-2,000 tokens per site
+- Speed: 30s → 15s generation time
+
+Output: Optimized pipeline with Component Registry integration
 """
 
 ---

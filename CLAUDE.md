@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Core Value Proposition:**
 - **30-second generation**: From text prompt to live website
-- **AI-first approach**: GPT-4 for structure, Claude-3 for content, DALL-E for images
+- **AI-first approach**: claude-4-sonnet for content/analysis, gpt-5-mini for fast processing, gpt-5 for images
 - **Instant deployment**: Direct to Vercel with custom domains
 - **Visual editing**: Code-free customization after generation
 
@@ -182,9 +182,10 @@ packages/
 - Redis for AI response caching (TODO - Day 7)
 
 **AI Integration:**
-- GPT-4-turbo for structure generation
-- Claude-3-haiku for content optimization
-- DALL-E 3 for image generation
+- claude-4-sonnet for primary content/analysis
+- gpt-5-mini for quick responses and optimization
+- gpt-5 for image generation
+- All models accessed via LiteLLM unified gateway
 - Streaming responses with Vercel AI SDK
 
 ### Component Architecture
@@ -226,10 +227,10 @@ Key tables (defined in `schema.md`):
 
 The project uses a multi-stage AI generation process:
 
-1. **Structure Generation** (GPT-4): Creates site architecture
-2. **Content Generation** (Claude-3): Writes optimized copy
-3. **Design Generation** (GPT-4): Applies styling and themes
-4. **Image Generation** (DALL-E): Creates visual assets
+1. **Structure Generation** (claude-4-sonnet): Creates site architecture
+2. **Content Generation** (claude-4-sonnet): Writes optimized copy
+3. **Quick Processing** (gpt-5-mini): Fast responses and optimization
+4. **Image Generation** (gpt-5): Creates visual assets
 
 Prompt templates will be stored in `packages/ai-engine/prompts/` (TODO - Day 2) and documented in `prompt.md`.
 
@@ -478,4 +479,99 @@ echo "Time Spent: $(grep 'Actual Time' task.md | awk '{sum+=$3} END {print sum}'
 
 Next: Task 1.2 ready to start
 ==================================
+
+---
+
+## 🧩 Component Registry 시스템 가이드라인
+
+### 🔄 프롬프트 전략 변경 (CRITICAL)
+
+**Aether는 이제 Component Registry 기반으로 작동합니다.**
+
+#### **절대 하지 말 것** ❌
+- 컴포넌트 구조 직접 생성 (HTML/JSX 코드)
+- 새로운 컴포넌트 타입 생성
+- CSS/스타일 정의 생성
+- 전체 JSON 컴포넌트 트리 생성
+
+#### **반드시 할 것** ✅
+- Registry에서 컴포넌트 ID 선택만
+- Props와 Content만 생성
+- 기존 componentId 사용
+- 토큰 사용량 최소화
+
+### 예시 변경
+
+#### **이전 방식** (잘못됨 - 절대 사용 금지):
+```json
+{
+  "components": {
+    "root": {
+      "type": "div",
+      "className": "min-h-screen",
+      "children": [
+        {
+          "id": "hero_1", 
+          "type": "section",
+          "className": "hero-section bg-gradient-to-r from-blue-600 to-purple-600",
+          "children": [
+            {
+              "type": "div",
+              "className": "container mx-auto px-4",
+              "children": [...]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+#### **현재 방식** (올바름 - 필수 사용):
+```json
+{
+  "selections": [
+    {
+      "componentId": "hero-split",
+      "props": {
+        "title": "Transform Your Business with AI",
+        "subtitle": "Get professional websites in 30 seconds",
+        "ctaText": "Start Building",
+        "imagePrompt": "Modern SaaS dashboard interface"
+      }
+    },
+    {
+      "componentId": "features-grid", 
+      "props": {
+        "title": "Why Choose Our Platform",
+        "features": [
+          {"title": "Lightning Fast", "description": "30-second generation"}
+        ]
+      }
+    }
+  ]
+}
+```
+
+### 🎯 컴포넌트 선택 우선순위
+
+1. **업종별 최적화**: SaaS → hero-split, E-commerce → hero-centered
+2. **성능 점수**: Lighthouse 90+ 컴포넌트 우선
+3. **사용 통계**: 가장 성공적인 컴포넌트 선택
+4. **호환성**: 선택된 컴포넌트들이 잘 조합되는지 확인
+
+### 📊 성능 목표 및 측정
+
+- **토큰 사용량**: 500-2,000 (이전 대비 90% 절감)
+- **생성 시간**: 10-15초 (이전 대비 66% 단축)  
+- **품질 일관성**: 100% (사전 테스트된 컴포넌트)
+- **사용자 만족도**: 95%+ (일관된 품질)
+
+### ⚠️ 개발 시 주의사항
+
+1. **기존 작업 보존**: Task 2.1-2.3의 LiteLLM 통합은 그대로 유지
+2. **점진적 전환**: 기존 직접 생성 방식을 fallback으로 유지
+3. **호환성**: Component Registry 도입 후에도 기존 사이트 편집 가능
+4. **확장성**: 새 컴포넌트 추가가 쉬워야 함
 ```

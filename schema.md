@@ -136,7 +136,7 @@ CREATE POLICY "Published sites are publicly viewable" ON sites
 ```
 
 ### 1.3 Components Table
-Reusable component library.
+Reusable component library with Component Registry support.
 
 ```sql
 CREATE TABLE components (
@@ -152,12 +152,41 @@ CREATE TABLE components (
   props_schema JSONB,
   default_props JSONB,
   
+  -- Component Registry fields
+  registry_id TEXT UNIQUE, -- For Component Registry system
+  variant TEXT, -- Component variant (e.g., 'centered', 'split')
+  registry_metadata JSONB DEFAULT '{
+    "category": "",
+    "keywords": [],
+    "performance": {
+      "renderTime": 0,
+      "bundleSize": 0,
+      "lighthouseScore": 0
+    },
+    "compatibility": {
+      "browsers": ["chrome", "firefox", "safari", "edge"],
+      "responsive": true,
+      "accessibility": "WCAG-AA"
+    },
+    "aiHints": {
+      "bestFor": [],
+      "avoidFor": [],
+      "commonProps": {}
+    }
+  }',
+  
   -- Metadata
   description TEXT,
   tags TEXT[],
   is_public BOOLEAN DEFAULT false,
   is_ai_generated BOOLEAN DEFAULT false,
+  is_registry_component BOOLEAN DEFAULT false, -- Component Registry 컴포넌트 구분
   usage_count INTEGER DEFAULT 0,
+  
+  -- Performance metrics
+  avg_render_time_ms INTEGER DEFAULT 0,
+  lighthouse_score INTEGER DEFAULT 0,
+  accessibility_score INTEGER DEFAULT 0,
   
   -- Versioning
   version TEXT DEFAULT '1.0.0',
@@ -174,6 +203,13 @@ CREATE INDEX idx_components_category ON components(category);
 CREATE INDEX idx_components_is_public ON components(is_public);
 CREATE INDEX idx_components_tags_gin ON components USING GIN(tags);
 
+-- Component Registry 관련 인덱스
+CREATE INDEX idx_components_registry_id ON components(registry_id);
+CREATE INDEX idx_components_variant ON components(variant);
+CREATE INDEX idx_components_is_registry ON components(is_registry_component);
+CREATE INDEX idx_components_registry_metadata_gin ON components USING GIN(registry_metadata);
+CREATE INDEX idx_components_performance ON components(lighthouse_score DESC, accessibility_score DESC);
+
 -- RLS Policies
 ALTER TABLE components ENABLE ROW LEVEL SECURITY;
 
@@ -188,6 +224,59 @@ CREATE POLICY "Users can update own components" ON components
 
 CREATE POLICY "Users can delete own components" ON components
   FOR DELETE USING (auth.uid() = user_id);
+
+-- Component Registry 전용 정책
+CREATE POLICY "Registry components are publicly readable" ON components
+  FOR SELECT USING (is_registry_component = true);
+```
+
+#### Component Selections Table
+Track AI component selections for analytics.
+
+```sql
+CREATE TABLE component_selections (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  site_id UUID NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
+  component_id UUID NOT NULL REFERENCES components(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  
+  -- Selection details
+  selection_reason TEXT,
+  business_context JSONB,
+  user_prompt TEXT,
+  
+  -- AI details
+  model_used TEXT NOT NULL,
+  tokens_used INTEGER DEFAULT 0,
+  selection_confidence DECIMAL(3,2) DEFAULT 0.0,
+  
+  -- Generated props
+  props_generated JSONB NOT NULL,
+  props_token_count INTEGER DEFAULT 0,
+  
+  -- Performance tracking
+  render_success BOOLEAN DEFAULT true,
+  render_time_ms INTEGER,
+  user_satisfaction_score INTEGER, -- 1-5 rating
+  
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for analytics
+CREATE INDEX idx_component_selections_site_id ON component_selections(site_id);
+CREATE INDEX idx_component_selections_component_id ON component_selections(component_id);
+CREATE INDEX idx_component_selections_user_id ON component_selections(user_id);
+CREATE INDEX idx_component_selections_model ON component_selections(model_used);
+CREATE INDEX idx_component_selections_created_at ON component_selections(created_at DESC);
+
+-- RLS Policies
+ALTER TABLE component_selections ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own component selections" ON component_selections
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create component selections" ON component_selections
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
 ```
 
 ### 1.4 Templates Table

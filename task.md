@@ -281,12 +281,12 @@ Enhance the existing LiteLLM client in packages/ai-engine/lib/litellm-client.ts:
 3. Add request/response logging middleware
 4. Create comprehensive test suite
 5. Implement robust health check
-6. Configure model routing (GPT-4, Claude, DALL-E through single endpoint)
+6. Configure model routing (claude-4-sonnet, gpt-5-mini, gpt-5 through single endpoint)
 
 Verify all models work through LiteLLM proxy:
-- GPT-4 for structure generation
-- Claude for content optimization
-- DALL-E for image generation
+- claude-4-sonnet for primary content/analysis
+- gpt-5-mini for quick processing
+- gpt-5 for image generation
 ```
 
 **Acceptance Criteria**:
@@ -305,7 +305,7 @@ Verify all models work through LiteLLM proxy:
 
 **Testing**:
 - [ ] API calls succeed through LiteLLM
-- [ ] Automatic fallback works (GPT-4 → Claude)
+- [ ] Automatic fallback works (claude-4-sonnet → gpt-5-mini)
 - [ ] Streaming responses work
 - [ ] Cost calculation accurate
 - [ ] All models accessible via unified endpoint
@@ -327,9 +327,9 @@ Build sophisticated prompt engineering system that leverages LiteLLM's model rou
 ```
 Implement a prompt engine using LiteLLM that:
 1. Routes prompts to appropriate models via LiteLLM:
-   - GPT-4 for site structure and logic
-   - Claude for content writing and SEO
-   - DALL-E for image generation
+   - claude-4-sonnet for site structure and content
+   - gpt-5-mini for quick responses and optimization
+   - gpt-5 for image generation
 2. Enhances prompts with industry-specific templates
 3. Generates structured JSON output for site components
 4. Includes system prompts for consistent quality
@@ -377,7 +377,7 @@ Build a parser that:
 2. Validates JSON responses with Zod schemas
 3. Converts JSON to React component tree structure
 4. Handles malformed responses gracefully
-5. Normalizes output differences between GPT-4 and Claude
+5. Normalizes output differences between claude-4-sonnet and gpt-5-mini
 6. Extracts cost information from LiteLLM response metadata
 ```
 
@@ -416,9 +416,9 @@ Implement error handling system that works with LiteLLM:
 1. Create error boundaries for UI components
 2. Add user-friendly error messages
 3. Configure LiteLLM's automatic fallback chain:
-   - Primary: GPT-4-turbo
-   - Fallback 1: Claude-3-opus
-   - Fallback 2: Claude-3-haiku
+   - Primary: claude-4-sonnet
+   - Fallback 1: gpt-5-mini
+   - Fallback 2: gpt-4o-mini
 4. Add error logging and monitoring
 5. Create fallback UI states
 6. Track fallback usage for cost optimization
@@ -459,7 +459,7 @@ Implement usage tracking leveraging LiteLLM's built-in cost calculation across a
 ```
 Create usage tracking system using LiteLLM's cost tracking:
 1. Extract cost data from LiteLLM response metadata
-2. Track costs per model (GPT-4, Claude, DALL-E)
+2. Track costs per model (claude-4-sonnet, gpt-5-mini, gpt-5)
 3. Store usage metrics in Supabase database
 4. Implement tier-based quotas (Free/Starter/Pro/Business)
 5. Show real-time usage dashboard with model breakdown
@@ -505,7 +505,7 @@ Implement Redis caching system for LiteLLM:
 3. Cache successful LiteLLM responses
 4. Add TTL management (1 hour for AI responses)
 5. Track cache statistics and cost savings
-6. Skip cache for image generation (DALL-E)
+6. Skip cache for image generation (gpt-5)
 
 Include cache invalidation strategies.
 ```
@@ -527,6 +527,104 @@ Include cache invalidation strategies.
 - [ ] TTL expiration works
 - [ ] Cache invalidation works
 - [ ] Cost reduction verified
+
+---
+
+#### Task 2.7: Component Registry Infrastructure (1.5hr)
+**Type**: Feature
+**Priority**: Critical
+**Dependencies**: Task 2.6
+
+**Description**:
+Component Registry 시스템 구축으로 AI 생성 효율성 극대화. 미리 정의된 고품질 컴포넌트 라이브러리 구축.
+
+**AI Prompt**:
+```
+Build Component Registry system:
+1. Create packages/component-registry with 20 core components
+2. Implement component metadata system (category, variants, props schema)
+3. Build registry API (register, lookup, search by category/keywords)
+4. Add performance and accessibility metrics
+5. Create component preview system
+
+Core Components to implement:
+- Hero sections (3 variants): centered, split, video-bg
+- Features (3 variants): grid, cards, list  
+- CTA (2 variants): simple, with-image
+- Headers (3 variants): simple, with-cta, mega-menu
+- Footers (3 variants): simple, links, newsletter
+- Pricing (2 variants): simple, comparison
+- Testimonials (2 variants): cards, carousel
+- Contact (2 variants): simple, with-map
+
+Use existing components table in database for storage.
+```
+
+**Acceptance Criteria**:
+- [ ] 20 core components implemented
+- [ ] Component metadata system works
+- [ ] Registry API functional
+- [ ] All components tested and validated
+- [ ] Performance metrics tracked
+
+**Files to Create/Modify**:
+- `packages/component-registry/` (new package)
+- `packages/component-registry/src/registry.ts`
+- `packages/component-registry/src/components/`
+- `packages/component-registry/src/metadata.ts`
+- Update database components table
+
+**Testing**:
+- [ ] All components render correctly
+- [ ] Registry lookup works
+- [ ] Metadata accurate
+- [ ] Performance within targets
+
+---
+
+#### Task 2.8: AI Selection Engine Integration (1hr)
+**Type**: Feature
+**Priority**: Critical
+**Dependencies**: Task 2.7
+
+**Description**:
+AI가 컴포넌트를 직접 생성하지 않고 Registry에서 선택하도록 변경. 토큰 사용량 90% 절감 목표.
+
+**AI Prompt**:
+```
+Modify AI generation pipeline to use Component Registry:
+1. Update generateSiteStructure to select components (not generate)
+2. Create selectComponents function for AI component selection
+3. Implement Component Composer for assembly
+4. Modify prompts: "Select component IDs and generate props only"
+5. Add fallback to direct generation for edge cases
+
+New prompt strategy:
+- Input: "Create a SaaS landing page"
+- Output: {"selections": [{"componentId": "hero-split", "props": {...}}]}
+- NOT: Full component JSON structure
+
+Expected token reduction: 20,000 → 2,000 tokens per site
+```
+
+**Acceptance Criteria**:
+- [ ] AI selects components instead of generating
+- [ ] Token usage reduced by >80%
+- [ ] Generation time under 15 seconds
+- [ ] Component assembly works correctly
+- [ ] Fallback mechanism functional
+
+**Files to Create/Modify**:
+- `packages/ai-engine/generators/site-generator.ts`
+- `packages/ai-engine/selectors/component-selector.ts`
+- `packages/ai-engine/composers/site-composer.ts`
+- `packages/ai-engine/prompts/selection-prompts.ts`
+
+**Testing**:
+- [ ] Component selection works
+- [ ] Assembly produces valid sites
+- [ ] Token usage verified
+- [ ] Speed improvement confirmed
 
 ---
 
@@ -663,7 +761,7 @@ Create content generation pipeline:
 3. Generate appropriate CTAs
 4. Ensure consistent tone/voice
 5. Support multiple languages
-Use Claude-3 for content optimization.
+Use gpt-5-mini for quick content optimization.
 ```
 
 **Acceptance Criteria**:
@@ -1871,7 +1969,7 @@ graph TD
     T1.4 --> T1.5[Structure]
     T1.5 --> T1.6[Git/CI]
     
-    T1.3 --> T2.1[OpenAI Client]
+    T1.3 --> T2.1[LiteLLM Client]
     T2.1 --> T2.2[Prompt Engine]
     T2.2 --> T2.3[Parser]
     T2.3 --> T2.4[Fallback]
@@ -1934,8 +2032,8 @@ graph TD
 ## Resource Requirements
 
 ### APIs & Services
-- OpenAI API key ($100 initial credit)
-- Anthropic API key (backup)
+- LiteLLM API key (unified gateway)
+- Model access through LiteLLM proxy
 - Supabase project (free tier sufficient)
 - Vercel account (Pro plan $20/month)
 - Stripe account (for Day 12)
@@ -1950,8 +2048,8 @@ graph TD
 - Docker (optional)
 
 ### Estimated Costs (Month 1)
-- OpenAI API: $50-100
-- Anthropic API: $20 (backup)
+- LiteLLM Gateway: $50-100
+- Model usage tracking through LiteLLM
 - Vercel Pro: $20
 - Supabase: $0 (free tier)
 - Domain: $12

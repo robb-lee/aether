@@ -2,12 +2,12 @@
 
 ## 1. Executive Summary
 
-Aether는 AI 기반 웹사이트 빌더로, GPT-4와 Next.js 14를 활용하여 30초 내에 전문 웹사이트를 생성합니다. React 컴포넌트 기반 아키텍처와 Vercel Edge Runtime을 통해 즉시 배포 가능한 사이트를 제공하며, 드래그앤드롭 비주얼 에디터로 실시간 편집이 가능합니다.
+Aether는 AI 기반 웹사이트 빌더로, claude-4-sonnet과 Next.js 14를 활용하여 30초 내에 전문 웹사이트를 생성합니다. React 컴포넌트 기반 아키텍처와 Vercel Edge Runtime을 통해 즉시 배포 가능한 사이트를 제공하며, 드래그앤드롭 비주얼 에디터로 실시간 편집이 가능합니다.
 
 **핵심 기술 결정:**
 - **Monorepo**: Turborepo로 패키지 관리 최적화
 - **Runtime**: Vercel Edge Runtime으로 콜드 스타트 제거
-- **AI Strategy**: LiteLLM 통합 게이트웨이로 모든 AI 모델 관리 (GPT-4, Claude, DALL-E)
+- **AI Strategy**: LiteLLM 통합 게이트웨이로 모든 AI 모델 관리 (claude-4-sonnet, gpt-5-mini, gpt-5)
 - **State Management**: Zustand + Immer로 불변성 관리
 - **Deployment**: Vercel API 직접 통합으로 30초 내 배포
 
@@ -142,26 +142,26 @@ aether/
 - 장점: 자동 폴백, 비용 추적, 로드 밸런싱, 통합 모니터링
 - 지원 모델: 100+ AI 모델 (OpenAI, Anthropic, Google, Meta 등)
 
-**Primary Model: GPT-4-turbo (via LiteLLM)**
-- 용도: 사이트 구조 생성, 복잡한 로직
-- 특징: 128K 컨텍스트, JSON 모드 지원
+**Primary Model: claude-4-sonnet (via LiteLLM)**
+- 용도: 메인 콘텐츠/분석, 사이트 구조 생성, 복잡한 로직
+- 특징: 200K 컨텍스트, 고품질 텍스트 생성, 추론 능력
 - 비용: LiteLLM이 자동 계산
 
-**Fallback Model: Claude-3-haiku (via LiteLLM)**
-- 용도: 콘텐츠 생성, 빠른 응답이 필요한 작업
-- 특징: GPT-4 대비 10배 빠른 속도
-- 자동 폴백: LiteLLM이 GPT-4 실패 시 자동 전환
+**Fallback Model: gpt-5-mini (via LiteLLM)**
+- 용도: 빠른 응답이 필요한 작업, 간단한 콘텐츠 생성
+- 특징: claude-4-sonnet 대비 5배 빠른 속도
+- 자동 폴백: LiteLLM이 primary 모델 실패 시 자동 전환
 
-**Image Generation: DALL-E 3 (via LiteLLM)**
-- 용도: 히어로 이미지, 아이콘 생성
-- 특징: 프롬프트 준수율 최고
+**Image Generation: gpt-5 (via LiteLLM)**
+- 용도: 히어로 이미지, 아이콘 생성, 시각적 콘텐츠
+- 특징: 고해상도 이미지 생성, 프롬프트 준수율 높음
 - 통합: LiteLLM 단일 엔드포인트로 관리
 
 **Model Router Configuration**
-- 구조 생성 → GPT-4-turbo
-- 콘텐츠 작성 → Claude-3-opus
-- 빠른 응답 → Claude-3-haiku
-- 이미지 생성 → DALL-E 3
+- 메인 콘텐츠/분석 → claude-4-sonnet
+- 구조 생성 → claude-4-sonnet
+- 빠른 응답 → gpt-5-mini
+- 이미지 생성 → gpt-5
 
 ### Infrastructure
 
@@ -333,9 +333,9 @@ export class StructureGenerator {
     // 프롬프트 강화
     const enhanced = await this.enhancePrompt(prompt);
     
-    // LiteLLM으로 GPT-4 호출 (자동 폴백 포함)
+    // LiteLLM으로 claude-4-sonnet 호출 (자동 폴백 포함)
     const completion = await this.litellm.chat.completions.create({
-      model: process.env.AI_PRIMARY_MODEL || 'gpt-4-turbo-preview',
+      model: process.env.AI_PRIMARY_MODEL || 'claude-4-sonnet',
       messages: [
         { role: 'system', content: STRUCTURE_SYSTEM_PROMPT },
         { role: 'user', content: enhanced }
@@ -538,9 +538,9 @@ const envSchema = z.object({
   // LiteLLM Configuration (통합 AI 게이트웨이)
   LITELLM_API_BASE: z.string().url(),
   LITELLM_API_KEY: z.string().min(1),
-  AI_PRIMARY_MODEL: z.string().default('gpt-4-turbo-preview'),
-  AI_FALLBACK_MODEL: z.string().default('claude-3-haiku'),
-  AI_IMAGE_MODEL: z.string().default('dall-e-3'),
+  AI_PRIMARY_MODEL: z.string().default('claude-4-sonnet'),
+  AI_FALLBACK_MODEL: z.string().default('gpt-5-mini'),
+  AI_IMAGE_MODEL: z.string().default('gpt-5'),
   
   // Optional: Direct API keys for fallback
   OPENAI_API_KEY: z.string().min(1).optional(),
@@ -915,7 +915,7 @@ describe('StructureGenerator', () => {
   
   it('should cache repeated prompts', async () => {
     const generator = new StructureGenerator();
-    const spy = vi.spyOn(generator, 'callOpenAI');
+    const spy = vi.spyOn(generator, 'callLiteLLM');
     
     await generator.generate('test prompt');
     await generator.generate('test prompt');
@@ -981,9 +981,9 @@ NODE_ENV=development
 # LiteLLM Configuration (Unified AI Gateway)
 LITELLM_API_BASE=http://localhost:4000  # or https://your-litellm-proxy.com
 LITELLM_API_KEY=your_litellm_key
-AI_PRIMARY_MODEL=gpt-4-turbo-preview
-AI_FALLBACK_MODEL=claude-3-haiku
-AI_IMAGE_MODEL=dall-e-3
+AI_PRIMARY_MODEL=claude-4-sonnet
+AI_FALLBACK_MODEL=gpt-5-mini
+AI_IMAGE_MODEL=gpt-5
 
 # Optional: Direct API Keys (for LiteLLM proxy or fallback)
 OPENAI_API_KEY=sk-...  # Used by LiteLLM proxy
@@ -1139,7 +1139,7 @@ jobs:
  * 
  * @description
  * 사용자 프롬프트를 받아 완전한 웹사이트 구조를 생성합니다.
- * GPT-4를 사용하여 구조를 생성하고, Claude-3로 콘텐츠를 최적화합니다.
+ * claude-4-sonnet을 사용하여 구조를 생성하고, gpt-5-mini로 빠른 응답을 처리합니다.
  * 
  * @example
  * ```typescript
@@ -1226,8 +1226,8 @@ graph TB
     end
     
     subgraph "External Services"
-        OpenAI[OpenAI API]
-        Claude[Claude API]
+        LiteLLM[LiteLLM Gateway]
+        Models[AI Models]
         Vercel[Vercel API]
     end
     
@@ -1242,8 +1242,8 @@ graph TB
     Gateway --> Auth
     Gateway --> AIEngine
     AIEngine --> Generator
-    Generator --> OpenAI
-    Generator --> Claude
+    Generator --> LiteLLM
+    LiteLLM --> Models
     Gateway --> Deployer
     Deployer --> Vercel
     AIEngine --> Redis
@@ -1256,7 +1256,7 @@ graph TB
 ### A. 참고 자료
 - [Next.js 14 Documentation](https://nextjs.org/docs)
 - [Vercel Edge Runtime](https://vercel.com/docs/functions/edge-runtime)
-- [OpenAI API Reference](https://platform.openai.com/docs)
+- [LiteLLM Documentation](https://docs.litellm.ai/)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
@@ -1312,11 +1312,214 @@ graph TB
 - [ ] 문서 작성
 - [ ] 데모 준비
 
-### D. 성능 최적화 체크리스트
+---
+
+## 9. Component Registry 기술 사양
+
+### 9.1 Registry 초기화 프로세스
+
+```typescript
+// 앱 시작 시 Component Registry 로드
+class ComponentRegistryBootstrap {
+  async initialize(): Promise<void> {
+    // 1. DB에서 Registry 컴포넌트 로드
+    const registryComponents = await this.loadFromDatabase();
+    
+    // 2. 메타데이터 검증 및 보강
+    const validatedComponents = await this.validateComponents(registryComponents);
+    
+    // 3. Redis 캐시에 저장 (1시간 TTL)
+    await this.cacheComponents(validatedComponents);
+    
+    // 4. 메모리 인덱스 구성
+    this.buildSearchIndex(validatedComponents);
+    
+    // 5. 성능 메트릭 초기화
+    this.initializeMetrics();
+  }
+  
+  private async loadFromDatabase(): Promise<RegistryComponent[]> {
+    return await db.components.findMany({
+      where: { is_registry_component: true, is_public: true },
+      include: { registry_metadata: true }
+    });
+  }
+}
+```
+
+### 9.2 AI Selection Pipeline 구현
+
+```typescript
+class AIComponentSelector {
+  async selectComponents(userPrompt: string): Promise<ComponentSelection[]> {
+    // 1. 요구사항 추출 (100 토큰)
+    const analysis = await this.analyzeRequirements({
+      prompt: userPrompt,
+      model: 'gpt-5-mini', // 빠른 분석
+      maxTokens: 200
+    });
+    
+    // 2. 컴포넌트 후보 검색 (로컬 처리)
+    const candidates = await this.searchCandidates(analysis.requirements);
+    
+    // 3. AI 선택 결정 (300 토큰)
+    const selections = await this.makeSelections({
+      candidates,
+      requirements: analysis.requirements,
+      model: 'claude-4-sonnet', // 정확한 선택
+      maxTokens: 500
+    });
+    
+    // 4. Props 생성 (500-1000 토큰)
+    const propsGenerated = await this.generateProps({
+      selections,
+      context: analysis.businessContext,
+      model: 'gpt-5-mini', // 빠른 콘텐츠 생성
+      maxTokens: 1500
+    });
+    
+    // 총 토큰: ~2,000 (이전 대비 90% 절감)
+    return this.combineSelectionsWithProps(selections, propsGenerated);
+  }
+}
+```
+
+### 9.3 Component Composer 시스템
+
+```typescript
+class ComponentComposer {
+  async assembleSite(selections: ComponentSelection[]): Promise<SiteStructure> {
+    // 1. Registry에서 컴포넌트 정의 로드
+    const componentDefinitions = await Promise.all(
+      selections.map(s => this.registry.lookup(s.componentId))
+    );
+    
+    // 2. Props 병합 및 검증
+    const mergedComponents = this.mergePropsWithDefinitions(
+      componentDefinitions,
+      selections
+    );
+    
+    // 3. 컴포넌트 트리 구성
+    const componentTree = this.buildComponentTree(mergedComponents);
+    
+    // 4. 글로벌 설정 적용
+    const styledTree = this.applyGlobalStyles(componentTree, selections.globalSettings);
+    
+    // 5. 성능 최적화
+    return this.optimizeForPerformance(styledTree);
+  }
+}
+```
+
+### 9.4 성능 벤치마크 및 모니터링
+
+```typescript
+interface PerformanceBenchmarks {
+  // Component Registry 성능 목표
+  registryLookup: {
+    target: 5, // ms
+    warning: 10,
+    critical: 20
+  },
+  
+  // AI 선택 성능
+  componentSelection: {
+    target: 2000, // ms  
+    warning: 3000,
+    critical: 5000
+  },
+  
+  // 전체 파이프라인
+  totalGeneration: {
+    target: 10000, // ms (10초)
+    warning: 15000,
+    critical: 20000
+  },
+  
+  // 토큰 사용량
+  tokenUsage: {
+    target: 1500, // tokens per site
+    warning: 2000,
+    critical: 3000
+  },
+  
+  // 비용 효율성
+  costPerSite: {
+    target: 0.02, // $0.02 per site
+    warning: 0.05,
+    critical: 0.10
+  }
+}
+
+// 실시간 성능 모니터링
+class PerformanceMonitor {
+  async trackSelection(selectionId: string, metrics: SelectionMetrics) {
+    await db.component_selections.update({
+      where: { id: selectionId },
+      data: {
+        render_time_ms: metrics.renderTime,
+        tokens_used: metrics.tokenCount,
+        model_used: metrics.model,
+        selection_confidence: metrics.confidence
+      }
+    });
+  }
+  
+  async generateDashboard(): Promise<PerformanceReport> {
+    // 성능 지표 집계 및 리포트 생성
+    const avgTokenUsage = await this.getAverageTokenUsage();
+    const avgGenerationTime = await this.getAverageGenerationTime();
+    const costSavings = this.calculateCostSavings();
+    
+    return {
+      tokenUsage: { current: avgTokenUsage, target: 1500, savings: '90%' },
+      generationTime: { current: avgGenerationTime, target: 10000, improvement: '66%' },
+      costSavings: { amount: costSavings, percentage: '80%' },
+      qualityScore: { consistency: '100%', userSatisfaction: '95%' }
+    };
+  }
+}
+```
+
+### 9.5 Component Registry 확장 시스템
+
+```typescript
+// 새로운 컴포넌트 추가를 위한 CLI 도구
+class RegistryExtender {
+  async addComponent(componentDefinition: NewComponentDefinition) {
+    // 1. 컴포넌트 검증
+    const validation = await this.validateNewComponent(componentDefinition);
+    if (!validation.valid) {
+      throw new Error(`Invalid component: ${validation.errors.join(', ')}`);
+    }
+    
+    // 2. 성능 테스트
+    const performance = await this.runPerformanceTests(componentDefinition);
+    
+    // 3. 접근성 테스트
+    const accessibility = await this.runA11yTests(componentDefinition);
+    
+    // 4. Registry에 등록
+    return await this.registerComponent({
+      ...componentDefinition,
+      performance,
+      accessibility,
+      registeredAt: new Date()
+    });
+  }
+}
+```
+
+### D. 성능 최적화 체크리스트 (Component Registry 포함)
 - [ ] 이미지 최적화 (WebP, AVIF)
 - [ ] 폰트 최적화 (subset, preload)
 - [ ] 코드 스플리팅
 - [ ] Tree shaking
+- [ ] Component Registry 캐싱 (Redis)
+- [ ] Component 메타데이터 최적화
+- [ ] AI 선택 알고리즘 성능 튜닝
+- [ ] Props 생성 토큰 최적화
 - [ ] Lazy loading
 - [ ] HTTP/2 Push
 - [ ] Brotli 압축

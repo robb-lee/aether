@@ -73,10 +73,9 @@ Backend:
   
 AI Stack (via LiteLLM):
   - Gateway: LiteLLM Proxy Server
-  - Primary Model: GPT-4-turbo (구조 생성)
-  - Fallback Model: Claude-3-haiku (빠른 응답)
-  - Content Model: Claude-3-opus (콘텐츠 최적화)
-  - Image Model: DALL-E 3
+  - Primary Model: claude-4-sonnet (메인 콘텐츠/분석)
+  - Fallback Model: gpt-5-mini (빠른 응답)
+  - Image Model: gpt-5 (이미지 생성)
   - Features:
     - Automatic fallback chain
     - Built-in cost tracking
@@ -96,8 +95,9 @@ graph TB
     U[사용자] --> V[Vercel Edge]
     V --> N[Next.js App]
     N --> LL[LiteLLM Gateway]
-    LL --> GPT[GPT-4]
-    LL --> Claude[Claude-3]
+    LL --> CS[claude-4-sonnet]
+    LL --> GM[gpt-5-mini]
+    LL --> GP[gpt-5]
     LL --> DALLE[DALL-E]
     N --> R[(Redis Cache)]
     N --> S[(Supabase)]
@@ -108,38 +108,43 @@ graph TB
 
 ## 4. AI 엔진 설계
 
-### 4.1 AI 사이트 생성 파이프라인
+### 4.1 AI 사이트 생성 파이프라인 (Component Registry 기반)
 ```typescript
 interface AISiteGenerator {
   litellm: LiteLLMClient; // 통합 AI 게이트웨이
+  registry: ComponentRegistry; // 사전 정의된 컴포넌트 저장소
   
-  // 1단계: 컨텍스트 이해 (GPT-4)
+  // 1단계: 컨텍스트 이해 (gpt-5-mini, 빠른 분석)
   analyzePrompt(prompt: string): BusinessContext;
   
-  // 2단계: 구조 생성 (GPT-4 with fallback)
-  generateStructure(context: BusinessContext): SiteStructure;
+  // 2단계: 컴포넌트 선택 (claude-4-sonnet, 정확한 선택)
+  selectComponents(context: BusinessContext): ComponentSelection[];
   
-  // 3단계: 콘텐츠 생성 (Claude-3-opus)
-  generateContent(structure: SiteStructure): ContentMap;
+  // 3단계: Props 생성 (gpt-5-mini, 빠른 콘텐츠)
+  generateProps(selections: ComponentSelection[]): PropsMap;
   
-  // 4단계: 디자인 생성 (GPT-4)
-  generateDesign(structure: SiteStructure): DesignSystem;
+  // 4단계: 컴포넌트 조립 (로컬 처리, 즉시)
+  assembleFromRegistry(selections: ComponentSelection[], props: PropsMap): SiteStructure;
   
-  // 5단계: 이미지 생성 (DALL-E 3)
-  generateImages(design: DesignSystem): ImageAssets;
-  
-  // 6단계: 컴포넌트 조립
-  assembleComponents(all: GeneratedAssets): ReactComponentTree;
+  // 5단계: 이미지 생성 (gpt-5, 필요시만)
+  generateImages(imagePrompts: string[]): ImageAssets;
 }
 
-// 실행 시간 목표
+// 실행 시간 목표 (Component Registry 최적화)
 const PERFORMANCE_TARGETS = {
-  total: 30, // 초
-  structure: 5,  // GPT-4
-  content: 10,   // Claude-3
-  design: 5,     // GPT-4
-  images: 5,     // DALL-E
-  assembly: 5    // Local
+  total: 15, // 초 (50% 향상)
+  analysis: 3,    // gpt-5-mini (빠른 분석)
+  selection: 2,   // claude-4-sonnet (정확한 선택)  
+  props: 5,       // gpt-5-mini (콘텐츠 생성)
+  assembly: 2,    // Local (Registry 조립)
+  images: 3       // gpt-5 (선택적)
+};
+
+// 토큰 사용량 목표
+const TOKEN_TARGETS = {
+  previous: 15000,  // 이전 평균
+  current: 1500,    // Registry 기반
+  reduction: '90%'  // 절감률
 };
 
 // LiteLLM 자동 폴백 체인

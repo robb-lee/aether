@@ -37,7 +37,7 @@ const mockResponses = {
           },
           metadata: {
             generatedAt: new Date().toISOString(),
-            model: 'gpt-4-turbo-preview'
+            model: 'gpt-5'
           }
         })
       }
@@ -229,8 +229,10 @@ export async function mockCheckHealth() {
     healthy: true,
     litellm: true,
     models: {
-      'gpt-4-turbo-preview': true,
-      'claude-3-haiku': true,
+      'gpt-5': true,
+      'gpt-5-mini': true,
+      'claude-4-sonnet': true,
+      'dall-e-4': true,
       'dall-e-3': true
     },
     latency: 100,
@@ -243,9 +245,10 @@ export async function mockCheckHealth() {
  */
 export async function mockListModels() {
   return [
-    { id: 'gpt-4-turbo-preview', object: 'model' },
-    { id: 'claude-3-opus', object: 'model' },
-    { id: 'claude-3-haiku', object: 'model' },
+    { id: 'gpt-5', object: 'model' },
+    { id: 'gpt-5-mini', object: 'model' },
+    { id: 'claude-4-sonnet', object: 'model' },
+    { id: 'dall-e-4', object: 'model' },
     { id: 'dall-e-3', object: 'model' }
   ];
 }

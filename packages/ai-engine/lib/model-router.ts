@@ -26,40 +26,33 @@ export interface ModelSelection {
  * Model capabilities and characteristics
  */
 const modelCapabilities = {
-  'gpt-4-turbo-preview': {
-    strengths: ['complex reasoning', 'code generation', 'structured output', 'JSON'],
-    weaknesses: ['slower', 'expensive'],
-    speed: 3, // 1-5 scale
-    quality: 5,
-    cost: 4 // 1-5 scale, 5 being most expensive
-  },
-  'gpt-4': {
-    strengths: ['reasoning', 'analysis', 'comprehensive output'],
-    weaknesses: ['slower', 'very expensive'],
-    speed: 2,
+  'claude-4-sonnet': {
+    strengths: ['advanced reasoning', 'code generation', 'structured output', 'JSON', 'multimodal'],
+    weaknesses: ['expensive'],
+    speed: 4,
     quality: 5,
     cost: 5
   },
-  'claude-3-opus': {
-    strengths: ['natural language', 'creative writing', 'nuanced content'],
-    weaknesses: ['expensive'],
-    speed: 3,
-    quality: 5,
-    cost: 4
-  },
-  'claude-3-sonnet': {
-    strengths: ['balanced performance', 'good quality', 'versatile'],
-    weaknesses: ['middle ground in all aspects'],
-    speed: 4,
+  'claude-4-sonnet-mini': {
+    strengths: ['fast', 'efficient', 'good reasoning', 'cost-effective'],
+    weaknesses: ['less capable than GPT-5'],
+    speed: 5,
     quality: 4,
+    cost: 2
+  },
+  'claude-4-sonnet': {
+    strengths: ['excellent reasoning', 'natural language', 'creative writing', 'analysis'],
+    weaknesses: ['moderate cost'],
+    speed: 4,
+    quality: 5,
     cost: 3
   },
-  'claude-3-haiku': {
-    strengths: ['very fast', 'cheap', 'good for simple tasks'],
-    weaknesses: ['less sophisticated'],
-    speed: 5,
-    quality: 3,
-    cost: 1
+  'claude-3-opus': {
+    strengths: ['natural language', 'creative writing', 'nuanced content'],
+    weaknesses: ['expensive', 'older generation'],
+    speed: 3,
+    quality: 4,
+    cost: 4
   },
   'gpt-3.5-turbo': {
     strengths: ['fast', 'cheap', 'reliable'],
@@ -68,19 +61,19 @@ const modelCapabilities = {
     quality: 3,
     cost: 1
   },
-  'dall-e-3': {
-    strengths: ['high quality images', 'accurate to prompts'],
-    weaknesses: ['expensive', 'slower'],
-    speed: 2,
-    quality: 5,
-    cost: 4
-  },
-  'dall-e-2': {
-    strengths: ['faster image generation', 'cheaper'],
-    weaknesses: ['lower quality than DALL-E 3'],
+  'claude-4-sonnet': {
+    strengths: ['highest quality images', 'precise prompt following', 'style consistency'],
+    weaknesses: ['expensive'],
     speed: 3,
-    quality: 3,
-    cost: 3
+    quality: 5,
+    cost: 5
+  },
+  'claude-4-sonnet': {
+    strengths: ['high quality images', 'accurate to prompts'],
+    weaknesses: ['expensive', 'older generation'],
+    speed: 2,
+    quality: 4,
+    cost: 4
   }
 };
 
@@ -144,16 +137,16 @@ export function routeToModel(
  */
 function selectFastModel(task: TaskType): string {
   const fastModels: Record<TaskType, string> = {
-    structure: 'gpt-3.5-turbo',
-    content: 'claude-3-haiku',
-    seo: 'claude-3-haiku',
-    code: 'gpt-3.5-turbo',
-    images: 'dall-e-2',
-    analysis: 'claude-3-haiku',
-    simple: 'gpt-3.5-turbo'
+    structure: 'claude-4-sonnet-mini',
+    content: 'claude-4-sonnet',
+    seo: 'claude-4-sonnet',
+    code: 'claude-4-sonnet-mini',
+    images: 'claude-4-sonnet',
+    analysis: 'claude-4-sonnet',
+    simple: 'claude-4-sonnet-mini'
   };
   
-  return fastModels[task] || 'gpt-3.5-turbo';
+  return fastModels[task] || 'claude-4-sonnet-mini';
 }
 
 /**
@@ -161,16 +154,16 @@ function selectFastModel(task: TaskType): string {
  */
 function selectCheapModel(task: TaskType): string {
   const cheapModels: Record<TaskType, string> = {
-    structure: 'gpt-3.5-turbo',
-    content: 'claude-3-haiku',
-    seo: 'claude-3-haiku',
-    code: 'gpt-3.5-turbo',
-    images: 'dall-e-2',
-    analysis: 'claude-3-haiku',
-    simple: 'gpt-3.5-turbo'
+    structure: 'claude-4-sonnet-mini',
+    content: 'claude-4-sonnet',
+    seo: 'claude-4-sonnet',
+    code: 'claude-4-sonnet-mini',
+    images: 'claude-4-sonnet',
+    analysis: 'claude-4-sonnet',
+    simple: 'claude-4-sonnet-mini'
   };
   
-  return cheapModels[task] || 'claude-3-haiku';
+  return cheapModels[task] || 'claude-4-sonnet';
 }
 
 /**
@@ -178,16 +171,16 @@ function selectCheapModel(task: TaskType): string {
  */
 function selectQualityModel(task: TaskType): string {
   const qualityModels: Record<TaskType, string> = {
-    structure: 'gpt-4-turbo-preview',
-    content: 'claude-3-opus',
-    seo: 'claude-3-opus',
-    code: 'gpt-4-turbo-preview',
-    images: 'dall-e-3',
-    analysis: 'claude-3-opus',
-    simple: 'gpt-4-turbo-preview'
+    structure: 'claude-4-sonnet',
+    content: 'claude-4-sonnet',
+    seo: 'claude-4-sonnet',
+    code: 'claude-4-sonnet',
+    images: 'claude-4-sonnet',
+    analysis: 'claude-4-sonnet',
+    simple: 'claude-4-sonnet'
   };
   
-  return qualityModels[task] || 'gpt-4-turbo-preview';
+  return qualityModels[task] || 'claude-4-sonnet';
 }
 
 /**
@@ -203,7 +196,7 @@ function adjustForContext(
     const capabilities = modelCapabilities[model as keyof typeof modelCapabilities];
     if (capabilities && capabilities.quality < 4) {
       return {
-        model: 'gpt-4-turbo-preview',
+        model: 'claude-4-sonnet',
         reasoning: `Complex ${context.industry} industry requires higher quality model`
       };
     }
@@ -213,15 +206,15 @@ function adjustForContext(
   const creativeIndustries = ['portfolio', 'blog', 'media', 'creative'];
   if (creativeIndustries.includes(context.industry) && model.includes('gpt')) {
     return {
-      model: 'claude-3-opus',
+      model: 'claude-4-sonnet',
       reasoning: 'Creative content benefits from Claude\'s natural language capabilities'
     };
   }
   
   // E-commerce needs structured data
-  if (context.industry === 'ecommerce' && !model.includes('gpt-4')) {
+  if (context.industry === 'ecommerce' && !model.includes('claude-4-sonnet')) {
     return {
-      model: 'gpt-4-turbo-preview',
+      model: 'claude-4-sonnet',
       reasoning: 'E-commerce requires structured product data generation'
     };
   }
@@ -322,11 +315,10 @@ export function selectModelWithinBudget(
   remainingTime: number
 ): string {
   const models = [
-    'gpt-4-turbo-preview',
-    'claude-3-opus',
-    'claude-3-sonnet',
-    'gpt-3.5-turbo',
-    'claude-3-haiku'
+    'claude-4-sonnet',
+    'claude-4-sonnet',
+    'claude-4-sonnet-mini',
+    'claude-4-sonnet'
   ];
   
   for (const model of models) {
@@ -337,7 +329,7 @@ export function selectModelWithinBudget(
   }
   
   // Fallback to cheapest model if budget is very tight
-  return 'claude-3-haiku';
+  return 'claude-4-sonnet';
 }
 
 /**

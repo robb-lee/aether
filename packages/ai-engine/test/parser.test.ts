@@ -50,7 +50,7 @@ const mockResponses = {
             }]
           },
           version: '1.0.0',
-          metadata: { generatedAt: new Date().toISOString(), model: 'gpt-4' }
+          metadata: { generatedAt: new Date().toISOString(), model: process.env.AI_PRIMARY_MODEL }
         },
         seo: {
           title: 'Test Site',
@@ -75,7 +75,7 @@ const mockResponses = {
         version: '1.0.0'
       }
     }),
-    model: 'gpt-4-turbo',
+    model: process.env.AI_PRIMARY_MODEL,
     usage: { prompt_tokens: 100, completion_tokens: 200, total_tokens: 300 },
     cost: 0.005
   },
@@ -91,14 +91,14 @@ const mockResponses = {
         }]
       }]
     }) + '\n```\n\nThis structure includes...',
-    model: 'claude-3-opus',
+    model: process.env.AI_FALLBACK_MODEL,
     usage: { prompt_tokens: 120, completion_tokens: 180, total_tokens: 300 },
     cost: 0.004
   },
   
   malformedJSON: {
     content: '{ "invalid": json, missing quotes }',
-    model: 'gpt-4-turbo',
+    model: process.env.AI_PRIMARY_MODEL,
     usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
     cost: 0.002
   }
@@ -115,7 +115,7 @@ describe('Response Parser', () => {
       
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(result.metadata.model).toBe('gpt-4-turbo');
+      expect(result.metadata.model).toBe(process.env.AI_PRIMARY_MODEL);
       expect(result.metadata.cost).toBe(0.005);
     });
     
@@ -149,7 +149,7 @@ describe('Stream Handler', () => {
     
     await handler.processChunk({
       content: '{ "id": "streaming_test",',
-      model: 'gpt-4-turbo',
+      model: process.env.AI_PRIMARY_MODEL,
       tokenCount: 10,
       timestamp: Date.now(),
       chunkIndex: 0

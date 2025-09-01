@@ -43,30 +43,30 @@ describe('Prompt Engine', () => {
   describe('Model Routing', () => {
     it('should route structure task to GPT-4', () => {
       const selection = routeToModel('structure');
-      expect(selection.primary).toBe('gpt-4-turbo-preview');
+      expect(selection.primary).toBe(process.env.AI_PRIMARY_MODEL);
     });
     
     it('should route content task to Claude', () => {
       const selection = routeToModel('content');
-      expect(selection.primary).toBe('claude-3-opus');
+      expect(selection.primary).toBe('claude-4-sonnet');
     });
     
     it('should select fast models when speed is priority', () => {
       const selection = routeToModel('structure', undefined, { priority: 'speed' });
-      expect(selection.primary).toBe('gpt-3.5-turbo');
+      expect(selection.primary).toBe(process.env.AI_FALLBACK_MODEL);
     });
     
     it('should select cheap models when cost is priority', () => {
       const selection = routeToModel('content', undefined, { priority: 'cost' });
-      expect(selection.primary).toBe('claude-3-haiku');
+      expect(selection.primary).toBe(process.env.AI_FALLBACK_MODEL);
     });
     
     it('should generate optimal chain for complete generation', async () => {
       const context = await extractContext('Create a SaaS website');
       const chain = getOptimalChain(context, 'quality');
       
-      expect(chain.structureGeneration.primary).toBe('gpt-4-turbo-preview');
-      expect(chain.contentGeneration.primary).toBe('claude-3-opus');
+      expect(chain.structureGeneration.primary).toBe(process.env.AI_PRIMARY_MODEL);
+      expect(chain.contentGeneration.primary).toBe(process.env.AI_PRIMARY_MODEL);
     });
   });
   

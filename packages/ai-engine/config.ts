@@ -15,8 +15,8 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.local') });
 export const envSchema = z.object({
   LITELLM_API_BASE: z.string().url(),
   LITELLM_API_KEY: z.string().min(1),
-  AI_PRIMARY_MODEL: z.string().default('gpt-4-turbo-preview'),
-  AI_FALLBACK_MODEL: z.string().default('claude-3-haiku'),
+  AI_PRIMARY_MODEL: z.string().default('claude-4-sonnet'),
+  AI_FALLBACK_MODEL: z.string().default('gpt-5-mini'),
   AI_IMAGE_MODEL: z.string().default('dall-e-3'),
   AI_MAX_RETRIES: z.string().optional().transform(val => val ? parseInt(val) : 3),
   AI_TIMEOUT: z.string().optional().transform(val => val ? parseInt(val) : 60000),
@@ -37,16 +37,16 @@ export const modelRouting = {
     content: 'claude-4-sonnet',           // Content writing
     seo: 'claude-4-sonnet',               // SEO optimization
     code: 'claude-4-sonnet',              // Code generation
-    images: 'claude-4-sonnet',            // Image generation (fallback to text model)
+    images: 'claude-4-sonnet',            // Image generation (text fallback)
     analysis: 'claude-4-sonnet',          // Complex analysis
-    simple: 'claude-4-sonnet',            // Simple tasks
+    simple: 'gpt-5-mini',                 // Simple tasks
   },
   
   // Fallback chain for each primary model - Using only working models
   fallbackChains: {
-    'claude-4-sonnet': ['claude-4-sonnet'], // Only use models that work
-    'gpt-5': ['claude-4-sonnet'],
-    'gpt-5-mini': ['claude-4-sonnet'],
+    'claude-4-sonnet': ['gpt-5-mini', 'gpt-oss-20b'],
+    'gpt-5-mini': ['claude-4-sonnet', 'gpt-oss-20b'],
+    'gpt-oss-20b': ['claude-4-sonnet'],
     'openai/gpt-oss-20b': ['claude-4-sonnet'],
   },
 };

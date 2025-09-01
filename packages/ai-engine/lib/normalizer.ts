@@ -38,8 +38,8 @@ interface ModelPatterns {
  * Model normalization patterns
  */
 const MODEL_PATTERNS: Record<string, ModelPatterns> = {
-  'gpt-4': {
-    name: 'GPT-4',
+  'gpt-5': {
+    name: 'GPT-5',
     patterns: {
       siteStructure: (data) => data,
       componentTree: (data) => data,
@@ -55,8 +55,8 @@ const MODEL_PATTERNS: Record<string, ModelPatterns> = {
     }
   },
   
-  'claude-3': {
-    name: 'Claude-3',
+  'claude-4': {
+    name: 'Claude-4',
     patterns: {
       siteStructure: (data) => {
         // Claude often wraps in explanation
@@ -93,23 +93,6 @@ const MODEL_PATTERNS: Record<string, ModelPatterns> = {
     }
   },
   
-  'claude-3-haiku': {
-    name: 'Claude-3-Haiku',
-    patterns: {
-      siteStructure: (data) => data,
-      componentTree: (data) => data,
-      content: (data) => data
-    },
-    quirks: {
-      extraFields: ['notes'],
-      missingFields: {
-        metadata: {
-          generatedAt: new Date().toISOString(),
-          model: 'claude-3-haiku'
-        }
-      }
-    }
-  }
 };
 
 /**
@@ -129,7 +112,7 @@ function getModelPattern(model: string): ModelPatterns {
   }
   
   // Default to GPT-4 pattern
-  return MODEL_PATTERNS['gpt-4'];
+  return MODEL_PATTERNS['gpt-5'];
 }
 
 /**

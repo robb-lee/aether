@@ -308,6 +308,47 @@ The project auto-deploys to Vercel on push to main:
 - The project prioritizes speed of generation over perfect output
 - Visual editor should be intuitive enough for non-technical users
 
+## 🧪 테스트 작성 가이드라인
+
+### 모델 참조 규칙
+- **❌ 절대 금지**: 테스트 코드에 AI 모델명 하드코딩
+- **❌ 절대 금지**: 테스트 코드에 기본값 제공 (`|| 'model-name'`)
+- **✅ 필수**: 환경 변수만 사용 (`process.env.AI_PRIMARY_MODEL`)
+- **✅ 필수**: 테스트 실행 전 환경 변수 설정 확인
+
+```typescript
+// ❌ 잘못된 방법
+expect(result.model).toBe('gpt-4-turbo');
+expect(result.model).toBe(process.env.AI_PRIMARY_MODEL || 'claude-4-sonnet');
+
+// ✅ 올바른 방법  
+expect(result.model).toBe(process.env.AI_PRIMARY_MODEL);
+```
+
+### 사용 가능한 모델 확인
+```bash
+# LiteLLM에서 사용 가능한 모델 확인
+curl -X GET "$LITELLM_API_BASE/models" -H "Authorization: Bearer $LITELLM_API_KEY"
+```
+
+### 환경 변수 기반 테스트
+- `AI_PRIMARY_MODEL=claude-4-sonnet`: 주 모델 (콘텐츠/분석)
+- `AI_FALLBACK_MODEL=gpt-5-mini`: 대체 모델 (빠른 처리)
+- `AI_IMAGE_MODEL=gpt-5`: 이미지 모델 (실제 이미지 생성 가능)
+
+### 테스트 실행 전 체크리스트
+1. 모델명이 하드코딩되어 있지 않은가?
+2. **환경 변수가 올바르게 설정되어 있는가?** (필수!)
+3. 테스트에서 기본값(`|| 'model'`)을 사용하지 않는가?
+4. 실제 API에서 해당 모델이 사용 가능한가?
+5. Mock과 실제 테스트가 분리되어 있는가?
+
+### 현재 사용 가능한 모델 (2025년 9월 기준)
+- `claude-4-sonnet`: 메인 모델
+- `gpt-5-mini`: 빠른 처리용
+- `gpt-oss-20b`: 오픈소스 대안
+- `Qwen2.5-14b-instruct`: 중국 모델
+
 ## 🤖 Automated Progress Tracking
 
 ### Helper Scripts for Task Management

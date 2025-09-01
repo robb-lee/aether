@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { estimateRequestCost } from '@/lib/cost-tracker-simple';
 
-export const runtime = 'edge';
+// export const runtime = 'edge'; // Temporarily disabled due to webpack issue
 
 /**
  * POST /api/ai/usage/estimate - Estimate cost for a request

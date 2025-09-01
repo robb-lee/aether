@@ -20,7 +20,7 @@ import { NextRequest, NextResponse } from 'next/server';
 //   checkQuotaRemaining
 // } from '@aether/ai-engine/lib/cost-tracker';
 
-export const runtime = 'edge';
+// export const runtime = 'edge'; // Temporarily disabled due to webpack issue
 
 /**
  * GET /api/ai/usage - Get user usage statistics

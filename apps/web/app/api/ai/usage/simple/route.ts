@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { estimateRequestCost, USER_QUOTAS } from '@/lib/cost-tracker-simple';
 
-export const runtime = 'edge';
+// export const runtime = 'edge'; // Temporarily disabled due to webpack issue
 
 /**
  * GET /api/ai/usage/simple - Get basic usage stats (mock for now)

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
 import { ValidationError } from '@aether/ai-engine/lib/errors'
+import { generateSiteStructure } from '@aether/ai-engine/generators/site-generator'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
@@ -22,19 +24,54 @@ export async function POST(request: NextRequest) {
       throw new ValidationError('Prompt cannot exceed 5000 characters');
     }
 
-    // TODO: Implement AI generation logic
-    // This will be implemented in Task 2.1 and 2.2
-    const mockResponse = {
-      id: `site_${Date.now()}`,
-      status: 'processing',
-      prompt: prompt,
-      type: type,
-      createdAt: new Date().toISOString(),
-      estimatedTime: 30, // seconds
-      message: 'AI generation started. This will be fully implemented in Day 2 tasks.',
+    // Generate site structure with AI
+    console.log('🚀 Starting AI site generation for:', prompt);
+    
+    const siteStructure = await generateSiteStructure(prompt, {
+      streaming: false,
+      onProgress: (progress) => {
+        console.log('📊 Generation progress:', progress);
+      }
+    });
+
+    // Create unique site ID
+    const siteId = `site_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Store in database
+    const supabase = createClient();
+    const { data: site, error: dbError } = await supabase
+      .from('sites')
+      .insert({
+        id: siteId,
+        name: siteStructure.name || 'Generated Site',
+        component_tree: siteStructure,
+        status: 'completed',
+        generation_prompt: prompt,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('❌ Database error:', dbError);
+      throw new Error(`Failed to save site: ${dbError.message}`);
     }
 
-    return NextResponse.json(mockResponse)
+    const response = {
+      id: siteId,
+      status: 'completed',
+      prompt: prompt,
+      type: type,
+      createdAt: site.created_at,
+      siteStructure: siteStructure,
+      previewUrl: `/preview/${siteId}`,
+      editorUrl: `/editor/${siteId}`,
+      message: '✅ Site generated successfully with AI!',
+    };
+
+    console.log('✅ Site generation completed:', siteId);
+    return NextResponse.json(response)
   } catch (error) {
     const errorResponse = handleAPIError(error, 'AI Generation');
     return NextResponse.json(

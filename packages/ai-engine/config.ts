@@ -5,11 +5,8 @@
  */
 
 import { z } from 'zod';
-import dotenv from 'dotenv';
-import path from 'path';
 
-// Load environment variables from root .env.local
-dotenv.config({ path: path.resolve(__dirname, '../../.env.local') });
+// Environment variables are automatically loaded by Next.js
 
 // Environment validation schema
 export const envSchema = z.object({

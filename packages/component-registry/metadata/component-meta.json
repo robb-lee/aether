@@ -1,0 +1,377 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-09-01T00:00:00Z",
+  "components": {
+    "hero-centered": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["ecommerce", "portfolio", "agency"],
+          "useCases": ["product showcase", "personal branding", "creative services"],
+          "keywords": ["centered", "focus", "attention", "showcase"],
+          "preferWhen": ["single product focus", "personal brand", "creative showcase"],
+          "avoidWhen": ["complex information", "multiple CTAs"]
+        }
+      },
+      "variants": {
+        "layout": ["center", "offset-left", "offset-right"],
+        "style": ["minimal", "rich", "gradient"],
+        "animation": ["fade-in", "slide-up", "zoom-in"]
+      }
+    },
+    "hero-split": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["saas", "tech", "startup", "b2b"],
+          "useCases": ["software products", "tech services", "platform launches"],
+          "keywords": ["split", "feature", "explanation", "demo"],
+          "preferWhen": ["need to explain product", "show interface", "feature highlight"],
+          "avoidWhen": ["simple branding", "pure content sites"]
+        }
+      },
+      "variants": {
+        "layout": ["left-content", "right-content", "alternating"],
+        "style": ["modern", "corporate", "playful"],
+        "animation": ["slide-in", "fade-parallax", "stagger"]
+      }
+    },
+    "hero-video-bg": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["entertainment", "events", "lifestyle", "travel"],
+          "useCases": ["event promotion", "brand storytelling", "lifestyle products"],
+          "keywords": ["video", "dynamic", "engaging", "storytelling"],
+          "preferWhen": ["have video content", "emotional connection needed"],
+          "avoidWhen": ["performance critical", "accessibility focus", "mobile-first"]
+        }
+      },
+      "variants": {
+        "layout": ["overlay-center", "overlay-bottom", "side-content"],
+        "style": ["cinematic", "bright", "dramatic"],
+        "animation": ["video-fade", "text-reveal", "overlay-slide"]
+      }
+    },
+    "features-grid": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["saas", "tech", "software", "platform"],
+          "useCases": ["feature overview", "service listing", "capability showcase"],
+          "keywords": ["features", "grid", "organized", "comprehensive"],
+          "preferWhen": ["multiple features", "equal importance", "scannable layout"],
+          "avoidWhen": ["single key feature", "narrative flow needed"]
+        }
+      },
+      "variants": {
+        "layout": ["2-col", "3-col", "4-col", "masonry"],
+        "style": ["cards", "minimal", "icons-prominent"],
+        "animation": ["stagger-up", "fade-in-sequence", "hover-lift"]
+      }
+    },
+    "features-cards": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["ecommerce", "services", "consulting", "agency"],
+          "useCases": ["service packages", "product benefits", "solution highlights"],
+          "keywords": ["cards", "detailed", "visual", "hierarchy"],
+          "preferWhen": ["detailed descriptions needed", "visual hierarchy important"],
+          "avoidWhen": ["simple feature list", "space constrained"]
+        }
+      },
+      "variants": {
+        "layout": ["horizontal", "vertical", "mixed"],
+        "style": ["shadowed", "bordered", "flat", "gradient"],
+        "animation": ["card-flip", "slide-reveal", "bounce-in"]
+      }
+    },
+    "features-list": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["legal", "finance", "healthcare", "education"],
+          "useCases": ["detailed specifications", "compliance features", "step-by-step"],
+          "keywords": ["list", "detailed", "comprehensive", "structured"],
+          "preferWhen": ["detailed information", "professional context", "long descriptions"],
+          "avoidWhen": ["visual appeal priority", "quick scanning needed"]
+        }
+      },
+      "variants": {
+        "layout": ["numbered", "bulleted", "checkmarks", "icons"],
+        "style": ["professional", "friendly", "technical"],
+        "animation": ["reveal-on-scroll", "typewriter", "highlight-sequence"]
+      }
+    },
+    "cta-simple": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["universal"],
+          "useCases": ["primary action", "conversion focus", "clean design"],
+          "keywords": ["simple", "clean", "focus", "action"],
+          "preferWhen": ["single clear action", "minimal design", "high conversion priority"],
+          "avoidWhen": ["multiple actions needed", "complex explanation required"]
+        }
+      },
+      "variants": {
+        "layout": ["center", "left", "right", "full-width"],
+        "style": ["solid", "outline", "gradient", "text"],
+        "animation": ["pulse", "scale", "shake", "glow"]
+      }
+    },
+    "cta-with-image": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["ecommerce", "travel", "lifestyle", "education"],
+          "useCases": ["product showcase", "visual appeal", "trust building"],
+          "keywords": ["visual", "trust", "product", "showcase"],
+          "preferWhen": ["visual product", "trust important", "emotional appeal"],
+          "avoidWhen": ["performance critical", "text-heavy content"]
+        }
+      },
+      "variants": {
+        "layout": ["image-left", "image-right", "image-background"],
+        "style": ["modern", "artistic", "professional"],
+        "animation": ["parallax", "reveal", "hover-zoom"]
+      }
+    },
+    "header-simple": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["portfolio", "blog", "minimal", "professional"],
+          "useCases": ["clean navigation", "content focus", "minimal branding"],
+          "keywords": ["simple", "clean", "navigation", "minimal"],
+          "preferWhen": ["content focus", "minimal design", "blog/portfolio"],
+          "avoidWhen": ["complex navigation", "marketing focus", "e-commerce"]
+        }
+      }
+    },
+    "header-with-cta": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["saas", "business", "marketing", "services"],
+          "useCases": ["lead generation", "sign-ups", "conversions"],
+          "keywords": ["cta", "conversion", "action", "sign-up"],
+          "preferWhen": ["conversion focus", "lead generation", "clear action"],
+          "avoidWhen": ["content sites", "informational focus"]
+        }
+      }
+    },
+    "header-mega-menu": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["ecommerce", "enterprise", "large-catalog"],
+          "useCases": ["complex navigation", "product categories", "large sites"],
+          "keywords": ["mega", "navigation", "categories", "complex"],
+          "preferWhen": ["many pages", "categorized content", "e-commerce"],
+          "avoidWhen": ["simple sites", "mobile-first", "minimal design"]
+        }
+      }
+    },
+    "footer-simple": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["universal"],
+          "useCases": ["basic links", "legal pages", "contact info"],
+          "keywords": ["simple", "minimal", "basic", "clean"]
+        }
+      }
+    },
+    "footer-links": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["business", "services", "corporate"],
+          "useCases": ["organized navigation", "sitemap", "resource links"],
+          "keywords": ["links", "organized", "navigation", "sitemap"]
+        }
+      }
+    },
+    "footer-newsletter": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["marketing", "content", "ecommerce", "media"],
+          "useCases": ["lead capture", "email marketing", "engagement"],
+          "keywords": ["newsletter", "subscribe", "email", "engagement"]
+        }
+      }
+    },
+    "pricing-simple": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["saas", "services", "subscription"],
+          "useCases": ["single plan", "simple pricing", "clear value"],
+          "keywords": ["pricing", "simple", "plan", "subscription"]
+        }
+      }
+    },
+    "pricing-comparison": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["saas", "software", "subscription", "services"],
+          "useCases": ["multiple tiers", "feature comparison", "upselling"],
+          "keywords": ["comparison", "tiers", "features", "plans"]
+        }
+      }
+    },
+    "testimonials-cards": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["services", "b2b", "consulting", "agency"],
+          "useCases": ["social proof", "trust building", "case studies"],
+          "keywords": ["testimonials", "reviews", "social proof", "trust"]
+        }
+      }
+    },
+    "testimonials-carousel": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["ecommerce", "consumer", "lifestyle", "retail"],
+          "useCases": ["many testimonials", "engaging display", "space efficient"],
+          "keywords": ["carousel", "many reviews", "interactive", "engaging"]
+        }
+      }
+    },
+    "contact-simple": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["professional", "services", "business"],
+          "useCases": ["business contact", "inquiry form", "professional"],
+          "keywords": ["contact", "form", "business", "inquiry"]
+        }
+      }
+    },
+    "contact-with-map": {
+      "metadata": {
+        "aiHints": {
+          "industries": ["local business", "restaurant", "retail", "events"],
+          "useCases": ["physical location", "local business", "directions"],
+          "keywords": ["map", "location", "local", "directions"]
+        }
+      }
+    }
+  },
+  "industries": {
+    "saas": {
+      "industry": "saas",
+      "displayName": "Software as a Service",
+      "description": "Cloud-based software solutions",
+      "recommended": ["hero-split", "features-grid", "pricing-comparison", "header-with-cta"],
+      "avoid": ["contact-with-map", "hero-video-bg"],
+      "preferredStyle": "modern-minimal",
+      "designTokens": {
+        "colors": {
+          "primary": "#3b82f6",
+          "secondary": "#8b5cf6",
+          "accent": "#06b6d4",
+          "background": "#ffffff",
+          "text": "#1f2937"
+        }
+      }
+    },
+    "ecommerce": {
+      "industry": "ecommerce",
+      "displayName": "E-commerce",
+      "description": "Online retail and shopping platforms",
+      "recommended": ["hero-centered", "features-cards", "testimonials-carousel", "header-mega-menu"],
+      "avoid": ["features-list"],
+      "preferredStyle": "rich-visual",
+      "designTokens": {
+        "colors": {
+          "primary": "#059669",
+          "secondary": "#dc2626",
+          "accent": "#f59e0b",
+          "background": "#ffffff",
+          "text": "#111827"
+        }
+      }
+    },
+    "portfolio": {
+      "industry": "portfolio",
+      "displayName": "Portfolio & Creative",
+      "description": "Creative professionals and portfolios",
+      "recommended": ["hero-centered", "header-simple", "footer-simple"],
+      "preferredStyle": "artistic-minimal",
+      "designTokens": {
+        "colors": {
+          "primary": "#1f2937",
+          "secondary": "#6b7280",
+          "accent": "#f97316",
+          "background": "#fafafa",
+          "text": "#111827"
+        }
+      }
+    },
+    "business": {
+      "industry": "business",
+      "displayName": "Corporate & Business",
+      "description": "Traditional business and corporate sites",
+      "recommended": ["hero-split", "features-list", "footer-links", "header-with-cta"],
+      "preferredStyle": "professional-clean",
+      "designTokens": {
+        "colors": {
+          "primary": "#1e40af",
+          "secondary": "#374151",
+          "accent": "#059669",
+          "background": "#ffffff",
+          "text": "#1f2937"
+        }
+      }
+    }
+  },
+  "designSystem": {
+    "colors": {
+      "primary": "#3b82f6",
+      "secondary": "#8b5cf6",
+      "accent": "#06b6d4",
+      "background": "#ffffff",
+      "surface": "#f8fafc",
+      "text": "#1f2937",
+      "muted": "#6b7280"
+    },
+    "typography": {
+      "headingFont": "Inter",
+      "bodyFont": "Inter",
+      "sizes": {
+        "xs": "0.75rem",
+        "sm": "0.875rem",
+        "base": "1rem",
+        "lg": "1.125rem",
+        "xl": "1.25rem",
+        "2xl": "1.5rem",
+        "3xl": "1.875rem",
+        "4xl": "2.25rem"
+      },
+      "weights": {
+        "normal": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700
+      }
+    },
+    "spacing": {
+      "base": "1rem",
+      "scale": [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12],
+      "containerPadding": "1rem",
+      "sectionGap": "4rem"
+    },
+    "borderRadius": {
+      "sm": "0.25rem",
+      "md": "0.375rem",
+      "lg": "0.5rem",
+      "xl": "0.75rem"
+    },
+    "shadows": {
+      "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+      "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+      "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+      "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1)"
+    }
+  },
+  "config": {
+    "autoOptimization": true,
+    "performanceTargets": {
+      "lighthouse": 90,
+      "bundleSize": 200,
+      "renderTime": 200
+    },
+    "accessibilityTargets": {
+      "wcagLevel": "AA",
+      "colorContrast": 4.5
+    }
+  }
+}

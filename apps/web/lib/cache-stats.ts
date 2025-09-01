@@ -5,7 +5,7 @@
  * Tracks performance metrics, cost savings, and cache efficiency.
  */
 
-import { getCacheStats, getCacheHitRate, checkCacheHealth } from '@/packages/ai-engine/lib/cache';
+import { getCacheStats, getCacheHitRate, checkCacheHealth } from '@aether/ai-engine/lib/cache';
 
 export interface CacheDashboard {
   performance: {

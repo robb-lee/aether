@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { invalidateCache, resetCacheStats } from '@/packages/ai-engine/lib/cache';
+import { invalidateCache, resetCacheStats } from '@aether/ai-engine/lib/cache';
 
 export const runtime = 'edge';
 

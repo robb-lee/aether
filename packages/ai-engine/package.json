@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "dotenv": "^17.2.1",
     "openai": "^4.28.0",
     "zod": "^3.22.4"
   },

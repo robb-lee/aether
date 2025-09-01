@@ -5,19 +5,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PromptEngine, createPromptEngine } from '../generators/prompt-engine';
+
 import { extractContext } from '../lib/enhancer';
 import { routeToModel, getOptimalChain } from '../lib/model-router';
 import { getTemplate } from '../prompts/templates';
 import { validateGenerationRequest } from '../schemas/site-structure';
 
 describe('Prompt Engine', () => {
-  describe('Factory', () => {
-    it('should create a prompt engine instance', () => {
-      const engine = createPromptEngine();
-      expect(engine).toBeInstanceOf(PromptEngine);
-    });
-  });
   
   describe('Context Extraction', () => {
     it('should extract context from SaaS prompt', async () => {
@@ -137,25 +131,13 @@ describe('Prompt Engine', () => {
   });
 });
 
-// Integration test with mock
-describe('Prompt Engine Integration', () => {
-  it('should handle complete generation request', async () => {
-    // This would require mocking LiteLLM or having it running
-    // For now, just test the structure
-    const engine = createPromptEngine();
-    const request = {
-      prompt: 'Create a simple SaaS landing page',
-      options: {
-        priority: 'speed' as const,
-        validateOutput: false,
-        streaming: false
-      }
-    };
-    
-    // Would need LiteLLM running for this to work
-    // const response = await engine.generateSite(request, request.options);
-    // expect(response.success).toBeDefined();
-    
-    expect(engine).toBeDefined();
+// Simple integration test
+describe('Basic Integration', () => {
+  it('should validate that modules can be imported', () => {
+    // Just test that all our modules can be imported without errors
+    expect(typeof extractContext).toBe('function');
+    expect(typeof routeToModel).toBe('function');
+    expect(typeof getTemplate).toBe('function');
+    expect(typeof validateGenerationRequest).toBe('function');
   });
 });

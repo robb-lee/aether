@@ -5,10 +5,15 @@
  */
 
 import { z } from 'zod';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from root .env.local
+dotenv.config({ path: path.resolve(__dirname, '../../.env.local') });
 
 // Environment validation schema
 export const envSchema = z.object({
-  LITELLM_API_BASE: z.string().url().optional().default('http://localhost:4000'),
+  LITELLM_API_BASE: z.string().url(),
   LITELLM_API_KEY: z.string().min(1),
   AI_PRIMARY_MODEL: z.string().default('gpt-4-turbo-preview'),
   AI_FALLBACK_MODEL: z.string().default('claude-3-haiku'),
@@ -16,89 +21,92 @@ export const envSchema = z.object({
   AI_MAX_RETRIES: z.string().optional().transform(val => val ? parseInt(val) : 3),
   AI_TIMEOUT: z.string().optional().transform(val => val ? parseInt(val) : 60000),
   AI_LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional().default('info'),
+  NODE_ENV: z.string().optional().default('development'),
 });
 
 export const config = envSchema.parse(process.env);
 
-// Model routing configuration
+// No more test environment - always use real API
+export const isTestEnvironment = false;
+
+// Model routing configuration - Updated for available models
 export const modelRouting = {
   // Task-specific model selection
   tasks: {
-    structure: 'gpt-4-turbo-preview',    // Site structure generation
-    content: 'claude-3-opus',             // Content writing
-    seo: 'claude-3-haiku',                // SEO optimization
-    code: 'gpt-4-turbo-preview',          // Code generation
-    images: 'dall-e-3',                   // Image generation
-    analysis: 'claude-3-opus',            // Complex analysis
-    simple: 'gpt-3.5-turbo',             // Simple tasks
+    structure: 'claude-4-sonnet',         // Site structure generation
+    content: 'claude-4-sonnet',           // Content writing
+    seo: 'claude-4-sonnet',               // SEO optimization
+    code: 'claude-4-sonnet',              // Code generation
+    images: 'claude-4-sonnet',            // Image generation (fallback to text model)
+    analysis: 'claude-4-sonnet',          // Complex analysis
+    simple: 'claude-4-sonnet',            // Simple tasks
   },
   
-  // Fallback chain for each primary model
+  // Fallback chain for each primary model - Using only working models
   fallbackChains: {
-    'gpt-4-turbo-preview': ['gpt-4', 'claude-3-opus', 'claude-3-haiku'],
-    'claude-3-opus': ['claude-3-sonnet', 'claude-3-haiku', 'gpt-4-turbo-preview'],
-    'claude-3-haiku': ['claude-3-sonnet', 'gpt-3.5-turbo'],
-    'gpt-3.5-turbo': ['claude-3-haiku'],
-    'dall-e-3': ['dall-e-2'],
+    'claude-4-sonnet': ['claude-4-sonnet'], // Only use models that work
+    'gpt-5': ['claude-4-sonnet'],
+    'gpt-5-mini': ['claude-4-sonnet'],
+    'openai/gpt-oss-20b': ['claude-4-sonnet'],
   },
 };
 
-// Model-specific settings
+// Model-specific settings - Fixed parameter names for LiteLLM
 export const modelSettings = {
-  'gpt-4-turbo-preview': {
-    maxTokens: 4096,
+  'gpt-5': {
+    max_tokens: 4096,
     temperature: 0.7,
-    responseFormat: { type: 'json_object' },
-    topP: 0.95,
+    top_p: 0.95,
   },
-  'gpt-4': {
-    maxTokens: 4096,
+  'gpt-5-mini': {
+    max_tokens: 4096,
     temperature: 0.7,
-    responseFormat: { type: 'json_object' },
-    topP: 0.95,
+    top_p: 0.95,
   },
-  'claude-3-opus': {
-    maxTokens: 4096,
+  'openai/gpt-oss-20b': {
+    max_tokens: 4096,
     temperature: 0.7,
-    topP: 0.95,
+    top_p: 0.95,
   },
-  'claude-3-sonnet': {
-    maxTokens: 4096,
+  'openai/gpt-oss-120b': {
+    max_tokens: 4096,
+    temperature: 0.6,
+    top_p: 0.95,
+  },
+  'claude-4-sonnet': {
+    max_tokens: 4096,
     temperature: 0.7,
-    topP: 0.95,
+    // Claude uses different parameter names
   },
-  'claude-3-haiku': {
-    maxTokens: 4096,
-    temperature: 0.8,
-    topP: 0.95,
-  },
-  'gpt-3.5-turbo': {
-    maxTokens: 4096,
+  'gemini-2.0-flash-thinking-exp': {
+    max_tokens: 4096,
     temperature: 0.7,
-    responseFormat: { type: 'json_object' },
-    topP: 0.95,
+    top_p: 0.95,
   },
-  'dall-e-3': {
-    size: '1024x1024',
-    quality: 'standard',
-    n: 1,
+  'gemini-2.5-flash-preview-04-17': {
+    max_tokens: 4096,
+    temperature: 0.7,
+    top_p: 0.95,
   },
-  'dall-e-2': {
-    size: '1024x1024',
-    n: 1,
+  'gemini-2.5-pro-exp-03-25': {
+    max_tokens: 4096,
+    temperature: 0.7,
+    top_p: 0.95,
   },
 };
 
-// Cost tracking (per 1K tokens or per image)
+// Cost tracking (per 1K tokens or per image) - Updated for available models
 export const costPerModel = {
-  'gpt-4-turbo-preview': { input: 0.01, output: 0.03 },
-  'gpt-4': { input: 0.03, output: 0.06 },
-  'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 },
-  'claude-3-opus': { input: 0.015, output: 0.075 },
-  'claude-3-sonnet': { input: 0.003, output: 0.015 },
-  'claude-3-haiku': { input: 0.00025, output: 0.00125 },
-  'dall-e-3': { image: 0.04 },
-  'dall-e-2': { image: 0.02 },
+  'gpt-5': { input: 0.02, output: 0.04 },
+  'gpt-5-mini': { input: 0.005, output: 0.015 },
+  'openai/gpt-oss-20b': { input: 0.01, output: 0.02 },
+  'openai/gpt-oss-120b': { input: 0.03, output: 0.06 },
+  'claude-4-sonnet': { input: 0.003, output: 0.015 },
+  'gemini-2.0-flash-thinking-exp': { input: 0.001, output: 0.003 },
+  'gemini-2.5-flash-preview-04-17': { input: 0.002, output: 0.006 },
+  'gemini-2.5-pro-exp-03-25': { input: 0.005, output: 0.015 },
+  'text-embedding-3-small': { input: 0.0001, output: 0 },
+  'text-embedding-3-large': { input: 0.0002, output: 0 },
 };
 
 // Retry configuration

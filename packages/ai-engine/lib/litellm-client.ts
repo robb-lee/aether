@@ -19,7 +19,8 @@ import {
   modelSettings, 
   costPerModel, 
   retryConfig,
-  loggingConfig 
+  loggingConfig,
+  isTestEnvironment
 } from '../config';
 import {
   ModelError,
@@ -28,16 +29,23 @@ import {
   isRetryableError,
   getRetryDelay,
 } from './errors';
+import {
+  mockGenerateCompletion,
+  mockGenerateImage,
+  mockStreamCompletion,
+  mockCheckHealth,
+  mockListModels
+} from './mock-client';
 
-// Initialize LiteLLM client (OpenAI-compatible)
-export const litellm = new OpenAI({
+// Initialize LiteLLM client (OpenAI-compatible) only in production
+export const litellm = !isTestEnvironment ? new OpenAI({
   apiKey: config.LITELLM_API_KEY,
   baseURL: config.LITELLM_API_BASE,
   defaultHeaders: {
     'X-LiteLLM-Version': '1.0.0',
   },
   timeout: config.AI_TIMEOUT,
-});
+}) : null;
 
 // Request/Response Logger
 class RequestLogger {
@@ -158,13 +166,20 @@ export async function generateCompletion({
     try {
       const settings = modelSettings[currentModel] || {};
       
+      // Remove max_tokens for Claude models as they don't support it
+      const requestSettings = { ...settings };
+      if (currentModel.includes('claude')) {
+        delete requestSettings.max_tokens;
+      }
+      
       const response = await executeWithRetry(
         async () => {
+          if (!litellm) throw new Error('LiteLLM client not initialized');
           return await litellm.chat.completions.create({
             model: currentModel,
             messages,
             stream,
-            ...settings,
+            ...requestSettings,
           });
         },
         `Completion with ${currentModel}`,
@@ -233,6 +248,7 @@ export async function generateImage({
     try {
       const response = await executeWithRetry(
         async () => {
+          if (!litellm) throw new Error('LiteLLM client not initialized');
           return await litellm.images.generate({
             model: currentModel,
             prompt,
@@ -329,13 +345,20 @@ export async function* streamCompletion({
       const settings = modelSettings[currentModel] || {};
       onStart?.(currentModel);
       
+      // Remove max_tokens for Claude models as they don't support it
+      const requestSettings = { ...settings };
+      if (currentModel.includes('claude')) {
+        delete requestSettings.max_tokens;
+      }
+      
       const stream = await executeWithRetry(
         async () => {
+          if (!litellm) throw new Error('LiteLLM client not initialized');
           return await litellm.chat.completions.create({
             model: currentModel,
             messages,
             stream: true,
-            ...settings,
+            ...requestSettings,
           });
         },
         `Stream with ${currentModel}`,
@@ -479,7 +502,7 @@ export async function listModels() {
   
   try {
     const response = await executeWithRetry(
-      async () => litellm.models.list(),
+      async () => litellm!.models.list(),
       'List models',
       2
     );

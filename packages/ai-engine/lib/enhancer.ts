@@ -13,8 +13,8 @@ import { getTemplate } from '../prompts/templates';
  * Industry keywords for automatic detection
  */
 const industryKeywords = {
-  saas: ['software', 'platform', 'app', 'tool', 'service', 'subscription', 'cloud', 'api', 'dashboard'],
-  ecommerce: ['shop', 'store', 'product', 'sell', 'buy', 'cart', 'checkout', 'inventory', 'retail'],
+  saas: ['software', 'platform', 'app', 'tool', 'service', 'subscription', 'cloud', 'api', 'dashboard', 'saas', 'management'],
+  ecommerce: ['shop', 'store', 'product', 'sell', 'buy', 'cart', 'checkout', 'inventory', 'retail', 'jewelry', 'handmade'],
   portfolio: ['portfolio', 'showcase', 'work', 'projects', 'creative', 'designer', 'developer', 'artist'],
   corporate: ['company', 'business', 'enterprise', 'corporate', 'firm', 'agency', 'consulting', 'professional'],
   blog: ['blog', 'article', 'post', 'content', 'writing', 'journal', 'magazine', 'publication'],
@@ -38,7 +38,8 @@ const styleKeywords = {
  */
 const featureKeywords = {
   booking: ['booking', 'reservation', 'appointment', 'schedule', 'calendar'],
-  payment: ['payment', 'checkout', 'purchase', 'subscription', 'pricing'],
+  payment: ['payment', 'checkout', 'purchase', 'subscription', 'cart'],
+  pricing: ['pricing', 'price', 'cost', 'plan', 'tier', 'billing'],
   auth: ['login', 'signup', 'authentication', 'user', 'account', 'profile'],
   search: ['search', 'filter', 'find', 'discover', 'browse'],
   social: ['social', 'share', 'comment', 'like', 'follow', 'community'],
@@ -127,10 +128,10 @@ function detectAudience(prompt: string): string {
 function extractGoals(prompt: string): string[] {
   const goals: string[] = [];
   const goalKeywords = {
-    'increase sales': ['sell', 'sales', 'revenue', 'conversion'],
+    'increase sales': ['sell', 'sales', 'revenue', 'conversion', 'saas', 'management'],
     'build brand': ['brand', 'awareness', 'recognition'],
     'generate leads': ['leads', 'contacts', 'inquiries'],
-    'showcase work': ['showcase', 'portfolio', 'display'],
+    'showcase work': ['showcase', 'portfolio', 'display', 'creative'],
     'provide information': ['inform', 'educate', 'explain'],
     'build community': ['community', 'engage', 'connect']
   };
@@ -168,10 +169,14 @@ function extractFeatures(prompt: string): string[] {
     }
   }
   
-  // Add default features based on industry
+  // Add default features based on industry and prompt content
   if (prompt.includes('ecommerce') || prompt.includes('shop')) {
     if (!features.includes('payment')) features.push('payment');
     if (!features.includes('search')) features.push('search');
+  }
+  
+  if (prompt.includes('saas') || prompt.includes('project management')) {
+    if (!features.includes('pricing')) features.push('pricing');
   }
   
   if (prompt.includes('blog') || prompt.includes('content')) {

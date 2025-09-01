@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📊 Current Progress Status
+- **Completed**: Task 1.1-1.6 (Day 1) ✅
+- **Next Task**: Task 2.1 - LiteLLM Client Enhancement
+- **Current Day**: Day 2/14
+- **Overall Progress**: 6/84 tasks completed
+
 ## Project Overview
 
 **Aether** is an AI-powered website builder that creates professional websites in 30 seconds. The project aims to enable AI to generate complete websites from text prompts, with instant deployment to production and visual drag-and-drop editing capabilities.
@@ -151,29 +157,29 @@ pnpm deploy:preview   # Deploy preview branch
 ### Monorepo Structure (Turborepo)
 ```
 apps/
-  web/                 # Main Next.js 14 application
-  preview/             # Dynamic site preview server
+  web/                 # Main Next.js 14 application ✅
+  preview/             # Dynamic site preview server (TODO - Day 3)
 packages/
-  ui/                  # Shared React components
-  ai-engine/           # AI integration (GPT-4, Claude, DALL-E)
-  editor-core/         # Visual editor logic
-  templates/           # Site templates
-  database/            # Supabase schema and types
+  ui/                  # Shared React components ✅
+  ai-engine/           # AI integration (partially implemented)
+  editor-core/         # Visual editor logic (TODO - Day 4)
+  templates/           # Site templates (TODO - Day 5)
+  database/            # Supabase schema ✅ (types.ts TODO)
 ```
 
 ### Key Technical Decisions
 
 **Frontend Stack:**
-- Next.js 14 with App Router (Server Components for performance)
-- React 18 with Suspense boundaries
-- Tailwind CSS with custom design system
-- Framer Motion for animations
-- Zustand + Immer for state management
+- Next.js 14 with App Router (Server Components for performance) ✅
+- React 18 with Suspense boundaries ✅
+- Tailwind CSS with custom design system ✅
+- Framer Motion for animations (TODO - as needed)
+- Zustand + Immer for state management (TODO - as needed)
 
 **Backend Stack:**
-- Vercel Edge Runtime (eliminates cold starts)
-- Supabase (PostgreSQL with Row Level Security)
-- Redis for AI response caching
+- Vercel Edge Runtime (eliminates cold starts) ✅
+- Supabase (PostgreSQL with Row Level Security) ✅
+- Redis for AI response caching (TODO - Day 7)
 
 **AI Integration:**
 - GPT-4-turbo for structure generation
@@ -225,7 +231,7 @@ The project uses a multi-stage AI generation process:
 3. **Design Generation** (GPT-4): Applies styling and themes
 4. **Image Generation** (DALL-E): Creates visual assets
 
-Prompt templates are stored in `packages/ai-engine/prompts/` and documented in `prompt.md`.
+Prompt templates will be stored in `packages/ai-engine/prompts/` (TODO - Day 2) and documented in `prompt.md`.
 
 ## Development Phases
 
@@ -275,19 +281,19 @@ The project auto-deploys to Vercel on push to main:
 ## Common Development Tasks
 
 ### Adding a New Component
-1. Create component in `packages/ui/components/`
-2. Add to component registry in `packages/editor-core/registry/`
-3. Create preview renderer in `apps/preview/components/`
-4. Add to template system if reusable
+1. Create component in `packages/ui/src/components/`
+2. Add to component registry in `packages/editor-core/registry/` (TODO - when editor-core is implemented)
+3. Create preview renderer in `apps/preview/components/` (TODO - when preview app is created)
+4. Add to template system if reusable (TODO - when templates package is created)
 
 ### Modifying AI Prompts
-1. Update prompt template in `packages/ai-engine/prompts/`
-2. Test with `pnpm ai:test`
-3. Validate output format with `pnpm ai:validate`
+1. Update prompt template in `packages/ai-engine/prompts/` (TODO - create prompts directory)
+2. Test with `pnpm ai:test` (TODO - implement test command)
+3. Validate output format with `pnpm ai:validate` (TODO - implement validation)
 4. Update cost tracking if token usage changes
 
 ### Creating a New Template
-1. Design template structure in `packages/templates/[category]/`
+1. Design template structure in `packages/templates/[category]/` (TODO - when templates package is created)
 2. Define component tree JSON
 3. Add theme configuration
 4. Create preview image
@@ -363,9 +369,18 @@ pnpm task:complete 1.1 25min
 # Update progress tracker
 pnpm progress:update
 
+# Generate daily summary
+pnpm daily:summary
+
 # Commit with standard message
 git add . && git commit -m "Task 1.1: Project initialization - Completed (25min)"
 ```
+
+**Available Helper Scripts** (already implemented in `/scripts/`):
+- `task-manager.js` - Task tracking automation
+- `update-progress.js` - Progress tracker updates
+- `daily-summary.js` - Daily progress reports
+- `test-env.js` & `test-env-simple.js` - Environment validation
 
 ### Task Execution Checklist for Claude Code
 

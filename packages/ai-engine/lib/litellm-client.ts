@@ -30,6 +30,10 @@ import {
   getRetryDelay,
 } from './errors';
 import {
+  createFallbackMetric,
+  modelCircuitBreaker,
+} from './fallback-config';
+import {
   mockGenerateCompletion,
   mockGenerateImage,
   mockStreamCompletion,
@@ -157,6 +161,7 @@ export async function generateCompletion({
   const selectedModel = getModelForTask(task, model);
   const fallbackChain = [selectedModel, ...getFallbackChain(selectedModel)];
   const logger = new RequestLogger('generateCompletion', { messages, model: selectedModel, metadata });
+  const startTime = Date.now();
   
   let lastError: any;
   let usedModel: string = selectedModel;
@@ -189,6 +194,19 @@ export async function generateCompletion({
       const cost = calculateCost(currentModel, response);
       logger.success(response, currentModel, cost);
       
+      // Record successful fallback metrics
+      createFallbackMetric(
+        currentModel,
+        selectedModel,
+        'completion',
+        cost,
+        true,
+        { responseTime: Date.now() - startTime }
+      );
+      
+      // Record circuit breaker success
+      modelCircuitBreaker.recordSuccess(currentModel);
+      
       return {
         response,
         model: currentModel,
@@ -201,6 +219,23 @@ export async function generateCompletion({
       };
     } catch (error) {
       logger.error(error, currentModel);
+      
+      // Record failed attempt metrics
+      createFallbackMetric(
+        currentModel,
+        selectedModel,
+        'completion',
+        0, // no cost for failed attempts
+        false,
+        { 
+          errorReason: error.message,
+          responseTime: Date.now() - startTime
+        }
+      );
+      
+      // Record circuit breaker failure
+      modelCircuitBreaker.recordFailure(currentModel);
+      
       lastError = new ModelError(
         `Model ${currentModel} failed: ${error.message}`,
         currentModel,

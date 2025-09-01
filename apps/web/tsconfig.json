@@ -27,7 +27,9 @@
       "@/app/*": ["./app/*"],
       "@/utils/*": ["./utils/*"],
       "@aether/ui": ["../../packages/ui/src/index.ts"],
-      "@aether/ui/*": ["../../packages/ui/src/*"]
+      "@aether/ui/*": ["../../packages/ui/src/*"],
+      "@aether/ai-engine": ["../../packages/ai-engine/index.ts"],
+      "@aether/ai-engine/*": ["../../packages/ai-engine/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

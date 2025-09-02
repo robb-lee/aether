@@ -10,6 +10,7 @@ import { extractContext } from '../lib/enhancer';
 import { routeToModel, getOptimalChain } from '../lib/model-router';
 import { getTemplate } from '../prompts/templates';
 import { validateGenerationRequest } from '../schemas/site-structure';
+import { config } from '../config';
 
 describe('Prompt Engine', () => {
   
@@ -48,7 +49,7 @@ describe('Prompt Engine', () => {
     
     it('should route content task to Claude', () => {
       const selection = routeToModel('content');
-      expect(selection.primary).toBe('claude-4-sonnet');
+      expect(selection.primary).toBe(config.AI_PRIMARY_MODEL);
     });
     
     it('should select fast models when speed is priority', () => {

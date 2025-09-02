@@ -8,6 +8,7 @@ import { getComponentSelector } from '../selectors/component-selector';
 import { getSiteComposer } from '../composers/site-composer';
 import { extractContextFromPrompt } from '../generators/site-generator';
 import { getRegistry } from '../../component-registry/src/registry';
+import { config } from '../config';
 
 async function validateRegistryIntegration() {
   console.log('🧪 Starting Registry Integration Validation\n');
@@ -97,7 +98,7 @@ async function validateRegistryIntegration() {
     };
 
     const mockMetadata = {
-      model: 'claude-4-sonnet',
+      model: config.AI_PRIMARY_MODEL,
       cost: 0.04,
       tokensUsed: 1500,
       tokenSavings: 18500

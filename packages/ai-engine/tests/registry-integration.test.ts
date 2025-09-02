@@ -9,6 +9,7 @@ import { getComponentSelector } from '../selectors/component-selector';
 import { getSiteComposer } from '../composers/site-composer';
 import { generateSiteComplete, extractContextFromPrompt } from '../generators/site-generator';
 import { getRegistry } from '../../component-registry/src/registry';
+import { config } from '../config';
 
 // Mock LiteLLM client for testing
 jest.mock('../lib/litellm-client', () => ({
@@ -92,7 +93,7 @@ describe('Registry Integration', () => {
       };
 
       const metadata = {
-        model: 'claude-4-sonnet',
+        model: config.AI_PRIMARY_MODEL,
         cost: 0.04,
         tokensUsed: 1500,
         tokenSavings: 18500
@@ -224,7 +225,7 @@ describe('End-to-End Integration', () => {
           completion_tokens: 1400
         }
       },
-      model: 'claude-4-sonnet',
+      model: config.AI_PRIMARY_MODEL,
       cost: 0.036,
       fallback: false
     };

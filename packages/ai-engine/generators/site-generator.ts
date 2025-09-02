@@ -143,7 +143,7 @@ export async function generateSiteWithTreeBuilder(
 
     const aiResponse = await generateCompletion({
       messages,
-      model: model || process.env.AI_PRIMARY_MODEL || 'claude-4-sonnet',
+      model: model, // Let generateCompletion handle model selection based on config
       temperature: 0.7,
       maxTokens: 2000
     });

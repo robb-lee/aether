@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ErrorHandler, handleAPIError } from '../lib/error-handler';
+import { config } from '../config';
 import { 
   ModelError, 
   RateLimitError, 
@@ -32,10 +33,10 @@ describe('Error Handler', () => {
 
   describe('Error Analysis', () => {
     it('should handle Model errors correctly', async () => {
-      const error = new ModelError('Model unavailable', 'claude-4-sonnet');
+      const error = new ModelError('Model unavailable', config.AI_PRIMARY_MODEL);
       const result = await errorHandler.handleError(error, {
         operation: 'test-completion',
-        model: 'claude-4-sonnet'
+        model: config.AI_PRIMARY_MODEL
       });
 
       expect(result.shouldRetry).toBe(true);
@@ -106,8 +107,8 @@ describe('Fallback Tracking', () => {
 
   it('should record successful primary model usage', () => {
     createFallbackMetric(
-      'claude-4-sonnet',
-      'claude-4-sonnet', 
+      config.AI_PRIMARY_MODEL,
+      config.AI_PRIMARY_MODEL, 
       'completion',
       0.05,
       true,
@@ -123,7 +124,7 @@ describe('Fallback Tracking', () => {
   it('should record fallback usage', () => {
     createFallbackMetric(
       'gpt-5-mini',
-      'claude-4-sonnet',
+      config.AI_PRIMARY_MODEL,
       'completion', 
       0.02,
       true,
@@ -138,15 +139,15 @@ describe('Fallback Tracking', () => {
 
   it('should calculate model reliability', () => {
     // Add successful request
-    createFallbackMetric('claude-4-sonnet', 'claude-4-sonnet', 'completion', 0.05, true);
+    createFallbackMetric(config.AI_PRIMARY_MODEL, config.AI_PRIMARY_MODEL, 'completion', 0.05, true);
     
     // Add failed request
-    createFallbackMetric('claude-4-sonnet', 'claude-4-sonnet', 'completion', 0, false, {
+    createFallbackMetric(config.AI_PRIMARY_MODEL, config.AI_PRIMARY_MODEL, 'completion', 0, false, {
       errorReason: 'Model timeout'
     });
 
     const stats = fallbackTracker.getStats();
-    const claudeStats = stats.modelReliability['claude-4-sonnet'];
+    const claudeStats = stats.modelReliability[config.AI_PRIMARY_MODEL];
     
     expect(claudeStats.attempts).toBe(2);
     expect(claudeStats.successes).toBe(1);
@@ -157,11 +158,11 @@ describe('Fallback Tracking', () => {
   it('should provide health status', () => {
     // Add mostly successful requests (19 primary + 1 fallback = 5% fallback rate)
     for (let i = 0; i < 19; i++) {
-      createFallbackMetric('claude-4-sonnet', 'claude-4-sonnet', 'completion', 0.05, true);
+      createFallbackMetric(config.AI_PRIMARY_MODEL, config.AI_PRIMARY_MODEL, 'completion', 0.05, true);
     }
     
     // Add one fallback
-    createFallbackMetric('gpt-5-mini', 'claude-4-sonnet', 'completion', 0.02, true);
+    createFallbackMetric('gpt-5-mini', config.AI_PRIMARY_MODEL, 'completion', 0.02, true);
 
     const health = getFallbackHealth();
     expect(health.status).toBe('healthy'); // 5% fallback rate < 10%
@@ -175,11 +176,11 @@ describe('Circuit Breaker', () => {
   });
 
   it('should allow attempts for healthy models', () => {
-    expect(modelCircuitBreaker.canAttempt('claude-4-sonnet')).toBe(true);
+    expect(modelCircuitBreaker.canAttempt(config.AI_PRIMARY_MODEL)).toBe(true);
   });
 
   it('should open circuit after multiple failures', () => {
-    const model = 'claude-4-sonnet';
+    const model = config.AI_PRIMARY_MODEL;
     
     // Record 5 failures (threshold)
     for (let i = 0; i < 5; i++) {
@@ -193,7 +194,7 @@ describe('Circuit Breaker', () => {
   });
 
   it('should reset circuit on success', () => {
-    const model = 'claude-4-sonnet';
+    const model = config.AI_PRIMARY_MODEL;
     
     // Record failures
     modelCircuitBreaker.recordFailure(model);

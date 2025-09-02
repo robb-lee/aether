@@ -12,7 +12,7 @@ import { z } from 'zod';
 export const envSchema = z.object({
   LITELLM_API_BASE: z.string().url(),
   LITELLM_API_KEY: z.string().min(1),
-  AI_PRIMARY_MODEL: z.string().default('claude-4-sonnet'),
+  AI_PRIMARY_MODEL: z.string().min(1),
   AI_FALLBACK_MODEL: z.string().default('gpt-5-mini'),
   AI_IMAGE_MODEL: z.string().default('dall-e-3'),
   AI_MAX_RETRIES: z.string().optional().transform(val => val ? parseInt(val) : 3),
@@ -23,28 +23,33 @@ export const envSchema = z.object({
 
 export const config = envSchema.parse(process.env);
 
+// Validate that AI_PRIMARY_MODEL is set
+if (!config.AI_PRIMARY_MODEL) {
+  throw new Error('AI_PRIMARY_MODEL environment variable is required');
+}
+
 // No more test environment - always use real API
 export const isTestEnvironment = false;
 
 // Model routing configuration - Updated for available models
 export const modelRouting = {
-  // Task-specific model selection
+  // Task-specific model selection - Using environment variables
   tasks: {
-    structure: 'claude-4-sonnet',         // Site structure generation
-    content: 'claude-4-sonnet',           // Content writing
-    seo: 'claude-4-sonnet',               // SEO optimization
-    code: 'claude-4-sonnet',              // Code generation
-    images: 'claude-4-sonnet',            // Image generation (text fallback)
-    analysis: 'claude-4-sonnet',          // Complex analysis
-    simple: 'gpt-5-mini',                 // Simple tasks
+    structure: config.AI_PRIMARY_MODEL,         // Site structure generation
+    content: config.AI_PRIMARY_MODEL,           // Content writing
+    seo: config.AI_PRIMARY_MODEL,               // SEO optimization
+    code: config.AI_PRIMARY_MODEL,              // Code generation
+    images: config.AI_PRIMARY_MODEL,            // Image generation (text fallback)
+    analysis: config.AI_PRIMARY_MODEL,          // Complex analysis
+    simple: config.AI_FALLBACK_MODEL,           // Simple tasks
   },
   
   // Fallback chain for each primary model - Using only working models
   fallbackChains: {
-    'claude-4-sonnet': ['gpt-5-mini', 'gpt-oss-20b'],
-    'gpt-5-mini': ['claude-4-sonnet', 'gpt-oss-20b'],
-    'gpt-oss-20b': ['claude-4-sonnet'],
-    'openai/gpt-oss-20b': ['claude-4-sonnet'],
+    'claude-4-sonnet': ['gpt-5-mini', 'openai/gpt-oss-20b'],
+    'gpt-5-mini': ['claude-4-sonnet', 'openai/gpt-oss-20b'],
+    'gpt-oss-20b': ['openai/gpt-oss-20b', 'claude-4-sonnet'],
+    'openai/gpt-oss-20b': ['claude-4-sonnet', 'gpt-5-mini'],
   },
 };
 

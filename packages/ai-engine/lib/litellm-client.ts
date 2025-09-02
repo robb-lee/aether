@@ -196,11 +196,8 @@ export async function generateCompletion({
     try {
       const settings = modelSettings[currentModel] || {};
       
-      // Remove max_tokens for Claude models as they don't support it
+      // Use model settings as-is (each model already has correct parameter names)
       const requestSettings = { ...settings };
-      if (currentModel.includes('claude')) {
-        delete requestSettings.max_tokens;
-      }
       
       const response = await executeWithRetry(
         async () => {
@@ -418,11 +415,8 @@ export async function* streamCompletion({
       const settings = modelSettings[currentModel] || {};
       onStart?.(currentModel);
       
-      // Remove max_tokens for Claude models as they don't support it
+      // Use model settings as-is (each model already has correct parameter names)
       const requestSettings = { ...settings };
-      if (currentModel.includes('claude')) {
-        delete requestSettings.max_tokens;
-      }
       
       const stream = await executeWithRetry(
         async () => {

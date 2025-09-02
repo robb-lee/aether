@@ -53,15 +53,15 @@ export const modelRouting = {
   },
 };
 
-// Model-specific settings - Fixed parameter names for LiteLLM
+// Model-specific settings - Each model uses its native parameter names
 export const modelSettings = {
   'gpt-5': {
-    max_tokens: 4096,
+    max_completion_tokens: 4096,
     temperature: 0.7,
     top_p: 0.95,
   },
   'gpt-5-mini': {
-    max_tokens: 4096,
+    max_completion_tokens: 4096,
     temperature: 0.7,
     top_p: 0.95,
   },
@@ -76,9 +76,8 @@ export const modelSettings = {
     top_p: 0.95,
   },
   'claude-4-sonnet': {
-    max_tokens: 4096,
+    // Claude doesn't use max_tokens parameter at all
     temperature: 0.7,
-    // Claude uses different parameter names
   },
   'gemini-2.0-flash-thinking-exp': {
     max_tokens: 4096,

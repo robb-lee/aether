@@ -1,0 +1,17 @@
+{
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "outputDirectory": "apps/web/.next",
+  "functions": {
+    "apps/web/app/api/*/route.ts": {
+      "runtime": "edge"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/apps/web/$1"
+    }
+  ]
+}

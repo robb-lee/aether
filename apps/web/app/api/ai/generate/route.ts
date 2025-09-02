@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
 import { ValidationError } from '@aether/ai-engine/lib/errors'
 import { generateSiteComplete, extractContextFromPrompt } from '@aether/ai-engine/generators/site-generator'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
 // export const runtime = 'edge'
@@ -27,27 +27,33 @@ export async function POST(request: NextRequest) {
       throw new ValidationError('Prompt cannot exceed 5000 characters');
     }
 
-    // Create unique site ID
-    siteId = `site_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Initialize database record with 'generating' status
-    const supabase = createClient();
-    const { error: initError } = await supabase
+    // Initialize database record with 'generating' status - let DB generate UUID
+    const supabase = createServiceClient();
+    const { data: siteData, error: initError } = await supabase
       .from('sites')
       .insert({
-        id: siteId,
+        user_id: '1776cc50-7f48-4fcc-8fc2-958a7e330ed8', // Test user ID
         name: 'Generating...',
-        component_tree: null,
-        status: 'generating',
-        generation_prompt: prompt,
+        slug: `site-${Date.now()}`,
+        component_tree: {},
+        metadata: {
+          status: 'generating',
+          generation_prompt: prompt,
+          started_at: new Date().toISOString()
+        },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      })
+      .select('id')
+      .single();
 
-    if (initError) {
+    if (initError || !siteData) {
       console.error('❌ Database initialization error:', initError);
       throw new Error(`Failed to initialize site: ${initError.message}`);
     }
+
+    // Get the generated site ID
+    siteId = siteData.id;
 
     // Extract context from prompt for better component selection
     const context = extractContextFromPrompt(prompt);
@@ -93,14 +99,18 @@ export async function POST(request: NextRequest) {
       .update({
         name: siteResult.name || siteResult.title || 'Generated Site',
         component_tree: siteResult,
-        status: 'completed',
-        generation_metadata: {
-          generationMethod: siteResult.metadata?.generationMethod || 'registry',
-          tokenSavings: siteResult.metadata?.performance?.tokenSavings || 0,
-          lighthouseScore: siteResult.metadata?.performance?.estimatedLighthouse || 85,
-          generationTime: siteResult.metadata?.duration || 0,
-          model: siteResult.metadata?.model,
-          cost: siteResult.metadata?.cost || 0
+        metadata: {
+          status: 'completed',
+          generation_prompt: siteResult.prompt || 'unknown',
+          generation_metadata: {
+            generationMethod: siteResult.metadata?.generationMethod || 'registry',
+            tokenSavings: siteResult.metadata?.performance?.tokenSavings || 0,
+            lighthouseScore: siteResult.metadata?.performance?.estimatedLighthouse || 85,
+            generationTime: siteResult.metadata?.duration || 0,
+            model: siteResult.metadata?.model,
+            cost: siteResult.metadata?.cost || 0
+          },
+          completed_at: new Date().toISOString()
         },
         updated_at: new Date().toISOString(),
       })
@@ -143,11 +153,16 @@ export async function POST(request: NextRequest) {
     // Handle timeout specifically
     if (error instanceof Error && error.message.includes('timeout')) {
       // Update site status to failed
-      const supabase = createClient();
+      const supabase = createServiceClient();
       await supabase
         .from('sites')
         .update({ 
-          status: 'failed',
+          metadata: {
+            status: 'failed',
+            generation_prompt: 'unknown',
+            failed_at: new Date().toISOString(),
+            error: error.message
+          },
           updated_at: new Date().toISOString()
         })
         .eq('id', siteId!);
@@ -171,7 +186,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check site status from database
-    const supabase = createClient();
+    const supabase = createServiceClient();
     const { data: site, error: dbError } = await supabase
       .from('sites')
       .select('id, name, status, generation_metadata, created_at, updated_at')

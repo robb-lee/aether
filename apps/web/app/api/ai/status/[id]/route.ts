@@ -18,7 +18,7 @@ export async function GET(
     }
 
     // Check site status from database
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: site, error: dbError } = await supabase
       .from('sites')
       .select('*')
@@ -34,7 +34,8 @@ export async function GET(
     let stage = 'unknown';
     let estimatedCompletion = null;
     
-    switch (site.status) {
+    const siteStatus = site.metadata?.status || 'unknown';
+    switch (siteStatus) {
       case 'generating':
         progress = 10;
         stage = 'initializing';
@@ -77,31 +78,31 @@ export async function GET(
     const statusResponse = {
       id: site.id,
       name: site.name,
-      status: site.status,
+      status: siteStatus,
       progress: progress,
       stage: stage,
       createdAt: site.created_at,
       updatedAt: site.updated_at,
       elapsedTime: elapsedTime,
       estimatedCompletion: estimatedCompletion,
-      prompt: site.generation_prompt,
+      prompt: site.metadata?.generation_prompt,
       
       // Include metadata if available
-      metadata: site.generation_metadata || null,
+      metadata: site.metadata?.generation_metadata || null,
       
       // Include result if completed
-      result: site.status === 'completed' ? {
+      result: siteStatus === 'completed' ? {
         siteId: site.id,
         name: site.name,
         editorUrl: `/editor/${site.id}`,
         previewUrl: `/preview/${site.id}`,
         componentTree: site.component_tree,
         generationTime: elapsedTime,
-        performance: site.generation_metadata || {}
+        performance: site.metadata?.generation_metadata || {}
       } : null,
       
       // Error information if failed
-      error: site.status === 'failed' ? {
+      error: siteStatus === 'failed' ? {
         message: 'Generation failed',
         stage: stage,
         retryable: true
@@ -109,15 +110,15 @@ export async function GET(
     };
 
     // Add performance insights
-    if (site.status === 'completed' && site.generation_metadata) {
+    if (siteStatus === 'completed' && site.metadata?.generation_metadata) {
       statusResponse.insights = {
-        generationMethod: site.generation_metadata.generationMethod,
-        tokenSavings: site.generation_metadata.tokenSavings || 0,
-        lighthouseScore: site.generation_metadata.lighthouseScore || 85,
-        costSavings: site.generation_metadata.tokenSavings ? 
-          `${((site.generation_metadata.tokenSavings / 20000) * 100).toFixed(1)}%` : '90%',
-        model: site.generation_metadata.model || 'claude-4-sonnet',
-        totalCost: site.generation_metadata.cost || 0
+        generationMethod: site.metadata.generation_metadata.generationMethod,
+        tokenSavings: site.metadata.generation_metadata.tokenSavings || 0,
+        lighthouseScore: site.metadata.generation_metadata.lighthouseScore || 85,
+        costSavings: site.metadata.generation_metadata.tokenSavings ? 
+          `${((site.metadata.generation_metadata.tokenSavings / 20000) * 100).toFixed(1)}%` : '90%',
+        model: site.metadata.generation_metadata.model || 'claude-4-sonnet',
+        totalCost: site.metadata.generation_metadata.cost || 0
       };
     }
 

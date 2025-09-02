@@ -57,13 +57,11 @@ export const modelRouting = {
 export const modelSettings = {
   'gpt-5': {
     max_completion_tokens: 4096,
-    temperature: 0.7,
-    top_p: 0.95,
+    // Only max_completion_tokens supported - all other params use defaults
   },
   'gpt-5-mini': {
     max_completion_tokens: 4096,
-    temperature: 0.7,
-    top_p: 0.95,
+    // Only max_completion_tokens supported - all other params use defaults
   },
   'openai/gpt-oss-20b': {
     max_tokens: 4096,

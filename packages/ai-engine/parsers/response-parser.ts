@@ -227,7 +227,7 @@ function autoFixJSON(data: any, schema: z.ZodSchema): { data: any; fixed: boolea
  */
 export async function parseAIResponse<T = SiteStructure>(
   response: RawAIResponse,
-  schema: z.ZodSchema<T>,
+  schema: z.ZodTypeAny,
   options: {
     autoFix?: boolean;
     strictValidation?: boolean;
@@ -295,14 +295,14 @@ export async function parseAIResponse<T = SiteStructure>(
 
     // Default component tree versions if missing
     if (validationResult) {
-      if (schema === SiteStructureSchema && validationResult.pages) {
-        for (const page of validationResult.pages) {
+      if ((schema as any) === SiteStructureSchema && (validationResult as any).pages) {
+        for (const page of (validationResult as any).pages) {
           if (page.components && !page.components.version) {
             page.components.version = '1.0.0';
           }
         }
-      } else if (schema === ComponentTreeSchema && !validationResult.version) {
-        validationResult.version = '1.0.0';
+      } else if ((schema as any) === ComponentTreeSchema && !(validationResult as any).version) {
+        (validationResult as any).version = '1.0.0';
       }
     }
     
@@ -387,22 +387,22 @@ function getSuggestionForError(error: z.ZodIssue): string {
  * Parse site structure from AI response
  */
 export async function parseSiteStructure(response: RawAIResponse): Promise<ParsedResponse<SiteStructure>> {
-  return parseAIResponse(response, SiteStructureSchema, {
+  return (await parseAIResponse<SiteStructure>(response, SiteStructureSchema, {
     autoFix: true,
     strictValidation: false,
     extractCost: true
-  });
+  })) as ParsedResponse<SiteStructure>;
 }
 
 /**
  * Parse component tree from AI response
  */
 export async function parseComponentTree(response: RawAIResponse): Promise<ParsedResponse<ComponentTree>> {
-  return parseAIResponse(response, ComponentTreeSchema, {
+  return (await parseAIResponse<ComponentTree>(response, ComponentTreeSchema, {
     autoFix: true,
     strictValidation: true,
     extractCost: true
-  });
+  })) as ParsedResponse<ComponentTree>;
 }
 
 /**

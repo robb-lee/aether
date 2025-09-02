@@ -181,7 +181,7 @@ export async function mockGenerateCompletion({
     metadata: {
       attemptedModels: [model || 'mock-model']
     }
-  };
+  } as unknown as CompletionResponse;
 }
 
 /**
@@ -207,7 +207,7 @@ export async function mockGenerateImage({
     metadata: {
       attemptedModels: ['mock-dall-e']
     }
-  };
+  } as unknown as ImageResponse;
 }
 
 /**

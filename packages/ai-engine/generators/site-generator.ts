@@ -7,7 +7,7 @@
 
 import { generateCompletion, streamCompletion, generateImage, type StreamChunk } from '../lib/litellm-client';
 import { parseSiteStructure, parseComponentTree } from '../parsers/response-parser';
-import { StreamingResponseHandler, handleStreamingResponse } from '../parsers/stream-handler';
+import { StreamingResponseHandler, handleStreamingResponse, type StreamChunk as HandlerStreamChunk } from '../parsers/stream-handler';
 import { normalizeModelDifferences } from '../lib/normalizer';
 import { validateSiteStructure } from '../lib/validators';
 import { SiteStructureSchema } from '../schemas/site-structure';
@@ -472,7 +472,7 @@ async function generateWithStreaming(
       tokenCount: chunk.tokenCount,
       timestamp: Date.now(),
       chunkIndex: chunks.length
-    } as StreamHandlerStreamChunk);
+    } as HandlerStreamChunk);
   }
   
   // Complete parsing
@@ -556,7 +556,7 @@ export async function generateSectionContent(sectionType: string, businessContex
       process.stdout.write(token); // Show progress
     }
   })) {
-    chunks.push(chunk);
+    chunks.push(chunk.content);
   }
 
   return chunks.join('');
@@ -664,7 +664,7 @@ export async function generateSiteWithStreaming(
       tokenCount: chunk.tokenCount,
       timestamp: Date.now(),
       chunkIndex: 0
-    } as StreamHandlerStreamChunk);
+    } as HandlerStreamChunk);
   }
   
   return await handler.complete();

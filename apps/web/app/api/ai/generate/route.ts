@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
-import { ValidationError } from '@aether/ai-engine/lib/errors'
-import { generateSiteComplete, extractContextFromPrompt } from '@aether/ai-engine/generators/site-generator'
 import { createClient } from '../../../../lib/supabase/server'
 import type { Database } from '../../../../types/database'
+
+// Ensure this route is never statically evaluated at build time
+export const dynamic = 'force-dynamic'
 
 
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
@@ -13,6 +13,13 @@ export async function POST(request: NextRequest) {
   let siteId: string | null = null;
   
   try {
+    // Lazily import AI engine and error utilities to avoid env parsing during build
+    const [{ handleAPIError }, { ValidationError }, { generateSiteComplete, extractContextFromPrompt }] = await Promise.all([
+      import('@aether/ai-engine/lib/error-handler'),
+      import('@aether/ai-engine/lib/errors'),
+      import('@aether/ai-engine/generators/site-generator'),
+    ])
+
     const body = await request.json()
     const { prompt, type = 'website', preferences = {}, streaming = false } = body
 
@@ -174,6 +181,7 @@ export async function POST(request: NextRequest) {
         .eq('id', siteId!);
     }
     
+    const { handleAPIError } = await import('@aether/ai-engine/lib/error-handler')
     const errorResponse = handleAPIError(error, 'AI Generation');
     return NextResponse.json(
       { error: errorResponse.error, code: errorResponse.code },
@@ -184,6 +192,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Lazy import inside handler
+    const [{ handleAPIError }, { ValidationError }] = await Promise.all([
+      import('@aether/ai-engine/lib/error-handler'),
+      import('@aether/ai-engine/lib/errors'),
+    ])
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
 
@@ -255,6 +268,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(statusResponse)
   } catch (error) {
+    const { handleAPIError } = await import('@aether/ai-engine/lib/error-handler')
     const errorResponse = handleAPIError(error, 'Status Check');
     return NextResponse.json(
       { error: errorResponse.error, code: errorResponse.code },

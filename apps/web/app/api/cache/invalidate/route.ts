@@ -5,12 +5,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { invalidateCache, resetCacheStats } from '@aether/ai-engine/lib/cache';
 
+// Avoid static evaluation; lazy-load cache utilities at request time
+export const dynamic = 'force-dynamic'
 export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
+    const { invalidateCache, resetCacheStats } = await import('@aether/ai-engine/lib/cache')
     const body = await request.json();
     const { pattern, resetStats = false } = body;
 
@@ -50,6 +52,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   // Clear all cache entries
   try {
+    const { invalidateCache } = await import('@aether/ai-engine/lib/cache')
     const deletedEntries = await invalidateCache();
     
     return NextResponse.json({

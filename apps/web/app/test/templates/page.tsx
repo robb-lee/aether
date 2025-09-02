@@ -134,7 +134,7 @@ export default function TemplatesTestPage() {
           {matches.length > 0 && (
             <div className="mt-4">
               <h3 className="font-semibold mb-2">추천 템플릿:</h3>
-              {matches.map((match, index) => (
+              {matches.map((match, _index) => (
                 <div key={match.template.id} className="bg-gray-50 p-3 rounded mb-2">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{match.template.name}</span>

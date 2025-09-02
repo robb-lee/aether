@@ -29,7 +29,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     // Mock user authentication for now
-    const userId = 'mock-user-id';
+    const _userId = 'mock-user-id';
     const url = new URL(request.url);
     const detailed = url.searchParams.get('detailed') === 'true';
 

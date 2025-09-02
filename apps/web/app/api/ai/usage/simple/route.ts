@@ -12,7 +12,7 @@ import { estimateRequestCost, USER_QUOTAS } from '@/lib/cost-tracker-simple';
 /**
  * GET /api/ai/usage/simple - Get basic usage stats (mock for now)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // For now, return mock data since we don't have auth set up
     const mockUsage = {

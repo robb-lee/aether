@@ -6,6 +6,7 @@ import { ErrorBoundary } from '../components/error-boundary'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'Aether - AI Website Builder',
   description: 'Create professional websites in 30 seconds with AI',
   keywords: 'AI, website builder, no-code, website generator, AI website',

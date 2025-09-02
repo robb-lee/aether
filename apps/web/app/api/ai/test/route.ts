@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { prompt, type = 'website', preferences = {} } = body
+    const { prompt, type = 'website', preferences: _preferences = {} } = body
 
     // Validate input
     if (!prompt) {

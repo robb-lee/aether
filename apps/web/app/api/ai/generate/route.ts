@@ -14,8 +14,7 @@ export async function POST(request: NextRequest) {
   
   try {
     // Lazily import AI engine and error utilities to avoid env parsing during build
-    const [{ handleAPIError }, { ValidationError }, { generateSiteComplete, extractContextFromPrompt }] = await Promise.all([
-      import('@aether/ai-engine/lib/error-handler'),
+    const [{ ValidationError }, { generateSiteComplete, extractContextFromPrompt }] = await Promise.all([
       import('@aether/ai-engine/lib/errors'),
       import('@aether/ai-engine/generators/site-generator'),
     ])
@@ -193,8 +192,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Lazy import inside handler
-    const [{ handleAPIError }, { ValidationError }] = await Promise.all([
-      import('@aether/ai-engine/lib/error-handler'),
+    const [{ ValidationError }] = await Promise.all([
       import('@aether/ai-engine/lib/errors'),
     ])
     const searchParams = request.nextUrl.searchParams

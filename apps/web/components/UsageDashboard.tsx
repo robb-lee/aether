@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardBody } from '@aether/ui';
 
 interface UsageData {
@@ -77,11 +77,7 @@ export default function UsageDashboard({ showDetailed = true }: { showDetailed?:
   const [promptLength, setPromptLength] = useState(100);
   const [responseLength, setResponseLength] = useState(500);
 
-  useEffect(() => {
-    fetchUsageData();
-  }, [showDetailed]);
-
-  const fetchUsageData = async () => {
+  const fetchUsageData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/ai/usage?detailed=${showDetailed}`);
@@ -98,7 +94,11 @@ export default function UsageDashboard({ showDetailed = true }: { showDetailed?:
     } finally {
       setLoading(false);
     }
-  };
+  }, [showDetailed]);
+
+  useEffect(() => {
+    fetchUsageData();
+  }, [fetchUsageData]);
 
   const estimateCost = async () => {
     try {

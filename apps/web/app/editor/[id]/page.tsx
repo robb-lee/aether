@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 export default function EditorPage({ params }: { params: { id: string } }) {
-  const [selectedElement, setSelectedElement] = useState<string | null>(null)
+  const [selectedElement, _setSelectedElement] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   return (

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
 import { ValidationError } from '@aether/ai-engine/lib/errors'
 import { createClient } from '../../../../../lib/supabase/server'
-import type { Database } from '../../../../../types/database'
 
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
 // export const runtime = 'edge'

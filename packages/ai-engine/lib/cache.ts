@@ -8,7 +8,14 @@
  * - Selective caching (excludes images, includes completion/chat)
  */
 
-import { createHash } from 'crypto';
+// Use Web Crypto API for Edge Runtime compatibility
+const createHash = async (algorithm: string, data: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+  const hashBuffer = await crypto.subtle.digest(algorithm.toUpperCase(), dataBuffer);
+  const hashArray = new Uint8Array(hashBuffer);
+  return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
+};
 import { getRedisClient, checkRedisHealth } from './redis-client';
 
 // Cache configuration
@@ -46,12 +53,12 @@ interface CacheStats {
 /**
  * Generate cache key from request parameters
  */
-function generateCacheKey(
+async function generateCacheKey(
   operation: string,
   model: string,
   messages: any[] | string,
   additionalParams?: Record<string, any>
-): string {
+): Promise<string> {
   // Create content hash for consistent caching
   const content = Array.isArray(messages) 
     ? JSON.stringify(messages.map(m => ({ role: m.role, content: m.content })))
@@ -71,8 +78,8 @@ function generateCacheKey(
     params: relevantParams,
   });
   
-  const hash = createHash('sha256').update(hashInput).digest('hex').substring(0, 16);
-  return `${CACHE_CONFIG.KEY_PREFIX}:${operation}:${model}:${hash}`;
+  const hash = await createHash('sha-256', hashInput);
+  return `${CACHE_CONFIG.KEY_PREFIX}:${operation}:${model}:${hash.substring(0, 16)}`;
 }
 
 /**
@@ -98,7 +105,7 @@ export async function getCachedResponse(
   
   try {
     const redis = getRedisClient();
-    const cacheKey = generateCacheKey(operation, model, messages, additionalParams);
+    const cacheKey = await generateCacheKey(operation, model, messages, additionalParams);
     
     const cached = await redis.get(cacheKey);
     if (!cached) {
@@ -150,7 +157,7 @@ export async function setCachedResponse(
   
   try {
     const redis = getRedisClient();
-    const cacheKey = generateCacheKey(operation, model, messages, additionalParams);
+    const cacheKey = await generateCacheKey(operation, model, messages, additionalParams);
     
     const entry: CacheEntry = {
       response,

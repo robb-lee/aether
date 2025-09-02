@@ -350,6 +350,95 @@ curl -X GET "$LITELLM_API_BASE/models" -H "Authorization: Bearer $LITELLM_API_KE
 - `gpt-oss-20b`: 오픈소스 대안
 - `Qwen2.5-14b-instruct`: 중국 모델
 
+## 🛠️ 테스트 실패 대응 가이드라인
+
+### ❌ 절대 금지 (Bad Practices)
+- **테스트 삭제**: 실패하는 테스트를 제거하지 마세요
+- **테스트 우회**: `skip()` 또는 주석 처리로 테스트 건너뛰지 마세요
+- **강제 통과**: expect 조건을 임의로 변경하여 테스트를 통과시키지 마세요
+- **입력값 조작**: 테스트가 통과하도록 임의로 입력값을 변경하지 마세요
+- **환경 조작**: 테스트에 맞게 환경을 임시로 변경하지 마세요
+
+### ✅ 올바른 접근법 (Best Practices)
+1. **근본 원인 분석**: 왜 테스트가 실패하는지 이해하기
+2. **코드 수정**: 테스트가 아닌 실제 코드의 문제를 해결하기
+3. **환경 검증**: 필요한 환경 변수와 설정이 올바른지 확인하기
+4. **의존성 확인**: 필요한 패키지와 서비스가 설치/실행되고 있는지 확인하기
+5. **단계별 디버깅**: 각 단계별로 문제를 분해하여 해결하기
+
+### 🔍 테스트 실패 시 체크리스트
+
+#### 1. 환경 변수 검증
+```bash
+# 모든 필요한 환경 변수가 설정되어 있는지 확인
+env | grep -E "(AI_|LITELLM_|SUPABASE_)"
+```
+
+#### 2. 의존성 확인
+```bash
+# 서비스가 실행되고 있는지 확인
+pnpm dev:web &  # 백그라운드에서 실행
+curl -f http://localhost:3000/api/health || echo "API not ready"
+```
+
+#### 3. 단계별 디버깅
+```bash
+# 개별 테스트 파일 실행하여 구체적인 오류 확인
+pnpm test [specific-test-file] --verbose
+```
+
+#### 4. 로그 분석
+```typescript
+// 테스트 코드에 디버깅 로그 추가 (임시)
+console.log('Test input:', input);
+console.log('Expected:', expected);
+console.log('Actual:', actual);
+```
+
+### 📊 시간 관리 최적화
+
+#### 실제 개발 시간 vs 트러블슈팅 비율 목표
+- **개발 시간**: 60-70% (실제 기능 구현)
+- **트러블슈팅**: 20-30% (문제 해결)
+- **문서화**: 10% (진행상황 기록)
+
+#### 트러블슈팅 시간 단축 전략
+1. **패턴 분석**: 자주 발생하는 오류 패턴 문서화
+2. **환경 검증 스크립트**: 작업 시작 전 환경 상태 확인
+3. **단계별 검증**: 큰 변경 전에 작은 단위로 테스트
+4. **롤백 전략**: 작업 시작 전 git 상태 확인 및 브랜치 생성
+
+### 🎯 효율적인 작업 진행 방법
+
+#### 작업 시작 전 (5분)
+```bash
+# 1. Git 상태 확인
+git status && git branch
+
+# 2. 환경 상태 검증
+pnpm run test:env-simple
+
+# 3. 현재 태스크 확인
+grep -A 10 "🔄 In Progress" task.md
+```
+
+#### 작업 중 (매 15분)
+- 작은 단위로 커밋하여 롤백 포인트 생성
+- 테스트가 깨지면 즉시 원인 분석 (우회 금지)
+- 문제 해결 과정을 work-log.md에 기록
+
+#### 작업 완료 후 (5분)
+```bash
+# 1. 최종 테스트 실행
+pnpm test
+
+# 2. 진행상황 업데이트
+pnpm task:complete X.X "실제시간"
+
+# 3. 커밋 및 푸시
+git add -A && git commit -m "Task X.X: 설명 - Completed"
+```
+
 ## 🤖 Automated Progress Tracking
 
 ### Helper Scripts for Task Management

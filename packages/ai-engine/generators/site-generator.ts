@@ -1,7 +1,8 @@
 /**
- * AI Site Generator using LiteLLM
+ * AI Site Generator using LiteLLM with Component Registry Integration
  * 
- * Enhanced site generation with streaming responses and robust parsing
+ * NEW: Component selection mode - 90% token reduction
+ * Legacy: Direct generation mode - kept as fallback
  */
 
 import { generateCompletion, streamCompletion, generateImage } from '../lib/litellm-client';
@@ -10,15 +11,74 @@ import { StreamingResponseHandler, handleStreamingResponse } from '../parsers/st
 import { normalizeModelDifferences } from '../lib/normalizer';
 import { validateSiteStructure } from '../lib/validators';
 import { SiteStructureSchema } from '../schemas/site-structure';
+import { 
+  ComponentSelector, 
+  getComponentSelector, 
+  SelectionContext,
+  ComponentSelection 
+} from '../selectors/component-selector';
+import { 
+  createSelectionPrompt, 
+  generateContextualPrompt,
+  COMPONENT_SELECTION_SYSTEM_PROMPT 
+} from '../prompts/selection-prompts';
 
 /**
- * Generate a complete website structure using AI with robust parsing
+ * NEW: Generate site using Component Registry (90% token reduction)
  */
-export async function generateSiteStructure(prompt: string, options: {
+export async function generateSiteWithRegistry(
+  prompt: string, 
+  context: SelectionContext,
+  options: {
+    streaming?: boolean;
+    onProgress?: (progress: any) => void;
+    model?: string;
+  } = {}
+): Promise<any> {
+  const { streaming = false, onProgress, model } = options;
+  const selector = getComponentSelector();
+  
+  try {
+    // Generate selection prompt with context
+    const { prompt: selectionPrompt, estimatedTokens } = generateContextualPrompt(
+      prompt, 
+      context, 
+      selector.getAvailableComponents()
+    );
+
+    console.log(`🎯 Token estimate: ${estimatedTokens} (vs ~20,000 for direct generation)`);
+    
+    const messages = [
+      { role: 'system', content: COMPONENT_SELECTION_SYSTEM_PROMPT },
+      { role: 'user', content: selectionPrompt }
+    ];
+
+    // Track token usage
+    const startTime = Date.now();
+    
+    if (streaming) {
+      return await generateSelectionWithStreaming(messages, onProgress, model, selector);
+    } else {
+      return await generateSelectionWithParsing(messages, model, selector, startTime);
+    }
+  } catch (error) {
+    console.error('❌ Registry-based generation failed, falling back to direct generation:', error);
+    
+    // Fallback to legacy generation
+    return await generateSiteStructureLegacy(prompt, options);
+  }
+}
+
+/**
+ * LEGACY: Generate complete website structure (kept as fallback)
+ */
+export async function generateSiteStructureLegacy(prompt: string, options: {
   streaming?: boolean;
   onProgress?: (progress: any) => void;
   model?: string;
 } = {}) {
+  console.log('⚠️ Using legacy generation mode (high token usage)');
+  
   const { streaming = false, onProgress, model } = options;
   const systemPrompt = `You are an expert web designer and developer.
 Generate a complete website structure optimized for conversion.
@@ -96,6 +156,122 @@ Important: Return ONLY valid JSON, no explanations or markdown.`;
     throw error;
   }
 }
+
+/**
+ * Generate component selection with streaming
+ */
+async function generateSelectionWithStreaming(
+  messages: any[],
+  onProgress?: (progress: any) => void,
+  model?: string,
+  selector?: ComponentSelector
+): Promise<any> {
+  const chunks: string[] = [];
+  let totalTokens = 0;
+  
+  onProgress?.({ stage: 'selection_starting', mode: 'registry' });
+  
+  for await (const chunk of streamCompletion({
+    messages,
+    model,
+    task: 'component_selection',
+    onToken: (token) => {
+      chunks.push(token);
+      totalTokens++;
+      
+      // Show real-time token savings
+      if (totalTokens % 100 === 0) {
+        const savings = selector?.estimateTokenSavings(2) || { savingsPercent: 90 };
+        onProgress?.({ 
+          stage: 'selecting', 
+          tokensUsed: totalTokens,
+          estimatedSavings: savings.savingsPercent
+        });
+      }
+    },
+    onStart: (usedModel) => {
+      console.log(`🎯 Starting component selection with ${usedModel}`);
+      onProgress?.({ stage: 'ai_selecting', model: usedModel });
+    },
+    onComplete: (fullText, usedModel, cost) => {
+      console.log(`✅ Selection complete with ${usedModel}`);
+      console.log(`💰 Cost: $${cost.toFixed(4)} (vs ~$0.40 for legacy)`);
+      onProgress?.({ stage: 'selection_complete', model: usedModel, cost, totalTokens });
+    }
+  })) {
+    // Process chunks as they arrive
+  }
+  
+  const fullResponse = chunks.join('');
+  
+  // Parse selection response
+  const selection = await selector!.parseSelectionResponse(fullResponse);
+  console.log(`📦 Selected ${selection.selections.length} components`);
+  
+  return selection;
+}
+
+/**
+ * Generate component selection with parsing
+ */
+async function generateSelectionWithParsing(
+  messages: any[], 
+  model?: string, 
+  selector?: ComponentSelector,
+  startTime?: number
+): Promise<any> {
+  // Generate selection
+  const result = await generateCompletion({
+    messages,
+    model,
+    task: 'component_selection',
+    stream: false
+  });
+
+  const endTime = Date.now();
+  const duration = startTime ? endTime - startTime : 0;
+  
+  console.log(`✅ Selection generated with ${result.model} in ${duration}ms`);
+  console.log(`💰 Cost: $${result.cost.toFixed(4)} (vs ~$0.40 for legacy generation)`);
+  console.log(`🎯 Token usage: ${result.response.usage?.total_tokens || 'unknown'}`);
+  
+  if (result.fallback) {
+    console.log('⚠️ Used fallback model due to primary model failure');
+  }
+
+  const rawResponse = result.response.choices[0].message.content || '';
+  
+  // Parse selection response
+  const selection = await selector!.parseSelectionResponse(rawResponse);
+  
+  // Validate selection
+  const componentIds = selection.selections.map(s => s.componentId);
+  const validation = selector!.validateSelection(componentIds);
+  
+  if (!validation.valid) {
+    console.warn('⚠️ Component selection issues:', validation.issues);
+  }
+  
+  console.log(`💾 Estimated token savings: ${validation.estimatedTokenSavings} tokens (${validation.estimatedTokenSavings > 0 ? ((validation.estimatedTokenSavings / 20000) * 100).toFixed(1) : 0}%)`);
+  
+  return {
+    selection,
+    validation,
+    metadata: {
+      model: result.model,
+      cost: result.cost,
+      tokensUsed: result.response.usage?.total_tokens,
+      duration,
+      fallback: result.fallback,
+      estimatedSavings: validation.estimatedTokenSavings
+    }
+  };
+}
+
+/**
+ * Backward compatibility alias (uses registry by default)
+ */
+export const generateSiteStructure = generateSiteWithRegistry;
 
 /**
  * Generate with streaming and real-time parsing
@@ -347,11 +523,133 @@ export async function generateSiteWithStreaming(
   return await handler.complete();
 }
 
+/**
+ * MAIN API: Generate site with automatic fallback
+ */
+export async function generateSiteComplete(
+  userPrompt: string, 
+  options: {
+    context?: SelectionContext;
+    streaming?: boolean;
+    onProgress?: (progress: any) => void;
+    model?: string;
+    forceMode?: 'registry' | 'legacy';
+  } = {}
+): Promise<any> {
+  const { 
+    context = {}, 
+    streaming = false, 
+    onProgress, 
+    model,
+    forceMode 
+  } = options;
+
+  // Import composer here to avoid circular dependencies
+  const { getSiteComposer } = await import('../composers/site-composer');
+  const composer = getSiteComposer();
+
+  // Force legacy mode if requested
+  if (forceMode === 'legacy') {
+    console.log('🔄 Forced legacy generation mode');
+    return await generateSiteStructureLegacy(userPrompt, { streaming, onProgress, model });
+  }
+
+  try {
+    console.log('🎯 Starting Registry-based generation...');
+    
+    // Step 1: AI component selection
+    onProgress?.({ stage: 'selecting_components', mode: 'registry' });
+    const selectionResult = await generateSiteWithRegistry(userPrompt, context, { streaming, onProgress, model });
+    
+    // Step 2: Compose site from selections
+    onProgress?.({ stage: 'composing_site', selections: selectionResult.selection?.selections?.length || 0 });
+    const composedSite = await composer.composeSiteFromSelections(
+      userPrompt, 
+      selectionResult.selection, 
+      selectionResult.metadata
+    );
+
+    console.log('🎉 Registry-based generation completed successfully!');
+    console.log(`📊 Performance: ${composedSite.metadata.performance.estimatedLighthouse} Lighthouse score`);
+    console.log(`💾 Token savings: ${composedSite.metadata.performance.tokenSavings} tokens`);
+    
+    return composedSite;
+
+  } catch (error) {
+    console.error('❌ Registry generation failed:', error);
+    console.log('🔄 Falling back to legacy generation...');
+    
+    onProgress?.({ stage: 'fallback_to_legacy', error: error instanceof Error ? error.message : 'Unknown error' });
+    
+    try {
+      const legacyResult = await generateSiteStructureLegacy(userPrompt, { streaming, onProgress, model });
+      
+      // Add metadata to indicate fallback was used
+      if (typeof legacyResult === 'object' && legacyResult !== null) {
+        legacyResult.metadata = {
+          ...legacyResult.metadata,
+          generationMethod: 'legacy_fallback',
+          fallbackReason: error instanceof Error ? error.message : 'Registry selection failed'
+        };
+      }
+      
+      console.log('✅ Fallback generation completed');
+      return legacyResult;
+      
+    } catch (fallbackError) {
+      console.error('❌ Both registry and legacy generation failed:', fallbackError);
+      throw new Error(`All generation methods failed. Registry: ${error instanceof Error ? error.message : 'Unknown'}. Legacy: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown'}`);
+    }
+  }
+}
+
+/**
+ * Quick helper for extracting context from prompt
+ */
+export function extractContextFromPrompt(prompt: string): SelectionContext {
+  const lowerPrompt = prompt.toLowerCase();
+  const context: SelectionContext = {};
+
+  // Industry detection
+  if (lowerPrompt.includes('saas') || lowerPrompt.includes('software')) {
+    context.industry = 'saas';
+  } else if (lowerPrompt.includes('ecommerce') || lowerPrompt.includes('shop')) {
+    context.industry = 'ecommerce';
+  } else if (lowerPrompt.includes('portfolio') || lowerPrompt.includes('personal')) {
+    context.industry = 'portfolio';
+  } else if (lowerPrompt.includes('entertainment') || lowerPrompt.includes('media')) {
+    context.industry = 'entertainment';
+  }
+
+  // Style detection
+  if (lowerPrompt.includes('minimal') || lowerPrompt.includes('clean')) {
+    context.style = 'minimal';
+  } else if (lowerPrompt.includes('modern') || lowerPrompt.includes('contemporary')) {
+    context.style = 'modern';
+  } else if (lowerPrompt.includes('bold') || lowerPrompt.includes('striking')) {
+    context.style = 'bold';
+  }
+
+  // Performance requirements
+  if (lowerPrompt.includes('fast') || lowerPrompt.includes('performance')) {
+    context.performance = 'high';
+  }
+
+  // Extract keywords
+  context.keywords = prompt.split(/\s+/).filter(word => word.length > 3);
+
+  return context;
+}
+
 // Export for use in other modules
 export default {
-  generateSiteStructure,
+  generateSiteStructure: generateSiteComplete, // Main API
+  generateSiteComplete,
+  generateSiteWithRegistry,
+  generateSiteStructureLegacy,
   generateSectionContent,
   generateHeroImage,
   generateSaaSLandingPage,
-  generateSiteWithStreaming
+  generateSiteWithStreaming,
+  extractContextFromPrompt
 };

@@ -5,7 +5,8 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
-    '../../packages/ui/**/*.{js,ts,jsx,tsx}'
+    // Only scan UI package source to avoid node_modules
+    '../../packages/ui/src/**/*.{ts,tsx}'
   ],
   darkMode: 'class',
   theme: {

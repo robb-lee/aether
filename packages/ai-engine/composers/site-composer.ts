@@ -5,7 +5,7 @@
  * Handles component compatibility and generates final site JSON
  */
 
-import { getRegistry } from '../../component-registry/src/registry';
+import { getRegistry, initializeRegistry } from '../../component-registry/src/registry';
 import { ComponentDefinition } from '../../component-registry/src/types/component';
 import { ComponentSelection } from '../selectors/component-selector';
 import { generateUniqueId } from '../lib/utils';
@@ -99,6 +99,7 @@ export interface SiteMetadata {
  */
 export class SiteComposer {
   private registry = getRegistry();
+  private initialized = false;
 
   /**
    * Compose complete site from AI component selections
@@ -113,6 +114,12 @@ export class SiteComposer {
       tokenSavings?: number;
     }
   ): Promise<ComposedSite> {
+    
+    // Ensure registry is initialized
+    if (!this.initialized) {
+      await this.registry.initialize();
+      this.initialized = true;
+    }
     
     // Validate components exist in registry
     const componentIds = selection.selections.map(s => s.componentId);

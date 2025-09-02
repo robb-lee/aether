@@ -48,16 +48,27 @@ export class ComponentRegistry {
    */
   async initialize(metadataPath?: string): Promise<void> {
     try {
+      // Load default components first to ensure we have basic components
+      try {
+        const { defaultComponents } = await import('./data/default-components');
+        this.registerBatch(defaultComponents);
+        console.log(`📦 Loaded ${defaultComponents.length} default components`);
+      } catch (defaultError) {
+        console.warn('⚠️ Could not load default components:', defaultError);
+      }
+      
       // Load external metadata if path provided
       if (metadataPath) {
         await this.loadMetadataFromJSON(metadataPath);
       }
       
       this.initialized = true;
-      console.log('✅ Component Registry initialized successfully');
+      console.log(`✅ Component Registry initialized with ${this.components.size} total components`);
     } catch (error) {
       console.error('❌ Failed to initialize Component Registry:', error);
-      throw error;
+      // Initialize with empty registry as fallback
+      this.initialized = true;
+      console.log('⚠️ Component Registry initialized with empty state');
     }
   }
 

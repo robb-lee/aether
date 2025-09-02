@@ -42,6 +42,7 @@ export const modelRouting = {
     images: config.AI_PRIMARY_MODEL,            // Image generation (text fallback)
     analysis: config.AI_PRIMARY_MODEL,          // Complex analysis
     simple: config.AI_FALLBACK_MODEL,           // Simple tasks
+    component_selection: config.AI_PRIMARY_MODEL, // Component selection
   },
   
   // Fallback chain for each primary model - Using only working models

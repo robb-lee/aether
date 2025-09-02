@@ -5,7 +5,7 @@
  * Legacy: Direct generation mode - kept as fallback
  */
 
-import { generateCompletion, streamCompletion, generateImage } from '../lib/litellm-client';
+import { generateCompletion, streamCompletion, generateImage, type StreamChunk } from '../lib/litellm-client';
 import { parseSiteStructure, parseComponentTree } from '../parsers/response-parser';
 import { StreamingResponseHandler, handleStreamingResponse } from '../parsers/stream-handler';
 import { normalizeModelDifferences } from '../lib/normalizer';
@@ -144,12 +144,10 @@ export async function generateSiteWithTreeBuilder(
     const aiResponse = await generateCompletion({
       messages,
       model: model, // Let generateCompletion handle model selection based on config
-      temperature: 0.7,
-      maxTokens: 2000
     });
 
     // Parse AI selections
-    const selections = await selector.parseSelectionResponse(aiResponse.content);
+    const selections = await selector.parseSelectionResponse(aiResponse.response.choices[0].message.content || '');
     
     if (onProgress) {
       onProgress({ 
@@ -196,7 +194,7 @@ export async function generateSiteWithTreeBuilder(
       reactTree,
       metadata: {
         generationTime,
-        tokenUsage: aiResponse.usage?.totalTokens || estimatedTokens,
+        tokenUsage: aiResponse.response.usage?.total_tokens || estimatedTokens,
         modelUsed: aiResponse.model || model || 'unknown',
         componentCount: treeResult.stats.nodesCreated
       }
@@ -446,7 +444,7 @@ async function generateWithStreaming(
     });
   }
   
-  let chunks: any[] = [];
+  let chunks: StreamChunk[] = [];
   
   // Stream completion
   for await (const chunk of streamCompletion({
@@ -464,7 +462,7 @@ async function generateWithStreaming(
       console.log(`💰 Cost: $${cost.toFixed(4)}`);
     },
     onError: (error, usedModel) => {
-      console.error(`❌ Error with ${usedModel}:`, error.message);
+      console.error(`❌ Error with ${usedModel}:`, (error as Error).message);
     }
   })) {
     chunks.push(chunk);
@@ -474,7 +472,7 @@ async function generateWithStreaming(
       tokenCount: chunk.tokenCount,
       timestamp: Date.now(),
       chunkIndex: chunks.length
-    });
+    } as StreamHandlerStreamChunk);
   }
   
   // Complete parsing
@@ -596,7 +594,8 @@ export async function generateSaaSLandingPage() {
   // 1. Generate structure
   console.log('📐 Generating site structure...');
   const structure = await generateSiteStructure(
-    'Create a SaaS landing page for an AI-powered project management tool called TaskFlow'
+    'Create a SaaS landing page for an AI-powered project management tool called TaskFlow',
+    {}
   );
 
   // 2. Generate hero content
@@ -665,7 +664,7 @@ export async function generateSiteWithStreaming(
       tokenCount: chunk.tokenCount,
       timestamp: Date.now(),
       chunkIndex: 0
-    });
+    } as StreamHandlerStreamChunk);
   }
   
   return await handler.complete();

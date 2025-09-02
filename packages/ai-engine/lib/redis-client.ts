@@ -100,7 +100,7 @@ async function initializeRedis() {
     throw new Error('No Redis configuration found');
     
   } catch (error) {
-    console.warn('[Redis] Using mock client:', error.message);
+    console.warn('[Redis] Using mock client:', (error as Error).message);
     redisClient = new MockRedisClient();
     isConnected = true;
     connectionType = 'mock';
@@ -143,7 +143,7 @@ export async function checkRedisHealth(): Promise<{
     return {
       connected: false,
       type: connectionType,
-      error: error.message,
+      error: (error as Error).message,
     };
   }
 }

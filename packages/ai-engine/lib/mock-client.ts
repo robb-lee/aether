@@ -12,7 +12,14 @@ import type { CompletionResponse, ImageResponse } from './litellm-client';
  */
 const mockResponses = {
   structure: {
+    id: 'chatcmpl-mock-structure',
+    created: Date.now(),
+    model: 'mock-model-structure',
+    object: 'chat.completion',
     choices: [{
+      index: 0,
+      finish_reason: 'stop',
+      logprobs: null,
       message: {
         content: JSON.stringify({
           root: {
@@ -50,7 +57,14 @@ const mockResponses = {
   },
   
   content: {
+    id: 'chatcmpl-mock-content',
+    created: Date.now(),
+    model: 'mock-model-content',
+    object: 'chat.completion',
     choices: [{
+      index: 0,
+      finish_reason: 'stop',
+      logprobs: null,
       message: {
         content: JSON.stringify({
           title: 'Revolutionary SaaS Platform',
@@ -80,7 +94,14 @@ const mockResponses = {
   },
   
   analysis: {
+    id: 'chatcmpl-mock-analysis',
+    created: Date.now(),
+    model: 'mock-model-analysis',
+    object: 'chat.completion',
     choices: [{
+      index: 0,
+      finish_reason: 'stop',
+      logprobs: null,
       message: {
         content: JSON.stringify({
           industry: 'saas',
@@ -99,7 +120,14 @@ const mockResponses = {
   },
 
   simple: {
+    id: 'chatcmpl-mock-simple',
+    created: Date.now(),
+    model: 'mock-model-simple',
+    object: 'chat.completion',
     choices: [{
+      index: 0,
+      finish_reason: 'stop',
+      logprobs: null,
       message: {
         content: JSON.stringify({
           colors: {
@@ -149,6 +177,7 @@ export async function mockGenerateCompletion({
     model: model || 'mock-model',
     cost: 0.001, // Mock cost
     fallback: false,
+    cached: false,
     metadata: {
       attemptedModels: [model || 'mock-model']
     }

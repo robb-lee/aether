@@ -52,7 +52,7 @@ export const ComponentNodeSchema: z.ZodType<any> = z.lazy(() => z.object({
  */
 export const ComponentTreeSchema = z.object({
   root: ComponentNodeSchema,
-  version: z.string().default('1.0.0'),
+  version: z.string().optional(),
   metadata: z.object({
     generatedAt: z.string().datetime(),
     model: z.string(),
@@ -105,7 +105,7 @@ export const PageStructureSchema = z.object({
     isPublic: z.boolean().default(true),
     requiresAuth: z.boolean().default(false),
     layout: z.enum(['full', 'sidebar', 'centered']).default('full')
-  }).optional()
+  })
 });
 
 /**

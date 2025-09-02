@@ -90,7 +90,7 @@ class FallbackTracker {
     }
 
     // Calculate model reliability
-    const modelReliability: Record<string, any> = {};
+    const modelReliability: Record<string, { attempts: number; successes: number; failures: number; reliability: number; avgResponseTime: number; responseTimes?: number[] }> = {};
     
     for (const metric of recentMetrics) {
       const model = metric.modelUsed;
@@ -112,7 +112,7 @@ class FallbackTracker {
         modelReliability[model].failures++;
       }
       
-      if (metric.responseTime) {
+      if (metric.responseTime && modelReliability[model].responseTimes) {
         modelReliability[model].responseTimes.push(metric.responseTime);
       }
     }
@@ -121,8 +121,8 @@ class FallbackTracker {
     for (const model in modelReliability) {
       const stats = modelReliability[model];
       stats.reliability = stats.successes / stats.attempts;
-      stats.avgResponseTime = stats.responseTimes.length > 0
-        ? stats.responseTimes.reduce((a, b) => a + b, 0) / stats.responseTimes.length
+      stats.avgResponseTime = (stats.responseTimes && stats.responseTimes.length > 0)
+        ? stats.responseTimes.reduce((a: number, b: number) => a + b, 0) / stats.responseTimes.length
         : 0;
       delete stats.responseTimes; // Clean up temp data
     }
@@ -152,10 +152,10 @@ class FallbackTracker {
     let bestModel = currentModel;
     let bestReliability = modelStats?.reliability || 0;
 
-    for (const [model, stats] of Object.entries(stats.modelReliability)) {
-      if (stats.reliability > bestReliability && stats.attempts >= 5) {
+    for (const [model, modelReliabilityEntry] of Object.entries(stats.modelReliability)) {
+      if (modelReliabilityEntry.reliability > bestReliability && modelReliabilityEntry.attempts >= 5) {
         bestModel = model;
-        bestReliability = stats.reliability;
+        bestReliability = modelReliabilityEntry.reliability;
       }
     }
 
@@ -177,7 +177,7 @@ class FallbackTracker {
    * Estimate cost for a model (rough approximation)
    */
   private estimateCost(model: string, actualCost: number): number {
-    const modelCostData = costPerModel[model];
+    const modelCostData = costPerModel[model as keyof typeof costPerModel];
     if (!modelCostData) return actualCost;
     
     // This is a rough approximation - in practice you'd need token counts

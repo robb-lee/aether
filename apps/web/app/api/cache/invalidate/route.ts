@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'Failed to invalidate cache',
-        details: error.message,
+        details: (error as Error).message,
       },
       { status: 500 }
     );
@@ -66,7 +66,7 @@ export async function DELETE() {
       {
         success: false,
         error: 'Failed to clear cache',
-        details: error.message,
+        details: (error as Error).message,
       },
       { status: 500 }
     );

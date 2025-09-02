@@ -142,7 +142,7 @@ function getModelForTask(task?: keyof typeof modelRouting.tasks, model?: string)
  * Get fallback chain for a model
  */
 function getFallbackChain(model: string): string[] {
-  return modelRouting.fallbackChains[model] || [config.AI_FALLBACK_MODEL];
+  return modelRouting.fallbackChains[model as keyof typeof modelRouting.fallbackChains] || [config.AI_FALLBACK_MODEL];
 }
 
 /**
@@ -194,7 +194,7 @@ export async function generateCompletion({
   // Try each model in the fallback chain
   for (const currentModel of fallbackChain) {
     try {
-      const settings = modelSettings[currentModel] || {};
+      const settings = modelSettings[currentModel as keyof typeof modelSettings] || {};
       
       // Use model settings as-is (each model already has correct parameter names)
       const requestSettings = { ...settings };
@@ -263,7 +263,7 @@ export async function generateCompletion({
         0, // no cost for failed attempts
         false,
         { 
-          errorReason: error.message,
+          errorReason: (error as Error).message,
           responseTime: Date.now() - startTime
         }
       );
@@ -272,7 +272,7 @@ export async function generateCompletion({
       modelCircuitBreaker.recordFailure(currentModel);
       
       lastError = new ModelError(
-        `Model ${currentModel} failed: ${error.message}`,
+        `Model ${currentModel} failed: ${(error as Error).message}`,
         currentModel,
         error
       );
@@ -301,7 +301,7 @@ export async function generateImage({
   metadata = {},
 }: {
   prompt: string;
-  size?: string;
+  size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
   quality?: 'standard' | 'hd';
   n?: number;
   model?: string;
@@ -331,7 +331,7 @@ export async function generateImage({
         maxRetries
       );
       
-      const cost = (costPerModel[currentModel]?.image || 0) * n;
+      const cost = 0.04 * n;
       logger.success(response, currentModel, cost);
       
       return {
@@ -347,7 +347,7 @@ export async function generateImage({
     } catch (error) {
       logger.error(error, currentModel);
       lastError = new ModelError(
-        `Image model ${currentModel} failed: ${error.message}`,
+        `Image model ${currentModel} failed: ${(error as Error).message}`,
         currentModel,
         error
       );
@@ -369,7 +369,7 @@ function calculateCost(model: string, response: any): number {
   const usage = response.usage;
   if (!usage) return 0;
   
-  const costs = costPerModel[model];
+  const costs = costPerModel[model as keyof typeof costPerModel];
   if (!costs) return 0;
   
   const inputCost = (usage.prompt_tokens / 1000) * costs.input;
@@ -412,7 +412,7 @@ export async function* streamCompletion({
   
   for (const currentModel of fallbackChain) {
     try {
-      const settings = modelSettings[currentModel] || {};
+      const settings = modelSettings[currentModel as keyof typeof modelSettings] || {};
       onStart?.(currentModel);
       
       // Use model settings as-is (each model already has correct parameter names)
@@ -433,7 +433,7 @@ export async function* streamCompletion({
       );
       
       // Process the stream
-      for await (const chunk of stream) {
+      for await (const chunk of stream as any) {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
           fullText += content;
@@ -460,7 +460,7 @@ export async function* streamCompletion({
       logger.error(error, currentModel);
       onError?.(error, currentModel);
       lastError = new ModelError(
-        `Stream model ${currentModel} failed: ${error.message}`,
+        `Stream model ${currentModel} failed: ${(error as Error).message}`,
         currentModel,
         error
       );
@@ -481,7 +481,7 @@ export async function* streamCompletion({
  * Calculate estimated cost based on token count
  */
 function calculateEstimatedCost(model: string, tokenCount: number): number {
-  const costs = costPerModel[model];
+  const costs = costPerModel[model as keyof typeof costPerModel];
   if (!costs) return 0;
   
   // Rough estimation: assume 75% input, 25% output for streaming
@@ -519,7 +519,7 @@ export async function checkHealth(): Promise<{
       errors.push(`LiteLLM health check failed: ${response.status}`);
     }
   } catch (error) {
-    errors.push(`LiteLLM unreachable: ${error.message}`);
+    errors.push(`LiteLLM unreachable: ${(error as Error).message}`);
   }
   
   // Check model availability
@@ -539,7 +539,7 @@ export async function checkHealth(): Promise<{
         }
       }
     } catch (error) {
-      errors.push(`Failed to check models: ${error.message}`);
+      errors.push(`Failed to check models: ${(error as Error).message}`);
     }
   }
   
@@ -552,7 +552,7 @@ export async function checkHealth(): Promise<{
       errors.push(`Cache: ${cacheHealth.error}`);
     }
   } catch (error) {
-    errors.push(`Cache check failed: ${error.message}`);
+    errors.push(`Cache check failed: ${(error as Error).message}`);
   }
   
   const latency = Date.now() - startTime;
@@ -600,6 +600,18 @@ export async function listModels() {
   }
 }
 
+function getMaxTokens(model: string): number {
+  const settings = modelSettings[model as keyof typeof modelSettings];
+  if (!settings) return 4096;
+  if ('max_tokens' in settings) {
+    return settings.max_tokens as number;
+  }
+  if ('max_completion_tokens' in settings) {
+    return settings.max_completion_tokens as number;
+  }
+  return 4096;
+}
+
 /**
  * Get model capabilities and limits
  */
@@ -613,10 +625,10 @@ export async function getModelCapabilities(model: string) {
   
   return {
     id: modelInfo.id,
-    maxTokens: modelSettings[model]?.maxTokens || 4096,
+    maxTokens: getMaxTokens(model),
     supportStreaming: true,
     supportFunctions: modelInfo.id.includes('gpt'),
-    costPerToken: costPerModel[model],
+    costPerToken: costPerModel[model as keyof typeof costPerModel],
     fallbackChain: getFallbackChain(model),
   };
 }

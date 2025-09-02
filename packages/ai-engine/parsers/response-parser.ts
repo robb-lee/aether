@@ -158,14 +158,14 @@ function autoFixJSON(data: any, schema: z.ZodSchema): { data: any; fixed: boolea
   // Fix missing required fields
   if (typeof fixedData === 'object' && fixedData !== null) {
     // Add default IDs if missing
-    if (!fixedData.id && schema === SiteStructureSchema) {
+    if (!fixedData.id && schema._def === SiteStructureSchema._def) {
       fixedData.id = `site_${Date.now()}`;
       fixes.push('Added missing site ID');
       fixed = true;
     }
     
     // Add default metadata if missing
-    if (!fixedData.metadata && schema === SiteStructureSchema) {
+    if (!fixedData.metadata && schema._def === SiteStructureSchema._def) {
       fixedData.metadata = {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -292,6 +292,19 @@ export async function parseAIResponse<T = SiteStructure>(
       // Use partial data if not strict
       validationResult = parsedData;
     }
+
+    // Default component tree versions if missing
+    if (validationResult) {
+      if (schema === SiteStructureSchema && validationResult.pages) {
+        for (const page of validationResult.pages) {
+          if (page.components && !page.components.version) {
+            page.components.version = '1.0.0';
+          }
+        }
+      } else if (schema === ComponentTreeSchema && !validationResult.version) {
+        validationResult.version = '1.0.0';
+      }
+    }
     
     const parsingTime = Date.now() - startTime;
     
@@ -325,7 +338,7 @@ export async function parseAIResponse<T = SiteStructure>(
         valid: false,
         issues: [{
           type: 'error',
-          message: error.message,
+          message: (error as Error).message,
           suggestion: 'Check AI model output format'
         }],
         autoFixed: false
@@ -342,8 +355,8 @@ export async function parseAIResponse<T = SiteStructure>(
         fallbackUsed: response.fallback || false
       },
       error: {
-        code: error.code || 'PARSE_ERROR',
-        message: error.message,
+        code: (error as any).code || 'PARSE_ERROR',
+        message: (error as Error).message,
         details: error
       }
     };

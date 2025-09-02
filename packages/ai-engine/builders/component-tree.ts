@@ -70,7 +70,7 @@ export class ComponentTreeBuilder {
       const selection = selections.selections[i];
       
       try {
-        const componentDef = await this.registry.getComponent(selection.componentId);
+        const componentDef = await this.registry.getById(selection.componentId);
         if (!componentDef) {
           warnings.push(`Component "${selection.componentId}" not found in registry`);
           continue;
@@ -167,11 +167,11 @@ export class ComponentTreeBuilder {
 
     // Build child nodes if component supports children
     const children: ComponentNode[] = [];
-    if (componentDef.metadata.allowsChildren && selection.props.children) {
+    if (selection.props.children) {
       // Process child components (recursive)
       for (let i = 0; i < selection.props.children.length; i++) {
         const childSelection = selection.props.children[i];
-        const childDef = await this.registry.getComponent(childSelection.componentId);
+        const childDef = await this.registry.getById(childSelection.componentId);
         
         if (childDef) {
           const childNode = await this.buildComponentNode(
@@ -444,7 +444,7 @@ export class ComponentTreeBuilder {
     warnings: string[]
   ): Promise<void> {
     if (node.componentId !== 'root-container') {
-      const componentDef = await this.registry.getComponent(node.componentId);
+      const componentDef = await this.registry.getById(node.componentId);
       if (!componentDef) {
         warnings.push(`Component "${node.componentId}" not found in registry`);
       }
@@ -484,14 +484,14 @@ export class ComponentTreeBuilder {
   private async convertNodeToReact(node: ComponentNode): Promise<any> {
     const componentDef = node.componentId === 'root-container' 
       ? null 
-      : await this.registry.getComponent(node.componentId);
+      : await this.registry.getById(node.componentId);
 
     const children = await Promise.all(
       node.children.map(child => this.convertNodeToReact(child))
     );
 
     return {
-      type: componentDef?.reactComponent || 'div',
+      type: componentDef?.component || 'div',
       props: {
         ...node.props,
         id: node.id,

@@ -137,7 +137,7 @@ export class StreamingResponseHandler extends EventEmitter {
       return result;
       
     } catch (error) {
-      this.emitProgress('error', 0, `Parsing failed: ${error.message}`);
+      this.emitProgress('error', 0, `Parsing failed: ${(error as Error).message}`);
       this.emit('error', error);
       throw error;
     }
@@ -200,7 +200,7 @@ export class StreamingResponseHandler extends EventEmitter {
     
     // Content completeness
     if (data.pages && Array.isArray(data.pages)) {
-      const pagesWithContent = data.pages.filter(p => p.components || p.content);
+      const pagesWithContent = data.pages.filter((p: any) => p.components || p.content);
       score += (pagesWithContent.length / data.pages.length) * 20;
     }
     

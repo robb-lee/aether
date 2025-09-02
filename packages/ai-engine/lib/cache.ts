@@ -188,7 +188,7 @@ export async function invalidateCache(pattern?: string): Promise<number> {
     const keys = await redis.keys(searchPattern);
     if (keys.length === 0) return 0;
     
-    const deleted = await redis.del(...keys);
+    const deleted = await redis.del(keys as string[]);
     console.log(`[Cache] Invalidated ${deleted} entries matching: ${searchPattern}`);
     
     return deleted;
@@ -305,7 +305,7 @@ export async function checkCacheHealth(): Promise<{
       redis: false,
       stats: await getCacheStats(),
       connectionType: 'unknown',
-      error: error.message,
+      error: (error as Error).message,
     };
   }
 }

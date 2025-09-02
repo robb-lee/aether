@@ -196,6 +196,14 @@ function applyStandardTransforms(data: any, responseType: string): any {
   return transformed;
 }
 
+function getDefaultPageSettings() {
+  return {
+    isPublic: true,
+    requiresAuth: false,
+    layout: 'full' as const,
+  };
+}
+
 /**
  * Normalize site structure format
  */
@@ -222,7 +230,7 @@ function normalizeSiteStructure(data: any): SiteStructure {
     template: page.template,
     components: normalizeComponentTree(page.components || { root: { id: 'empty', type: 'div', props: {} } }),
     seo: normalizeSEO(page.seo || {}),
-    settings: page.settings || { isPublic: true, requiresAuth: false, layout: 'full' }
+    settings: page.settings || getDefaultPageSettings()
   }));
   
   // Normalize global styles
@@ -422,7 +430,7 @@ export function normalizeModelDifferences(
     try {
       parsed = JSON.parse(content);
     } catch (error) {
-      throw new Error(`Failed to parse ${fromModel} response as JSON: ${error.message}`);
+      throw new Error(`Failed to parse ${fromModel} response as JSON: ${(error as Error).message}`);
     }
   }
   
@@ -691,7 +699,7 @@ function applyValidationFixes(data: any, error: z.ZodError): any {
         
       case 'too_small':
         if (typeof value === 'string' && value.length < issue.minimum) {
-          setNestedValue(fixed, path, value.padEnd(issue.minimum, ' '));
+          setNestedValue(fixed, path, value.padEnd(Number(issue.minimum), ' '));
         }
         break;
     }

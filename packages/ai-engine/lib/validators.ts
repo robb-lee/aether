@@ -192,7 +192,7 @@ class AutoFixer {
         
         // Normalize children structure
         if (component.children && Array.isArray(component.children)) {
-          component.children.forEach(child => normalizeComponent(child));
+          component.children.forEach((child: any) => normalizeComponent(child));
         }
       }
     }
@@ -549,7 +549,7 @@ export class CustomValidator {
         issues.push({
           type: 'error',
           severity: 'high',
-          message: `Validation rule '${rule.name}' failed: ${error.message}`,
+          message: `Validation rule '${rule.name}' failed: ${(error as Error).message}`,
           suggestion: 'Check custom validation rule implementation',
           autoFixable: false,
           code: 'RULE_ERROR'

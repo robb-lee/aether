@@ -30,7 +30,7 @@ export async function GET() {
       {
         success: false,
         error: 'Failed to retrieve cache statistics',
-        details: error.message,
+        details: (error as Error).message,
       },
       { status: 500 }
     );

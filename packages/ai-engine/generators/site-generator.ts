@@ -20,8 +20,16 @@ import {
 import { 
   createSelectionPrompt, 
   generateContextualPrompt,
+  createHierarchicalSelectionPrompt,
+  createPerformanceOptimizedPrompt,
   COMPONENT_SELECTION_SYSTEM_PROMPT 
 } from '../prompts/selection-prompts';
+import { 
+  buildComponentTree, 
+  convertTreeToReact,
+  defaultTreeBuilder 
+} from '../builders/component-tree';
+import { ComponentTree, TreeBuildOptions } from '../types/components';
 
 /**
  * NEW: Generate site using Component Registry (90% token reduction)
@@ -66,6 +74,146 @@ export async function generateSiteWithRegistry(
     
     // Fallback to legacy generation
     return await generateSiteStructureLegacy(prompt, options);
+  }
+}
+
+/**
+ * ENHANCED: Generate site with hierarchical component tree building
+ */
+export async function generateSiteWithTreeBuilder(
+  prompt: string,
+  context: SelectionContext,
+  options: {
+    streaming?: boolean;
+    onProgress?: (progress: any) => void;
+    model?: string;
+    treeOptions?: TreeBuildOptions;
+    performanceTarget?: 'lighthouse90' | 'lighthouse95' | 'fastest';
+  } = {}
+): Promise<{
+  tree: ComponentTree;
+  reactTree: any;
+  metadata: {
+    generationTime: number;
+    tokenUsage: number;
+    modelUsed: string;
+    componentCount: number;
+  };
+}> {
+  const { streaming = false, onProgress, model, treeOptions = {}, performanceTarget } = options;
+  const selector = getComponentSelector();
+  const startTime = Date.now();
+
+  try {
+    // Generate appropriate prompt based on performance target
+    let selectionPrompt: string;
+    let estimatedTokens: number;
+
+    if (performanceTarget) {
+      selectionPrompt = createPerformanceOptimizedPrompt(prompt, context, performanceTarget);
+      estimatedTokens = Math.ceil(selectionPrompt.length / 4);
+    } else {
+      const promptResult = generateContextualPrompt(prompt, context, selector.getAvailableComponents());
+      selectionPrompt = promptResult.prompt;
+      estimatedTokens = promptResult.estimatedTokens;
+    }
+
+    console.log(`🎯 Enhanced prompt - Token estimate: ${estimatedTokens}`);
+    
+    if (onProgress) {
+      onProgress({ 
+        phase: 'prompt_generation', 
+        message: 'Generated optimized selection prompt',
+        tokenEstimate: estimatedTokens 
+      });
+    }
+
+    const messages = [
+      { role: 'system', content: COMPONENT_SELECTION_SYSTEM_PROMPT },
+      { role: 'user', content: selectionPrompt }
+    ];
+
+    // Generate AI selections
+    if (onProgress) {
+      onProgress({ 
+        phase: 'ai_selection', 
+        message: 'Getting component selections from AI' 
+      });
+    }
+
+    const aiResponse = await generateCompletion({
+      messages,
+      model: model || process.env.AI_PRIMARY_MODEL || 'claude-4-sonnet',
+      temperature: 0.7,
+      maxTokens: 2000
+    });
+
+    // Parse AI selections
+    const selections = await selector.parseSelectionResponse(aiResponse.content);
+    
+    if (onProgress) {
+      onProgress({ 
+        phase: 'tree_building', 
+        message: `Building component tree from ${selections.selections.length} selections` 
+      });
+    }
+
+    // Build component tree
+    const treeResult = await buildComponentTree(selections, prompt, {
+      generateIds: true,
+      validateStructure: true,
+      applyLayoutHints: true,
+      includeResponsive: true,
+      ...treeOptions
+    });
+
+    if (treeResult.warnings.length > 0) {
+      console.warn('⚠️ Tree building warnings:', treeResult.warnings);
+    }
+
+    if (onProgress) {
+      onProgress({ 
+        phase: 'react_conversion', 
+        message: 'Converting tree to React format' 
+      });
+    }
+
+    // Convert to React-renderable format
+    const reactTree = await convertTreeToReact(treeResult.tree);
+
+    const generationTime = Date.now() - startTime;
+
+    if (onProgress) {
+      onProgress({ 
+        phase: 'complete', 
+        message: `Site generated successfully in ${generationTime}ms`,
+        stats: treeResult.stats
+      });
+    }
+
+    return {
+      tree: treeResult.tree,
+      reactTree,
+      metadata: {
+        generationTime,
+        tokenUsage: aiResponse.usage?.totalTokens || estimatedTokens,
+        modelUsed: aiResponse.model || model || 'unknown',
+        componentCount: treeResult.stats.nodesCreated
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Enhanced generation failed:', error);
+    
+    if (onProgress) {
+      onProgress({ 
+        phase: 'error', 
+        message: 'Enhanced generation failed, falling back to registry mode' 
+      });
+    }
+
+    // Fallback to basic registry generation
+    return await generateSiteWithRegistry(prompt, context, options);
   }
 }
 

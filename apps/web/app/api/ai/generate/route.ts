@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
 import { ValidationError } from '@aether/ai-engine/lib/errors'
 import { generateSiteComplete, extractContextFromPrompt } from '@aether/ai-engine/generators/site-generator'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '../../../../lib/supabase/server'
+import type { Database } from '../../../../types/database'
+
 
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
 // export const runtime = 'edge'
@@ -28,14 +30,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize database record with 'generating' status - let DB generate UUID
-    const supabase = createServiceClient();
+    const supabase = await createClient();
     const { data: siteData, error: initError } = await supabase
       .from('sites')
       .insert({
         user_id: '1776cc50-7f48-4fcc-8fc2-958a7e330ed8', // Test user ID
         name: 'Generating...',
         slug: `site-${Date.now()}`,
-        component_tree: {},
+        components: {},
         metadata: {
           status: 'generating',
           generation_prompt: prompt,
@@ -66,10 +68,13 @@ export async function POST(request: NextRequest) {
       console.log('📊 Generation progress:', progress);
       
       // Update database with progress
-      await supabase
+      const progressSupabase = await createClient();
+      await progressSupabase
         .from('sites')
         .update({ 
-          status: `generating_${progress.stage || 'unknown'}`,
+          metadata: {
+            status: `generating_${progress.stage || 'unknown'}`,
+          },
           updated_at: new Date().toISOString()
         })
         .eq('id', siteId);
@@ -94,11 +99,12 @@ export async function POST(request: NextRequest) {
     const siteResult = await generateWithTimeout;
 
     // Update database with completed site
-    const { data: site, error: dbError } = await supabase
+    const completionSupabase = await createClient();
+    const { data: site, error: dbError } = await completionSupabase
       .from('sites')
       .update({
         name: siteResult.name || siteResult.title || 'Generated Site',
-        component_tree: siteResult,
+        components: siteResult,
         metadata: {
           status: 'completed',
           generation_prompt: siteResult.prompt || 'unknown',
@@ -113,7 +119,7 @@ export async function POST(request: NextRequest) {
           completed_at: new Date().toISOString()
         },
         updated_at: new Date().toISOString(),
-      })
+      } as Database['public']['Tables']['sites']['Update'])
       .eq('id', siteId)
       .select()
       .single();
@@ -153,8 +159,8 @@ export async function POST(request: NextRequest) {
     // Handle timeout specifically
     if (error instanceof Error && error.message.includes('timeout')) {
       // Update site status to failed
-      const supabase = createServiceClient();
-      await supabase
+      const errorSupabase = await createClient();
+      await errorSupabase
         .from('sites')
         .update({ 
           metadata: {
@@ -186,8 +192,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check site status from database
-    const supabase = createServiceClient();
-    const { data: site, error: dbError } = await supabase
+    const statusSupabase = await createClient();
+    const { data: site, error: dbError } = await statusSupabase
       .from('sites')
       .select('id, name, status, generation_metadata, created_at, updated_at')
       .eq('id', id)

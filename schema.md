@@ -2,6 +2,43 @@
 
 ## 1. Database Schema
 
+### 1.0 Database Setup
+
+#### Extensions
+```sql
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+```
+
+#### Functions
+```sql
+-- Update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to handle new user creation
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.users (id, email, full_name, avatar_url)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        NEW.raw_user_meta_data->>'full_name',
+        NEW.raw_user_meta_data->>'avatar_url'
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
 ### 1.1 Users Table
 Extended user profiles linked to Supabase Auth.
 
@@ -650,6 +687,51 @@ CREATE TABLE api_keys (
 CREATE INDEX idx_api_keys_user_id ON api_keys(user_id);
 CREATE INDEX idx_api_keys_key_hash ON api_keys(key_hash);
 CREATE INDEX idx_api_keys_key_prefix ON api_keys(key_prefix);
+
+-- RLS Policies
+ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own API keys" ON api_keys
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create API keys" ON api_keys
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own API keys" ON api_keys
+  FOR DELETE USING (auth.uid() = user_id);
+```
+
+#### Triggers Setup
+```sql
+-- Apply updated_at trigger to all relevant tables
+CREATE TRIGGER update_users_updated_at 
+  BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_sites_updated_at 
+  BEFORE UPDATE ON sites
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_templates_updated_at 
+  BEFORE UPDATE ON templates
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_deployments_updated_at 
+  BEFORE UPDATE ON deployments
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_components_updated_at 
+  BEFORE UPDATE ON components
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_subscriptions_updated_at 
+  BEFORE UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger to create user profile on auth signup
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
 
 ## 2. API Endpoints

@@ -42,6 +42,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@aether/templates':
+        specifier: workspace:*
+        version: link:../../packages/templates
       '@supabase/ssr':
         specifier: ^0.7.0
         version: 0.7.0(@supabase/supabase-js@2.56.1)
@@ -153,7 +156,7 @@ importers:
 
   packages/templates:
     dependencies:
-      '@ather/component-registry':
+      '@aether/component-registry':
         specifier: workspace:*
         version: link:../component-registry
       react:

@@ -1,5 +1,5 @@
 {
-  "name": "@ather/templates",
+  "name": "@aether/templates",
   "version": "0.1.0",
   "description": "Template system for Aether website builder",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ather/component-registry": "workspace:*",
+    "@aether/component-registry": "workspace:*",
     "react": "^18.2.0",
     "zod": "^3.22.4"
   },

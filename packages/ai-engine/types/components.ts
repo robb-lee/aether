@@ -89,7 +89,7 @@ export interface ComponentTree {
 /**
  * Zod schema for component node validation
  */
-export const ComponentNodeSchema = z.object({
+export const ComponentNodeSchema: z.ZodType<any> = z.object({
   id: z.string(),
   componentId: z.string(),
   name: z.string(),

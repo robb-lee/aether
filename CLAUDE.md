@@ -663,4 +663,81 @@ Next: Task 1.2 ready to start
 2. **점진적 전환**: 기존 직접 생성 방식을 fallback으로 유지
 3. **호환성**: Component Registry 도입 후에도 기존 사이트 편집 가능
 4. **확장성**: 새 컴포넌트 추가가 쉬워야 함
+
+## 🗄️ 데이터베이스 스키마 관리 가이드라인
+
+### 스키마 파일 구조
+- **Source of Truth**: `/schema.md` - 완전한 스키마 정의 및 API 스펙
+- **Applied Schema**: `/packages/database/schema.sql` - Supabase에 적용할 SQL 파일
+- **TypeScript Types**: `/apps/web/types/database.ts` - Supabase 자동 생성 타입
+
+### 스키마 변경 프로세스
+
+#### 1. 스키마 수정 시
+```bash
+# 1. schema.md 파일에서 테이블 정의 수정
+# 2. schema.sql 재생성
+# 3. database.ts 타입 업데이트
+# 4. Supabase에 적용
+```
+
+#### 2. TypeScript 'never' 타입 에러 해결
+
+**문제**: Supabase 쿼리에서 'never' 타입 에러 발생
+**원인**: Database 타입과 실제 Supabase 스키마 불일치
+
+**해결 단계**:
+1. **스키마 확인**: 실제 Supabase 테이블 구조 vs TypeScript 타입 비교
+2. **필드명 검증**: 특히 `component_tree` vs `components`, `profiles` vs `users` 등
+3. **타입 재생성**: database.ts 파일을 스키마와 일치하도록 수정
+4. **스키마 적용**: 새로운 schema.sql을 Supabase에 적용
+
+#### 3. 스키마 적용 방법
+
+**Option A: Supabase CLI (권장)**
+```bash
+supabase link --project-ref [project-ref]
+supabase db push
+```
+
+**Option B: 대시보드 직접 적용**
+1. https://supabase.com/dashboard 접속
+2. SQL Editor 탭에서 schema.sql 내용 실행
+3. 테이블 생성 확인
+
+#### 4. 스키마 검증
+
+**타입 체크**:
+```bash
+pnpm --filter @aether/web typecheck
+```
+
+**데이터베이스 연결 테스트**:
+```typescript
+// 간단한 연결 테스트
+const { data, error } = await supabase.from('users').select('*').limit(1);
+console.log('DB Test:', error ? 'Failed' : 'Success');
+```
+
+### 트러블슈팅 체크리스트
+
+#### TypeScript 빌드 에러 시
+1. ✅ **스키마 일치 확인**: database.ts vs 실제 DB 스키마
+2. ✅ **필드명 검증**: 오타나 네이밍 차이 확인
+3. ✅ **테이블 존재 확인**: 참조하는 테이블이 실제로 존재하는지
+4. ✅ **타입 재생성**: 필요시 Supabase CLI로 타입 자동 생성
+5. ⚠️ **절대 금지**: 타입 에러를 'any'로 우회하지 말 것
+
+#### 스키마 마이그레이션 시
+1. ✅ **백업**: 기존 데이터 백업 (운영 환경)
+2. ✅ **단계적 적용**: 테이블별로 순차 적용
+3. ✅ **종속성 확인**: 외래키 관계 고려하여 순서 결정
+4. ✅ **검증**: 각 단계마다 정상 작동 확인
+5. ⚠️ **롤백 계획**: 문제 발생 시 복구 방법 준비
+
+### 핵심 원칙
+- **근본 원인 해결**: 증상이 아닌 원인을 수정
+- **타입 안전성**: TypeScript 타입과 DB 스키마 100% 일치
+- **단계적 검증**: 각 변경사항을 개별적으로 테스트
+- **문서화**: 모든 스키마 변경사항을 schema.md에 반영
 ```

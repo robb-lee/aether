@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
 import { ValidationError } from '@aether/ai-engine/lib/errors'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../../../lib/supabase/server'
+import type { Database } from '../../../../../types/database'
 
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
 // export const runtime = 'edge'
@@ -96,7 +97,7 @@ export async function GET(
         name: site.name,
         editorUrl: `/editor/${site.id}`,
         previewUrl: `/preview/${site.id}`,
-        componentTree: site.component_tree,
+        componentTree: site.components,
         generationTime: elapsedTime,
         performance: site.metadata?.generation_metadata || {}
       } : null,
@@ -111,7 +112,7 @@ export async function GET(
 
     // Add performance insights
     if (siteStatus === 'completed' && site.metadata?.generation_metadata) {
-      statusResponse.insights = {
+      (statusResponse as any).insights = {
         generationMethod: site.metadata.generation_metadata.generationMethod,
         tokenSavings: site.metadata.generation_metadata.tokenSavings || 0,
         lighthouseScore: site.metadata.generation_metadata.lighthouseScore || 85,

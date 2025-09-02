@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
@@ -29,7 +30,11 @@
       "@aether/ui": ["../../packages/ui/src/index.ts"],
       "@aether/ui/*": ["../../packages/ui/src/*"],
       "@aether/ai-engine": ["../../packages/ai-engine/index.ts"],
-      "@aether/ai-engine/*": ["../../packages/ai-engine/*"]
+      "@aether/ai-engine/*": ["../../packages/ai-engine/*"],
+      "@aether/templates": ["../../packages/templates/src/index.ts"],
+      "@aether/templates/*": ["../../packages/templates/src/*"],
+      "@aether/component-registry": ["../../packages/component-registry/src/index.ts"],
+      "@aether/component-registry/*": ["../../packages/component-registry/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '../../../../lib/supabase/server'
+import { createServiceClient } from '../../../../lib/supabase/server'
 import type { Database } from '../../../../types/database'
 
 // Ensure this route is never statically evaluated at build time
@@ -105,6 +105,71 @@ export async function POST(request: NextRequest) {
       generatedSites.set(siteId, fullSiteData)
       console.log('💾 Site data stored in memory for preview')
       
+      // Save to database
+      try {
+        const supabase = createServiceClient()
+        
+        // 1. Save to sites table
+        const siteComponents = siteResult?.pages?.[0]?.components || { root: { type: 'page', props: {}, children: [] } }
+        
+        const { data: site, error: siteError } = await supabase
+          .from('sites')
+          .insert({
+            id: siteId,
+            // user_id can be null during development without auth
+            name: siteResult?.name || 'Generated Site',
+            slug: `${siteResult?.name?.toLowerCase().replace(/\s+/g, '-') || 'generated-site'}-${Date.now()}`,
+            description: siteResult?.description || null,
+            status: 'draft' as const,
+            components: siteComponents,
+            theme: siteResult?.theme || {},
+            seo_metadata: siteResult?.metadata?.seo || {},
+            preview_url: `/preview/${siteId}`,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single()
+        
+        if (siteError) {
+          console.error('❌ Error saving site to database:', siteError)
+          console.error('❌ Skipping generation history save due to site save failure')
+        } else {
+          console.log('✅ Site saved to database:', site?.id)
+          
+          // 2. Save to ai_generations table (only if site saved successfully)
+          const { error: genError } = await supabase
+            .from('ai_generations')
+            .insert({
+              // user_id can be null during development without auth
+              site_id: siteId,
+              generation_type: 'site' as const,
+              prompt: prompt,
+              enhanced_prompt: context ? JSON.stringify(context) : null,
+              model: siteResult?.metadata?.model || 'gpt-5-mini',
+              total_tokens: siteResult?.metadata?.tokens?.total || 0,
+              estimated_cost: siteResult?.metadata?.cost || 0.01,
+              result: fullSiteData,
+              success: true,
+              duration_ms: 15000, // TODO: Track actual duration
+              metadata: {
+                generationMethod: 'registry',
+                performance: siteResult?.metadata?.performance
+              },
+              created_at: new Date().toISOString()
+            })
+          
+          if (genError) {
+            console.error('❌ Error saving generation history:', genError)
+          } else {
+            console.log('✅ Generation history saved')
+          }
+        }
+      } catch (dbError) {
+        console.error('❌ Database save error:', dbError)
+        // Don't fail the request if DB save fails, user can still use the site
+      }
+      
       // Return successful response
       const response = {
         ...fullSiteData,
@@ -168,9 +233,64 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(siteData);
     }
     
-    // Return a generic completed status for any valid UUID (fallback)
+    // Fetch from database if not in memory
+    try {
+      const supabase = createServiceClient()
+      const { data: dbSite, error: dbError } = await supabase
+        .from('sites')
+        .select('*')
+        .eq('id', id)
+        .single()
+      
+      if (dbSite && !dbError) {
+        console.log('✅ Site found in database');
+        // Map database fields to expected response structure
+        const siteResponse = {
+          id: dbSite.id,
+          name: dbSite.name,
+          status: 'completed',
+          progress: 100,
+          stage: 'completed',
+          createdAt: dbSite.created_at,
+          updatedAt: dbSite.updated_at,
+          siteStructure: {
+            // Create the expected ComposedSite structure
+            pages: [{
+              id: 'page_home',
+              name: 'Home',
+              path: '/',
+              components: dbSite.components // ComponentTree with root.children
+            }],
+            metadata: {
+              generationMethod: 'registry',
+              lighthouse: 85,
+              duration: 5000
+            }
+          },
+          result: {
+            siteId: dbSite.id,
+            editorUrl: `/editor/${dbSite.id}`,
+            previewUrl: `/preview/${dbSite.id}`,
+            metadata: {
+              generationMethod: 'registry',
+              lighthouse: 85,
+              duration: 5000
+            }
+          },
+        };
+        
+        // Cache in memory for future requests
+        generatedSites.set(id, siteResponse)
+        
+        return NextResponse.json(siteResponse);
+      }
+    } catch (dbError) {
+      console.error('❌ Database query error:', dbError)
+    }
+    
+    // Return fallback only if not found in both memory and database
     if (id && id.length === 36) { // Basic UUID format check
-      console.log('⚠️ Site not found in memory, returning fallback response');
+      console.log('⚠️ Site not found in memory or database, returning fallback response');
       const statusResponse = {
         id: id,
         name: 'Generated Site',

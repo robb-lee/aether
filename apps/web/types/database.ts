@@ -69,7 +69,7 @@ export interface Database {
       sites: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           name: string;
           slug: string;
           description: string | null;
@@ -93,7 +93,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id?: string | null;
           name: string;
           slug: string;
           description?: string | null;
@@ -117,7 +117,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          user_id?: string | null;
           name?: string;
           slug?: string;
           description?: string | null;
@@ -225,7 +225,7 @@ export interface Database {
           id: string;
           site_id: string;
           component_id: string;
-          user_id: string;
+          user_id: string | null;
           selection_reason: string | null;
           business_context: any | null;
           user_prompt: string | null;
@@ -243,7 +243,7 @@ export interface Database {
           id?: string;
           site_id: string;
           component_id: string;
-          user_id: string;
+          user_id?: string | null;
           selection_reason?: string | null;
           business_context?: any | null;
           user_prompt?: string | null;
@@ -261,7 +261,7 @@ export interface Database {
           id?: string;
           site_id?: string;
           component_id?: string;
-          user_id?: string;
+          user_id?: string | null;
           selection_reason?: string | null;
           business_context?: any | null;
           user_prompt?: string | null;
@@ -354,7 +354,7 @@ export interface Database {
         Row: {
           id: string;
           site_id: string;
-          user_id: string;
+          user_id: string | null;
           deployment_id: string | null;
           deployment_url: string | null;
           preview_url: string | null;
@@ -373,7 +373,7 @@ export interface Database {
         Insert: {
           id?: string;
           site_id: string;
-          user_id: string;
+          user_id?: string | null;
           deployment_id?: string | null;
           deployment_url?: string | null;
           preview_url?: string | null;
@@ -392,7 +392,7 @@ export interface Database {
         Update: {
           id?: string;
           site_id?: string;
-          user_id?: string;
+          user_id?: string | null;
           deployment_id?: string | null;
           deployment_url?: string | null;
           preview_url?: string | null;
@@ -412,7 +412,7 @@ export interface Database {
       ai_generations: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           site_id: string | null;
           generation_type: 'site' | 'component' | 'content' | 'image' | 'optimization';
           prompt: string;
@@ -432,7 +432,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id?: string | null;
           site_id?: string | null;
           generation_type: 'site' | 'component' | 'content' | 'image' | 'optimization';
           prompt: string;
@@ -452,7 +452,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          user_id?: string | null;
           site_id?: string | null;
           generation_type?: 'site' | 'component' | 'content' | 'image' | 'optimization';
           prompt?: string;

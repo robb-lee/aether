@@ -1,151 +1,380 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Canvas, PropertyPanel, ComponentLibrary, LayerPanel } from '@aether/editor-core'
+import type { ComponentTreeNode } from '@aether/editor-core'
+import { Loader2 } from 'lucide-react'
+import { ComponentRenderer } from '@/components/ComponentRenderer'
+
+interface SiteData {
+  id: string
+  name: string
+  components: any
+  status: string
+}
 
 export default function EditorPage({ params }: { params: { id: string } }) {
-  const [selectedElement, _setSelectedElement] = useState<string | null>(null)
+  const [selectedElement, setSelectedElement] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [siteData, setSiteData] = useState<SiteData | null>(null)
+  const [componentTree, setComponentTree] = useState<ComponentTreeNode | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [leftPanelTab, setLeftPanelTab] = useState<'components' | 'layers'>('components')
 
+  // Fetch site data
+  useEffect(() => {
+    async function fetchSiteData() {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/sites/${params.id}`)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch site data')
+        }
+        
+        const data = await response.json()
+        setSiteData(data)
+        
+        // Transform components to ComponentTreeNode format
+        if (data.components && data.components.root) {
+          const transformedTree = transformToComponentTree(data.components.root)
+          setComponentTree(transformedTree)
+        }
+      } catch (err) {
+        console.error('Error fetching site:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load site')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchSiteData()
+  }, [params.id])
+  
+  // Transform API data to ComponentTreeNode format
+  const transformToComponentTree = (component: any): ComponentTreeNode => {
+    const transformed: ComponentTreeNode = {
+      id: component.id || `component-${Math.random().toString(36).substr(2, 9)}`,
+      type: component.componentId || component.type || 'div',
+      props: component.props || {},
+      position: component.position,
+      size: component.size,
+      children: []
+    }
+    
+    if (component.children && Array.isArray(component.children)) {
+      transformed.children = component.children.map(transformToComponentTree)
+    }
+    
+    return transformed
+  }
+  
+  // Handle component selection
+  const handleSelectionChange = useCallback((selectedIds: string[]) => {
+    setSelectedElement(selectedIds)
+  }, [])
+  
+  // Handle component updates
+  const handleComponentUpdate = useCallback((componentId: string, updates: any) => {
+    // Update the component tree
+    setComponentTree(prevTree => {
+      if (!prevTree) return null
+      return updateComponentInTree(prevTree, componentId, updates)
+    })
+  }, [])
+  
+  // Handle component tree changes (drag & drop)
+  const handleComponentTreeChange = useCallback((newTree: ComponentTreeNode) => {
+    setComponentTree(newTree)
+  }, [])
+  
+  // Handle adding new components
+  const handleAddComponent = useCallback((componentType: string) => {
+    if (!componentTree) return
+    
+    const newComponent: ComponentTreeNode = {
+      id: `${componentType}-${Date.now()}`,
+      type: componentType,
+      props: {},
+      children: []
+    }
+    
+    // Add to root for now - later we can add to selected parent
+    const updatedTree = {
+      ...componentTree,
+      children: [...(componentTree.children || []), newComponent]
+    }
+    
+    setComponentTree(updatedTree)
+  }, [componentTree])
+  
+  // Handle component deletion
+  const handleDeleteComponent = useCallback((componentId: string) => {
+    if (!componentTree) return
+    
+    const deleteFromTree = (node: ComponentTreeNode): ComponentTreeNode | null => {
+      if (node.id === componentId) return null
+      
+      if (node.children) {
+        const filteredChildren = node.children
+          .map(child => deleteFromTree(child))
+          .filter(Boolean) as ComponentTreeNode[]
+        
+        return { ...node, children: filteredChildren }
+      }
+      
+      return node
+    }
+    
+    const updatedTree = deleteFromTree(componentTree)
+    if (updatedTree) {
+      setComponentTree(updatedTree)
+      setSelectedElement([])
+    }
+  }, [componentTree])
+  
+  // Helper function to find component by ID
+  const findComponentById = (node: ComponentTreeNode, id: string): ComponentTreeNode | null => {
+    if (node.id === id) return node
+    if (node.children) {
+      for (const child of node.children) {
+        const found = findComponentById(child, id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+  
+  // Get selected component
+  const selectedComponent = componentTree && selectedElement.length > 0
+    ? findComponentById(componentTree, selectedElement[0])
+    : null
+  
+  // Setup keyboard shortcut handling with delete functionality
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault()
+        if (selectedElement.length > 0) {
+          selectedElement.forEach(id => handleDeleteComponent(id))
+        }
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedElement, handleDeleteComponent])
+  
+  // Helper function to update a component in the tree
+  const updateComponentInTree = (node: ComponentTreeNode, id: string, updates: any): ComponentTreeNode => {
+    if (node.id === id) {
+      return { ...node, ...updates }
+    }
+    
+    if (node.children) {
+      return {
+        ...node,
+        children: node.children.map(child => updateComponentInTree(child, id, updates))
+      }
+    }
+    
+    return node
+  }
+  
+  // Handle save
+  const handleSave = async () => {
+    if (!componentTree) return
+    
+    setIsSaving(true)
+    try {
+      const response = await fetch(`/api/sites/${params.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          components: {
+            root: componentTree
+          }
+        }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save site')
+      }
+      
+      // Show success message or notification
+      console.log('Site saved successfully')
+    } catch (err) {
+      console.error('Error saving site:', err)
+      // Show error message
+    } finally {
+      setIsSaving(false)
+    }
+  }
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-gray-600">Loading editor...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Error state
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-gray-800">Error Loading Site</h1>
+          <p className="text-gray-600">{error}</p>
+          <a 
+            href="/" 
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Go Back
+          </a>
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Left Sidebar - Components */}
-      <div className="w-64 border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div className="p-4">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Components</h2>
-          <div className="mt-4 space-y-2">
-            <button className="w-full rounded-lg border border-gray-300 p-3 text-left hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-              <div className="flex items-center">
-                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-                <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">Text</span>
-              </div>
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center space-x-4">
+            <a href="/" className="text-lg font-semibold text-gray-900 dark:text-white">
+              Aether
+            </a>
+            <span className="text-sm text-gray-500">{siteData?.name || 'Untitled Site'}</span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <a
+              href={`/preview/${params.id}`}
+              target="_blank"
+              className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+            >
+              Preview
+            </a>
+            <button 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
-            
-            <button className="w-full rounded-lg border border-gray-300 p-3 text-left hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-              <div className="flex items-center">
-                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">Image</span>
-              </div>
-            </button>
-            
-            <button className="w-full rounded-lg border border-gray-300 p-3 text-left hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-              <div className="flex items-center">
-                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                </svg>
-                <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">Button</span>
-              </div>
-            </button>
-            
-            <button className="w-full rounded-lg border border-gray-300 p-3 text-left hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-              <div className="flex items-center">
-                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">Section</span>
-              </div>
+            <button className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 text-sm text-white hover:from-blue-700 hover:to-purple-700">
+              Publish
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Canvas */}
-      <div className="flex-1 overflow-auto">
-        {/* Toolbar */}
-        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between px-4 py-2">
-            <div className="flex items-center space-x-2">
-              <button className="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg className="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-                </svg>
-              </button>
-              <button className="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg className="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-              <button className="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg className="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </button>
-              <button className="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg className="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                Preview
-              </button>
-              <button 
-                onClick={() => setIsSaving(true)}
-                className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-              <button className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 text-sm text-white hover:from-blue-700 hover:to-purple-700">
-                Publish
-              </button>
-            </div>
-          </div>
+      {/* Left Panel - Components & Layers */}
+      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-12 flex flex-col">
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setLeftPanelTab('components')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              leftPanelTab === 'components'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Components
+          </button>
+          <button
+            onClick={() => setLeftPanelTab('layers')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              leftPanelTab === 'layers'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Layers
+          </button>
         </div>
-
-        {/* Canvas Area */}
-        <div className="min-h-screen bg-white p-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Visual Editor</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Site ID: {params.id}
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                Drag and drop components to build your site
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Sidebar - Properties */}
-      <div className="w-80 border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div className="p-4">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Properties</h2>
-          {selectedElement ? (
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Text</label>
-                <input
-                  type="text"
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700"
-                  placeholder="Enter text"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Font Size</label>
-                <select className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
-                  <option>Small</option>
-                  <option>Medium</option>
-                  <option>Large</option>
-                </select>
-              </div>
-            </div>
+        <div className="flex-1 overflow-hidden">
+          {leftPanelTab === 'components' ? (
+            <ComponentLibrary onAddComponent={handleAddComponent} />
           ) : (
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              Select an element to edit its properties
-            </p>
+            <LayerPanel
+              componentTree={componentTree}
+              selectedIds={selectedElement}
+              onSelectComponent={(id, multi) => {
+                if (multi) {
+                  setSelectedElement(prev => 
+                    prev.includes(id) 
+                      ? prev.filter(i => i !== id)
+                      : [...prev, id]
+                  )
+                } else {
+                  setSelectedElement([id])
+                }
+              }}
+            />
           )}
         </div>
+      </div>
+      
+      {/* Main Canvas Area */}
+      <div className="flex-1 pt-12">
+        {componentTree ? (
+          <Canvas
+            componentTree={componentTree}
+            onSelectionChange={handleSelectionChange}
+            onComponentUpdate={handleComponentUpdate}
+            onComponentTreeChange={handleComponentTreeChange}
+            className="h-full"
+            renderComponent={(component) => (
+              <ComponentRenderer component={component} isEditor={true} />
+            )}
+            settings={{
+              viewport: {
+                x: 0,
+                y: 0,
+                zoom: 1,
+                width: 1200,
+                height: 800
+              },
+              grid: {
+                size: 20,
+                visible: true,
+                snapEnabled: true,
+                color: '#e5e7eb'
+              },
+              rulers: {
+                visible: true,
+                units: 'px',
+                color: '#6b7280'
+              },
+              backgroundColor: '#ffffff'
+            }}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <div className="text-center">
+              <p className="text-gray-500">No components found</p>
+              <p className="text-sm text-gray-400 mt-2">Start by generating content in the preview page</p>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Right Panel - Properties */}
+      <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-12">
+        <PropertyPanel
+          selectedComponent={selectedComponent}
+          onUpdateComponent={handleComponentUpdate}
+        />
       </div>
     </div>
   )

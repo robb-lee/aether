@@ -21,6 +21,7 @@ interface CanvasProps {
   onComponentUpdate?: (componentId: string, updates: any) => void;
   onComponentTreeChange?: (tree: ComponentTreeNode) => void;
   className?: string;
+  renderComponent?: (component: any) => React.ReactNode;
 }
 
 const DEFAULT_SETTINGS: CanvasSettings = {
@@ -51,7 +52,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onSelectionChange,
   onComponentUpdate,
   onComponentTreeChange,
-  className = ''
+  className = '',
+  renderComponent: externalRenderComponent
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const viewportManagerRef = useRef<ViewportManager>();
@@ -142,8 +144,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (!rect) return;
 
     const startPoint: Point = {
-      x: (event.clientX - rect.left - 24 - settings.viewport.x) / settings.viewport.zoom,
-      y: (event.clientY - rect.top - 24 - settings.viewport.y) / settings.viewport.zoom
+      x: (event.clientX - rect.left - 24) / settings.viewport.zoom - settings.viewport.x,
+      y: (event.clientY - rect.top - 24) / settings.viewport.zoom - settings.viewport.y
     };
 
     setIsSelecting(true);
@@ -158,8 +160,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (!rect) return;
 
     const currentPoint: Point = {
-      x: (event.clientX - rect.left - 24 - settings.viewport.x) / settings.viewport.zoom,
-      y: (event.clientY - rect.top - 24 - settings.viewport.y) / settings.viewport.zoom
+      x: (event.clientX - rect.left - 24) / settings.viewport.zoom - settings.viewport.x,
+      y: (event.clientY - rect.top - 24) / settings.viewport.zoom - settings.viewport.y
     };
 
     selection.updateSelectionBox(currentPoint);
@@ -226,19 +228,18 @@ export const Canvas: React.FC<CanvasProps> = ({
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            {/* Component content placeholder */}
-            <div className="p-4 bg-white rounded shadow-sm">
-              <div className="text-xs text-gray-500 mb-2">{node.type}</div>
-              <div className="font-medium">{node.props?.title || node.props?.content || `Component ${node.id}`}</div>
-              {node.props?.description && (
-                <div className="text-sm text-gray-600 mt-1">{node.props.description}</div>
-              )}
-            </div>
-            
-            {/* Render children */}
-            <div className="ml-4 mt-2 space-y-2">
-              {node.children?.map((child) => renderComponent(child, depth + 1))}
-            </div>
+            {/* Component content */}
+            {externalRenderComponent ? (
+              externalRenderComponent(node)
+            ) : (
+              <div className="p-4 bg-white rounded shadow-sm">
+                <div className="text-xs text-gray-500 mb-2">{node.type}</div>
+                <div className="font-medium">{node.props?.title || node.props?.content || `Component ${node.id}`}</div>
+                {node.props?.description && (
+                  <div className="text-sm text-gray-600 mt-1">{node.props.description}</div>
+                )}
+              </div>
+            )}
 
             {/* Resize handles for selected components */}
             {isSelected && componentBounds && (

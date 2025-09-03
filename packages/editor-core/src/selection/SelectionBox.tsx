@@ -21,8 +21,8 @@ export const SelectionBox: React.FC<SelectionBoxProps> = ({
   
   // Transform coordinates according to viewport
   const transformedBox = {
-    left: (boundingBox.x + viewport.x) * viewport.zoom,
-    top: (boundingBox.y + viewport.y) * viewport.zoom,
+    left: boundingBox.x * viewport.zoom + viewport.x,
+    top: boundingBox.y * viewport.zoom + viewport.y,
     width: boundingBox.width * viewport.zoom,
     height: boundingBox.height * viewport.zoom
   };

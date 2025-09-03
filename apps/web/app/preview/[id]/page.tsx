@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
-import { HeroSplit, FeaturesGrid, HeroCentered, HeaderNav, FooterSimple } from './components/RegistryComponents'
+import { ComponentRenderer } from '@/components/ComponentRenderer'
 import { PreviewHeader } from './components/PreviewHeader'
 import { DeviceFrame } from './components/DeviceFrame'
 import { PreviewControls } from './components/PreviewControls'
@@ -88,7 +88,7 @@ export default function PreviewPage({ params }: PageProps) {
 
   // Simple preview rendering for generated sites
   const siteStructure = siteData.siteStructure
-  const components = siteStructure?.pages?.[0]?.components
+  const components = siteStructure?.pages?.[0]?.components || siteStructure
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -157,65 +157,4 @@ function SiteRenderer({ components }: { components: any }) {
       <ComponentRenderer component={components.root} />
     </div>
   )
-}
-
-// Direct component renderer using imported components
-function ComponentRenderer({ component }: { component: any }) {
-  if (!component) return null
-
-  const { componentId, props = {} } = component
-
-  // Map componentId to actual imported components
-  const componentMap = {
-    'hero-split': HeroSplit,
-    'hero-centered': HeroCentered, 
-    'features-grid': FeaturesGrid,
-    'header-nav': HeaderNav,
-    'footer-simple': FooterSimple
-  }
-
-  const Component = componentMap[componentId as keyof typeof componentMap]
-
-  if (!Component) {
-    return (
-      <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h3 className="text-yellow-800 font-semibold mb-2">Component Unavailable</h3>
-        <p className="text-yellow-700 mb-4">Component "{componentId}" not found</p>
-        <div className="bg-white p-4 rounded border">
-          <p className="text-sm text-gray-600 mb-2">
-            <strong>Component ID:</strong> {componentId || 'Unknown'}
-          </p>
-          <details className="mt-2">
-            <summary className="text-sm font-medium text-gray-700 cursor-pointer">
-              Show Props
-            </summary>
-            <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto">
-              {JSON.stringify(props, null, 2)}
-            </pre>
-          </details>
-        </div>
-      </div>
-    )
-  }
-
-  // Render the component with error boundary
-  try {
-    return <Component {...props} />
-  } catch (renderError) {
-    console.error('Component render error:', renderError)
-    return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <h3 className="text-red-800 font-semibold mb-2">Render Error</h3>
-        <p className="text-red-700">Failed to render {componentId}</p>
-        <details className="mt-2">
-          <summary className="text-sm font-medium text-red-700 cursor-pointer">
-            Error Details
-          </summary>
-          <pre className="text-xs mt-2 p-2 bg-white rounded overflow-auto">
-            {String(renderError)}
-          </pre>
-        </details>
-      </div>
-    )
-  }
 }

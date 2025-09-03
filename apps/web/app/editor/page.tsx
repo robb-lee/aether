@@ -90,6 +90,8 @@ export default function EditorPage() {
               componentTree={sampleComponentTree}
               onSelectionChange={handleSelectionChange}
               onComponentUpdate={handleComponentUpdate}
+              onComponentTreeChange={() => {}}
+              renderComponent={() => <div>Component</div>}
               className="w-full h-full"
             />
           </main>

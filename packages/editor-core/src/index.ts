@@ -42,6 +42,11 @@ export { ResizeHandles } from './selection/ResizeHandles';
 export { useSelection } from './selection/hooks/useSelection';
 export { useKeyboardNavigation } from './selection/hooks/useKeyboardNavigation';
 
+// Panels
+export { PropertyPanel } from './panels/PropertyPanel';
+export { ComponentLibrary } from './panels/ComponentLibrary';
+export { LayerPanel } from './panels/LayerPanel';
+
 // Types
 export type {
   Viewport,

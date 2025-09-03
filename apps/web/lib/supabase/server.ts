@@ -27,7 +27,7 @@ export async function createClient() {
         },
       },
     }
-  ) as any
+  )
 }
 
 export function createServiceClient(): SupabaseClient<Database> {

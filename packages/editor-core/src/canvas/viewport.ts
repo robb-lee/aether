@@ -17,9 +17,19 @@ export const GRID_SIZES = [8, 16, 24, 32, 48, 64];
 
 export class ViewportManager {
   private viewport: Viewport;
+  private canvasRect: DOMRect | null = null;
+  private rulerOffset = 24; // Consistent ruler offset
 
   constructor(initialViewport: Viewport = DEFAULT_VIEWPORT) {
     this.viewport = { ...initialViewport };
+  }
+
+  updateCanvasRect(rect: DOMRect): void {
+    this.canvasRect = rect;
+  }
+
+  getRulerOffset(): number {
+    return this.rulerOffset;
   }
 
   getViewport(): Viewport {
@@ -50,17 +60,43 @@ export class ViewportManager {
     this.viewport.y += deltaY;
   }
 
-  screenToCanvas(screenPoint: Point): Point {
+  screenToCanvas(screenX: number, screenY: number): Point {
+    if (!this.canvasRect) {
+      console.warn('ViewportManager: canvasRect not set. Call updateCanvasRect first.');
+      return { x: 0, y: 0 };
+    }
+
+    // Convert screen coordinates to relative canvas coordinates
+    // Account for the canvas position and ruler offset
+    const relativeX = screenX - this.canvasRect.left - this.rulerOffset;
+    const relativeY = screenY - this.canvasRect.top - this.rulerOffset;
+
+    // Apply viewport transformation (pan and zoom)
     return {
-      x: (screenPoint.x - this.viewport.x) / this.viewport.zoom,
-      y: (screenPoint.y - this.viewport.y) / this.viewport.zoom
+      x: (relativeX - this.viewport.x) / this.viewport.zoom,
+      y: (relativeY - this.viewport.y) / this.viewport.zoom
     };
   }
 
+  // Keep old method signature for backward compatibility if needed
+  screenToCanvasPoint(screenPoint: Point): Point {
+    return this.screenToCanvas(screenPoint.x, screenPoint.y);
+  }
+
   canvasToScreen(canvasPoint: Point): Point {
+    if (!this.canvasRect) {
+      console.warn('ViewportManager: canvasRect not set. Call updateCanvasRect first.');
+      return { x: 0, y: 0 };
+    }
+
+    // Apply viewport transformation
+    const transformedX = canvasPoint.x * this.viewport.zoom + this.viewport.x;
+    const transformedY = canvasPoint.y * this.viewport.zoom + this.viewport.y;
+
+    // Convert back to screen coordinates by adding canvas position and ruler offset
     return {
-      x: canvasPoint.x * this.viewport.zoom + this.viewport.x,
-      y: canvasPoint.y * this.viewport.zoom + this.viewport.y
+      x: transformedX + this.canvasRect.left + this.rulerOffset,
+      y: transformedY + this.canvasRect.top + this.rulerOffset
     };
   }
 

@@ -71,12 +71,54 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [dragPosition, setDragPosition] = useState<Point | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
 
+  // Reset drag state helper function
+  const resetDragState = useCallback(() => {
+    setIsDragging(false);
+    setDraggedType(null);
+    setDragPosition(null);
+  }, []);
+
   // Initialize viewport manager
   useEffect(() => {
     if (!viewportManagerRef.current) {
       viewportManagerRef.current = new ViewportManager(settings.viewport);
     }
   }, []);
+
+  // Clean up drag state on unmount and setup ResizeObserver
+  useEffect(() => {
+    const canvasElement = canvasRef.current;
+    if (!canvasElement || !viewportManagerRef.current) return;
+
+    // Update canvas rect immediately
+    const updateCanvasRect = () => {
+      const rect = canvasElement.getBoundingClientRect();
+      viewportManagerRef.current?.updateCanvasRect(rect);
+    };
+
+    // Initial update
+    updateCanvasRect();
+
+    // Setup ResizeObserver to update rect on size changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateCanvasRect();
+    });
+
+    resizeObserver.observe(canvasElement);
+
+    // Also update on window resize
+    const handleWindowResize = () => {
+      updateCanvasRect();
+    };
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      // Reset drag state when component unmounts
+      resetDragState();
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, [resetDragState]);
 
   // Handle viewport updates
   const updateViewport = useCallback((updates: Partial<typeof settings.viewport>) => {
@@ -97,9 +139,10 @@ export const Canvas: React.FC<CanvasProps> = ({
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
 
+    const rulerOffset = viewportManagerRef.current.getRulerOffset();
     const center: Point = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
+      x: event.clientX - rect.left - rulerOffset,
+      y: event.clientY - rect.top - rulerOffset
     };
 
     const delta = -event.deltaY * 0.001;
@@ -144,22 +187,13 @@ export const Canvas: React.FC<CanvasProps> = ({
   }, [selection]);
 
   // Helper function to transform screen coordinates to canvas coordinates
+  // Uses ViewportManager for consistent coordinate transformation
   const screenToCanvas = useCallback((screenX: number, screenY: number): Point => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect || !viewportManagerRef.current) {
+    if (!viewportManagerRef.current) {
       return { x: 0, y: 0 };
     }
-
-    // Account for the 24px ruler offset
-    const relativeX = screenX - rect.left - 24;
-    const relativeY = screenY - rect.top - 24;
-
-    // Apply viewport transformation
-    return {
-      x: (relativeX - settings.viewport.x) / settings.viewport.zoom,
-      y: (relativeY - settings.viewport.y) / settings.viewport.zoom
-    };
-  }, [settings.viewport.x, settings.viewport.y, settings.viewport.zoom]);
+    return viewportManagerRef.current.screenToCanvas(screenX, screenY);
+  }, []);
 
   // Handle canvas mouse events
   const handleCanvasMouseDown = useCallback((event: React.MouseEvent) => {
@@ -231,10 +265,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     }
     
     // Reset drag state
-    setIsDragging(false);
-    setDraggedType(null);
-    setDragPosition(null);
-  }, [screenToCanvas, onComponentUpdate, settings.grid.snapEnabled, settings.grid.size]);
+    resetDragState();
+  }, [screenToCanvas, onComponentUpdate, settings.grid.snapEnabled, settings.grid.size, resetDragState]);
   
   // Handle drag enter
   const handleDragEnter = useCallback((event: React.DragEvent) => {
@@ -251,11 +283,16 @@ export const Canvas: React.FC<CanvasProps> = ({
   const handleDragLeave = useCallback((event: React.DragEvent) => {
     // Only reset if leaving the canvas entirely
     if (event.currentTarget === event.target) {
-      setIsDragging(false);
-      setDraggedType(null);
-      setDragPosition(null);
+      resetDragState();
     }
-  }, []);
+  }, [resetDragState]);
+  
+  // Handle drag end (when drag is cancelled or finished)
+  const handleDragEnd = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    // Always reset drag state when drag ends
+    resetDragState();
+  }, [resetDragState]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -263,6 +300,11 @@ export const Canvas: React.FC<CanvasProps> = ({
       if (event.code === 'Space' && !event.repeat) {
         event.preventDefault();
         setIsPanning(true);
+      }
+      // ESC key to cancel drag operation
+      if (event.code === 'Escape' && isDragging) {
+        event.preventDefault();
+        resetDragState();
       }
     };
 
@@ -279,7 +321,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [isDragging, resetDragState]);
 
   // Render component tree with drag and drop
   const renderComponent = useCallback((node: ComponentTreeNode, depth = 0): React.ReactNode => {
@@ -365,6 +407,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           onDrop={handleDrop}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
+          onDragEnd={handleDragEnd}
         >
       {/* Rulers */}
       <Rulers viewport={settings.viewport} settings={settings.rulers} />
@@ -389,7 +432,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           settings={settings.grid} 
         />
         
-        {/* Component rendering area */}
+        {/* Component rendering area (scaled with viewport) */}
         <div 
           className="absolute inset-0"
           style={{
@@ -398,15 +441,15 @@ export const Canvas: React.FC<CanvasProps> = ({
           }}
         >
           {componentTree && renderComponent(componentTree)}
+
+          {/* Overlay layer above site content */}
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10000 }}>
+            {/* Selection box overlay (shares transform via parent container) */}
+            {selection.selectionBox && (
+              <SelectionBox selectionBox={selection.selectionBox} />
+            )}
+          </div>
         </div>
-        
-        {/* Selection box overlay */}
-        {selection.selectionBox && (
-          <SelectionBox
-            selectionBox={selection.selectionBox}
-            viewport={settings.viewport}
-          />
-        )}
       </motion.div>
 
       {/* Canvas controls overlay */}

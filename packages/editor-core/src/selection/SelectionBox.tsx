@@ -4,27 +4,21 @@ import { SelectionBox as SelectionBoxType } from './types';
 
 interface SelectionBoxProps {
   selectionBox: SelectionBoxType;
-  viewport: {
-    x: number;
-    y: number;
-    zoom: number;
-  };
 }
 
 export const SelectionBox: React.FC<SelectionBoxProps> = ({ 
-  selectionBox, 
-  viewport 
+  selectionBox
 }) => {
   if (!selectionBox) return null;
 
   const { boundingBox } = selectionBox;
   
-  // Transform coordinates according to viewport
+  // Use canvas coordinates directly (parent container already handles viewport transformation)
   const transformedBox = {
-    left: boundingBox.x * viewport.zoom + viewport.x,
-    top: boundingBox.y * viewport.zoom + viewport.y,
-    width: boundingBox.width * viewport.zoom,
-    height: boundingBox.height * viewport.zoom
+    left: boundingBox.x,
+    top: boundingBox.y,
+    width: boundingBox.width,
+    height: boundingBox.height
   };
 
   return (

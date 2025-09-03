@@ -137,36 +137,42 @@ export const Canvas: React.FC<CanvasProps> = ({
     selection.select(componentId, event.ctrlKey || event.metaKey);
   }, [selection]);
 
+  // Helper function to transform screen coordinates to canvas coordinates
+  const screenToCanvas = useCallback((screenX: number, screenY: number): Point => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect || !viewportManagerRef.current) {
+      return { x: 0, y: 0 };
+    }
+
+    // Account for the 24px ruler offset
+    const relativeX = screenX - rect.left - 24;
+    const relativeY = screenY - rect.top - 24;
+
+    // Apply viewport transformation
+    return {
+      x: (relativeX - settings.viewport.x) / settings.viewport.zoom,
+      y: (relativeY - settings.viewport.y) / settings.viewport.zoom
+    };
+  }, [settings.viewport.x, settings.viewport.y, settings.viewport.zoom]);
+
   // Handle canvas mouse events
   const handleCanvasMouseDown = useCallback((event: React.MouseEvent) => {
     if (isPanning) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const startPoint: Point = {
-      x: (event.clientX - rect.left) / settings.viewport.zoom - settings.viewport.x,
-      y: (event.clientY - rect.top) / settings.viewport.zoom - settings.viewport.y
-    };
+    const startPoint = screenToCanvas(event.clientX, event.clientY);
 
     setIsSelecting(true);
     setSelectionStartPoint(startPoint);
     selection.startSelectionBox(startPoint);
-  }, [isPanning, settings.viewport.x, settings.viewport.y, settings.viewport.zoom, selection]);
+  }, [isPanning, screenToCanvas, selection]);
 
   const handleCanvasMouseMove = useCallback((event: React.MouseEvent) => {
     if (!isSelecting || !selectionStartPoint) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const currentPoint: Point = {
-      x: (event.clientX - rect.left) / settings.viewport.zoom - settings.viewport.x,
-      y: (event.clientY - rect.top) / settings.viewport.zoom - settings.viewport.y
-    };
+    const currentPoint = screenToCanvas(event.clientX, event.clientY);
 
     selection.updateSelectionBox(currentPoint);
-  }, [isSelecting, selectionStartPoint, settings.viewport.x, settings.viewport.y, settings.viewport.zoom, selection]);
+  }, [isSelecting, selectionStartPoint, screenToCanvas, selection]);
 
   const handleCanvasMouseUp = useCallback(() => {
     if (isSelecting) {
@@ -195,21 +201,17 @@ export const Canvas: React.FC<CanvasProps> = ({
     const componentType = event.dataTransfer.getData('componentType');
     if (!componentType) return;
     
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    // Calculate drop position relative to viewport
-    const dropX = (event.clientX - rect.left) / settings.viewport.zoom - settings.viewport.x;
-    const dropY = (event.clientY - rect.top) / settings.viewport.zoom - settings.viewport.y;
+    // Calculate drop position using proper coordinate transformation
+    const dropPosition = screenToCanvas(event.clientX, event.clientY);
     
     // Notify parent to add component at drop position
     if (onComponentUpdate) {
       onComponentUpdate('__ADD_COMPONENT__', {
         type: componentType,
-        position: { x: dropX, y: dropY }
+        position: dropPosition
       });
     }
-  }, [settings.viewport, onComponentUpdate]);
+  }, [screenToCanvas, onComponentUpdate]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -305,8 +307,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           ref={canvasRef}
           className={`relative overflow-hidden ${className}`}
           style={{ 
-            width: settings.viewport.width,
-            height: settings.viewport.height,
+            width: '100%',
+            height: '100%',
             backgroundColor: settings.backgroundColor,
             cursor: isPanning ? 'grabbing' : 'default'
           }}
@@ -327,8 +329,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         style={{
           left: 24, // Offset for vertical ruler
           top: 24,  // Offset for horizontal ruler
-          width: settings.viewport.width - 24,
-          height: settings.viewport.height - 24
+          right: 0,
+          bottom: 0
         }}
         drag={isPanning}
         onPan={handlePan}
@@ -337,11 +339,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       >
         {/* Grid */}
         <Grid 
-          viewport={{
-            ...settings.viewport,
-            width: settings.viewport.width - 24,
-            height: settings.viewport.height - 24
-          }} 
+          viewport={settings.viewport} 
           settings={settings.grid} 
         />
         

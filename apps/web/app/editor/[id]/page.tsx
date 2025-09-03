@@ -449,14 +449,14 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       </div>
       
       {/* Main Canvas Area */}
-      <div className="flex-1 pt-12">
+      <div className="flex-1 pt-12 overflow-hidden">
         {componentTree ? (
           <Canvas
             componentTree={componentTree}
             onSelectionChange={handleSelectionChange}
             onComponentUpdate={handleComponentUpdate}
             onComponentTreeChange={handleComponentTreeChange}
-            className="h-full"
+            className="h-full w-full"
             renderComponent={(component) => (
               <ComponentRenderer component={component} isEditor={true} />
             )}
@@ -493,11 +493,13 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       </div>
       
       {/* Right Panel - Properties */}
-      <div className="w-80 lg:w-96 xl:w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-12">
-        <PropertyPanel
-          selectedComponent={selectedComponent}
-          onUpdateComponent={handleComponentUpdate}
-        />
+      <div className="w-80 lg:w-96 xl:w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
+        <div className="pt-12 h-full">
+          <PropertyPanel
+            selectedComponent={selectedComponent}
+            onUpdateComponent={handleComponentUpdate}
+          />
+        </div>
       </div>
     </div>
   )

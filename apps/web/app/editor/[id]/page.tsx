@@ -63,7 +63,86 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       children: []
     }
     
-    if (component.children && Array.isArray(component.children)) {
+    // Handle hero components - convert props to children
+    if (component.type === 'hero' || component.componentId === 'hero-split' || component.componentId === 'hero-centered') {
+      const heroChildren: ComponentTreeNode[] = []
+      
+      // Add title as heading component
+      if (component.props?.title) {
+        heroChildren.push({
+          id: `${component.id}-title`,
+          type: 'heading',
+          props: { 
+            text: component.props.title,
+            level: 1,
+            title: component.props.title
+          },
+          children: []
+        })
+      }
+      
+      // Add subtitle/description as text component
+      if (component.props?.subtitle || component.props?.description) {
+        heroChildren.push({
+          id: `${component.id}-subtitle`,
+          type: 'text-block',
+          props: { 
+            content: component.props.subtitle || component.props.description,
+            title: 'Subtitle'
+          },
+          children: []
+        })
+      }
+      
+      // Add CTA button
+      if (component.props?.ctaText) {
+        heroChildren.push({
+          id: `${component.id}-cta`,
+          type: 'button',
+          props: { 
+            text: component.props.ctaText,
+            variant: 'primary',
+            title: component.props.ctaText
+          },
+          children: []
+        })
+      }
+      
+      // Add image placeholder
+      if (component.props?.imagePrompt) {
+        heroChildren.push({
+          id: `${component.id}-image`,
+          type: 'image',
+          props: { 
+            alt: 'Hero image',
+            title: 'Hero Image',
+            imagePrompt: component.props.imagePrompt
+          },
+          children: []
+        })
+      }
+      
+      transformed.children = heroChildren
+    }
+    
+    // Handle features grid components - convert features array to children
+    else if (component.type === 'features' || component.componentId === 'features-grid') {
+      if (component.props?.features && Array.isArray(component.props.features)) {
+        transformed.children = component.props.features.map((feature: any, index: number) => ({
+          id: `${component.id}-feature-${index}`,
+          type: 'card',
+          props: {
+            title: feature.title,
+            description: feature.description,
+            icon: feature.icon
+          },
+          children: []
+        }))
+      }
+    }
+    
+    // Handle regular components with children
+    else if (component.children && Array.isArray(component.children)) {
       transformed.children = component.children.map(transformToComponentTree)
     }
     
@@ -72,17 +151,41 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Handle component selection
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
+    console.log('Selection changed:', selectedIds)
     setSelectedElement(selectedIds)
   }, [])
   
   // Handle component updates
   const handleComponentUpdate = useCallback((componentId: string, updates: any) => {
+    // Special handling for adding new components via drag and drop
+    if (componentId === '__ADD_COMPONENT__' && updates.type) {
+      if (!componentTree) return
+      
+      const newComponent: ComponentTreeNode = {
+        id: `${updates.type}-${Date.now()}`,
+        type: updates.type,
+        props: getDefaultPropsForComponent(updates.type),
+        children: [],
+        position: updates.position || { x: 100, y: 100 },
+        size: { width: 300, height: 200 }
+      }
+      
+      // Add to root
+      const updatedTree = {
+        ...componentTree,
+        children: [...(componentTree.children || []), newComponent]
+      }
+      
+      setComponentTree(updatedTree)
+      return
+    }
+    
     // Update the component tree
     setComponentTree(prevTree => {
       if (!prevTree) return null
       return updateComponentInTree(prevTree, componentId, updates)
     })
-  }, [])
+  }, [componentTree])
   
   // Handle component tree changes (drag & drop)
   const handleComponentTreeChange = useCallback((newTree: ComponentTreeNode) => {
@@ -96,8 +199,10 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     const newComponent: ComponentTreeNode = {
       id: `${componentType}-${Date.now()}`,
       type: componentType,
-      props: {},
-      children: []
+      props: getDefaultPropsForComponent(componentType),
+      children: [],
+      position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
+      size: { width: 300, height: 200 }
     }
     
     // Add to root for now - later we can add to selected parent
@@ -108,6 +213,21 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     
     setComponentTree(updatedTree)
   }, [componentTree])
+  
+  // Get default props for component types
+  const getDefaultPropsForComponent = (componentType: string) => {
+    const defaults: Record<string, any> = {
+      'hero-split': { title: 'Welcome to Our Site', subtitle: 'Build amazing websites', ctaText: 'Get Started' },
+      'hero-centered': { title: 'Centered Hero', description: 'A beautiful centered hero section' },
+      'features-grid': { title: 'Features', features: [] },
+      'text-block': { content: 'Enter your text here' },
+      'heading': { text: 'Heading', level: 2 },
+      'paragraph': { text: 'Lorem ipsum dolor sit amet' },
+      'image': { alt: 'Image placeholder' },
+      'button': { text: 'Click me', variant: 'primary' }
+    }
+    return defaults[componentType] || {}
+  }
   
   // Handle component deletion
   const handleDeleteComponent = useCallback((componentId: string) => {
@@ -136,8 +256,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Helper function to find component by ID
   const findComponentById = (node: ComponentTreeNode, id: string): ComponentTreeNode | null => {
+    console.log('Finding component:', id, 'in node:', node.id)
     if (node.id === id) return node
-    if (node.children) {
+    if (node.children && node.children.length > 0) {
       for (const child of node.children) {
         const found = findComponentById(child, id)
         if (found) return found
@@ -150,6 +271,8 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   const selectedComponent = componentTree && selectedElement.length > 0
     ? findComponentById(componentTree, selectedElement[0])
     : null
+  
+  console.log('Selected element:', selectedElement, 'Found component:', selectedComponent)
   
   // Setup keyboard shortcut handling with delete functionality
   useEffect(() => {
@@ -279,7 +402,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       </div>
 
       {/* Left Panel - Components & Layers */}
-      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-12 flex flex-col">
+      <div className="w-64 lg:w-72 xl:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-12 flex flex-col">
         <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setLeftPanelTab('components')}
@@ -370,7 +493,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       </div>
       
       {/* Right Panel - Properties */}
-      <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-12">
+      <div className="w-80 lg:w-96 xl:w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-12">
         <PropertyPanel
           selectedComponent={selectedComponent}
           onUpdateComponent={handleComponentUpdate}

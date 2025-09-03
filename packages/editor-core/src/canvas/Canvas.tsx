@@ -133,6 +133,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   // Handle component selection
   const handleComponentClick = useCallback((componentId: string, event: React.MouseEvent) => {
     event.stopPropagation();
+    console.log('Component clicked:', componentId);
     selection.select(componentId, event.ctrlKey || event.metaKey);
   }, [selection]);
 
@@ -144,8 +145,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (!rect) return;
 
     const startPoint: Point = {
-      x: (event.clientX - rect.left - 24) / settings.viewport.zoom - settings.viewport.x,
-      y: (event.clientY - rect.top - 24) / settings.viewport.zoom - settings.viewport.y
+      x: (event.clientX - rect.left) / settings.viewport.zoom - settings.viewport.x,
+      y: (event.clientY - rect.top) / settings.viewport.zoom - settings.viewport.y
     };
 
     setIsSelecting(true);
@@ -160,8 +161,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (!rect) return;
 
     const currentPoint: Point = {
-      x: (event.clientX - rect.left - 24) / settings.viewport.zoom - settings.viewport.x,
-      y: (event.clientY - rect.top - 24) / settings.viewport.zoom - settings.viewport.y
+      x: (event.clientX - rect.left) / settings.viewport.zoom - settings.viewport.x,
+      y: (event.clientY - rect.top) / settings.viewport.zoom - settings.viewport.y
     };
 
     selection.updateSelectionBox(currentPoint);
@@ -180,6 +181,35 @@ export const Canvas: React.FC<CanvasProps> = ({
       selection.clearSelection();
     }
   }, [selection]);
+  
+  // Handle drag over
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }, []);
+  
+  // Handle drop
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    
+    const componentType = event.dataTransfer.getData('componentType');
+    if (!componentType) return;
+    
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    // Calculate drop position relative to viewport
+    const dropX = (event.clientX - rect.left) / settings.viewport.zoom - settings.viewport.x;
+    const dropY = (event.clientY - rect.top) / settings.viewport.zoom - settings.viewport.y;
+    
+    // Notify parent to add component at drop position
+    if (onComponentUpdate) {
+      onComponentUpdate('__ADD_COMPONENT__', {
+        type: componentType,
+        position: { x: dropX, y: dropY }
+      });
+    }
+  }, [settings.viewport, onComponentUpdate]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -285,6 +315,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
           onClick={handleCanvasClick}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
         >
       {/* Rulers */}
       <Rulers viewport={settings.viewport} settings={settings.rulers} />

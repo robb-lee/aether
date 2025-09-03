@@ -13,6 +13,8 @@ import { useSelection } from '../selection/hooks/useSelection';
 import { useKeyboardNavigation } from '../selection/hooks/useKeyboardNavigation';
 import { SelectionBox } from '../selection/SelectionBox';
 import { ResizeHandles } from '../selection/ResizeHandles';
+import { DragOverlay } from './DragOverlay';
+import { DropZone } from './DropZone';
 
 interface CanvasProps {
   componentTree?: ComponentTreeNode;
@@ -64,6 +66,10 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStartPoint, setSelectionStartPoint] = useState<Point | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedType, setDraggedType] = useState<string | null>(null);
+  const [dragPosition, setDragPosition] = useState<Point | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   // Initialize viewport manager
   useEffect(() => {
@@ -192,6 +198,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
+    
+    // Update drag position for overlay
+    setDragPosition({ x: event.clientX, y: event.clientY });
   }, []);
   
   // Handle drop
@@ -204,14 +213,49 @@ export const Canvas: React.FC<CanvasProps> = ({
     // Calculate drop position using proper coordinate transformation
     const dropPosition = screenToCanvas(event.clientX, event.clientY);
     
+    // Apply grid snap if enabled
+    let finalPosition = dropPosition;
+    if (settings.grid.snapEnabled) {
+      finalPosition = {
+        x: Math.round(dropPosition.x / settings.grid.size) * settings.grid.size,
+        y: Math.round(dropPosition.y / settings.grid.size) * settings.grid.size
+      };
+    }
+    
     // Notify parent to add component at drop position
     if (onComponentUpdate) {
       onComponentUpdate('__ADD_COMPONENT__', {
         type: componentType,
-        position: dropPosition
+        position: finalPosition
       });
     }
-  }, [screenToCanvas, onComponentUpdate]);
+    
+    // Reset drag state
+    setIsDragging(false);
+    setDraggedType(null);
+    setDragPosition(null);
+  }, [screenToCanvas, onComponentUpdate, settings.grid.snapEnabled, settings.grid.size]);
+  
+  // Handle drag enter
+  const handleDragEnter = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    // Check if this is a component drag (we can't access the actual data during drag)
+    if (event.dataTransfer.types.includes('text/plain')) {
+      setIsDragging(true);
+      // We'll get the actual type during drop
+      setDraggedType('component');
+    }
+  }, []);
+  
+  // Handle drag leave
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    // Only reset if leaving the canvas entirely
+    if (event.currentTarget === event.target) {
+      setIsDragging(false);
+      setDraggedType(null);
+      setDragPosition(null);
+    }
+  }, []);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -319,6 +363,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           onClick={handleCanvasClick}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
         >
       {/* Rulers */}
       <Rulers viewport={settings.viewport} settings={settings.rulers} />
@@ -389,6 +435,13 @@ export const Canvas: React.FC<CanvasProps> = ({
       <div className="absolute bottom-4 left-4 bg-white border border-gray-300 rounded px-3 py-1 text-sm z-20">
         {Math.round(settings.viewport.zoom * 100)}%
       </div>
+      
+      {/* Drag overlay */}
+      <DragOverlay
+        isDragging={isDragging}
+        draggedType={draggedType || undefined}
+        position={dragPosition || undefined}
+      />
         </div>
       </DndProvider>
     </DragDropProvider>

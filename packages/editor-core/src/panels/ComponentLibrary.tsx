@@ -51,6 +51,8 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onAddCompone
   const handleDragStart = (e: React.DragEvent, componentId: string) => {
     e.dataTransfer.setData('componentType', componentId);
     e.dataTransfer.effectAllowed = 'copy';
+    // Set a text/plain type for better browser support
+    e.dataTransfer.setData('text/plain', componentId);
   };
 
   return (

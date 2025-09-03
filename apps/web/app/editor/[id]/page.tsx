@@ -177,6 +177,12 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       }
       
       setComponentTree(updatedTree)
+      
+      // Auto-select the newly added component
+      setTimeout(() => {
+        setSelectedElement([newComponent.id])
+      }, 100)
+      
       return
     }
     

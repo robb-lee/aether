@@ -33,6 +33,15 @@ export {
   calculateDropPosition
 } from './dnd/utils/dndHelpers';
 
+// Selection components
+export { SelectionManager } from './selection/SelectionManager';
+export { SelectionBox } from './selection/SelectionBox';
+export { ResizeHandles } from './selection/ResizeHandles';
+
+// Selection hooks
+export { useSelection } from './selection/hooks/useSelection';
+export { useKeyboardNavigation } from './selection/hooks/useKeyboardNavigation';
+
 // Types
 export type {
   Viewport,
@@ -44,3 +53,11 @@ export type {
   ComponentTreeNode,
   CanvasComponent
 } from './types';
+export type {
+  SelectionState,
+  SelectionBox as SelectionBoxType,
+  SelectionManagerOptions,
+  ResizeHandle,
+  ResizeState,
+  KeyboardShortcut
+} from './selection/types';

@@ -9,6 +9,10 @@ import { DndProvider } from '../dnd/DndProvider';
 import { Draggable } from '../dnd/Draggable';
 import { Droppable } from '../dnd/Droppable';
 import { flattenComponentTree } from '../dnd/utils/sortableHelpers';
+import { useSelection } from '../selection/hooks/useSelection';
+import { useKeyboardNavigation } from '../selection/hooks/useKeyboardNavigation';
+import { SelectionBox } from '../selection/SelectionBox';
+import { ResizeHandles } from '../selection/ResizeHandles';
 
 interface CanvasProps {
   componentTree?: ComponentTreeNode;
@@ -55,8 +59,9 @@ export const Canvas: React.FC<CanvasProps> = ({
     ...DEFAULT_SETTINGS,
     ...userSettings
   }));
-  const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set());
   const [isPanning, setIsPanning] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStartPoint, setSelectionStartPoint] = useState<Point | null>(null);
 
   // Initialize viewport manager
   useEffect(() => {
@@ -109,34 +114,70 @@ export const Canvas: React.FC<CanvasProps> = ({
     }));
   }, [isPanning]);
 
+  // Initialize selection system
+  const selection = useSelection(componentTree || null, {
+    onSelectionChange,
+    onComponentUpdate,
+    snapToGrid: settings.grid.snapEnabled,
+    gridSize: settings.grid.size
+  });
+
+  // Initialize keyboard navigation
+  useKeyboardNavigation({
+    onKeyboardShortcut: selection.handleKeyboardShortcut,
+    enabled: !isPanning && !isSelecting
+  });
+
   // Handle component selection
   const handleComponentClick = useCallback((componentId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
-    const newSelection = new Set(selectedComponents);
-    
-    if (event.ctrlKey || event.metaKey) {
-      // Multi-select
-      if (newSelection.has(componentId)) {
-        newSelection.delete(componentId);
-      } else {
-        newSelection.add(componentId);
-      }
-    } else {
-      // Single select
-      newSelection.clear();
-      newSelection.add(componentId);
-    }
-    
-    setSelectedComponents(newSelection);
-    onSelectionChange?.(Array.from(newSelection));
-  }, [selectedComponents, onSelectionChange]);
+    selection.select(componentId, event.ctrlKey || event.metaKey);
+  }, [selection]);
 
-  // Handle canvas click (deselect all)
-  const handleCanvasClick = useCallback(() => {
-    setSelectedComponents(new Set());
-    onSelectionChange?.([]);
-  }, [onSelectionChange]);
+  // Handle canvas mouse events
+  const handleCanvasMouseDown = useCallback((event: React.MouseEvent) => {
+    if (isPanning) return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const startPoint: Point = {
+      x: (event.clientX - rect.left - 24 - settings.viewport.x) / settings.viewport.zoom,
+      y: (event.clientY - rect.top - 24 - settings.viewport.y) / settings.viewport.zoom
+    };
+
+    setIsSelecting(true);
+    setSelectionStartPoint(startPoint);
+    selection.startSelectionBox(startPoint);
+  }, [isPanning, settings.viewport.x, settings.viewport.y, settings.viewport.zoom, selection]);
+
+  const handleCanvasMouseMove = useCallback((event: React.MouseEvent) => {
+    if (!isSelecting || !selectionStartPoint) return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const currentPoint: Point = {
+      x: (event.clientX - rect.left - 24 - settings.viewport.x) / settings.viewport.zoom,
+      y: (event.clientY - rect.top - 24 - settings.viewport.y) / settings.viewport.zoom
+    };
+
+    selection.updateSelectionBox(currentPoint);
+  }, [isSelecting, selectionStartPoint, settings.viewport.x, settings.viewport.y, settings.viewport.zoom, selection]);
+
+  const handleCanvasMouseUp = useCallback(() => {
+    if (isSelecting) {
+      setIsSelecting(false);
+      setSelectionStartPoint(null);
+      selection.endSelectionBox();
+    }
+  }, [isSelecting, selection]);
+
+  const handleCanvasClick = useCallback((event: React.MouseEvent) => {
+    if (event.target === event.currentTarget) {
+      selection.clearSelection();
+    }
+  }, [selection]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -164,7 +205,8 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   // Render component tree with drag and drop
   const renderComponent = useCallback((node: ComponentTreeNode, depth = 0): React.ReactNode => {
-    const isSelected = selectedComponents.has(node.id);
+    const isSelected = selection.isSelected(node.id);
+    const componentBounds = selection.selectionManager?.getComponentBounds(node.id);
     
     return (
       <Draggable key={node.id} id={node.id} disabled={isPanning}>
@@ -197,11 +239,27 @@ export const Canvas: React.FC<CanvasProps> = ({
             <div className="ml-4 mt-2 space-y-2">
               {node.children?.map((child) => renderComponent(child, depth + 1))}
             </div>
+
+            {/* Resize handles for selected components */}
+            {isSelected && componentBounds && (
+              <ResizeHandles
+                boundingBox={componentBounds}
+                viewport={settings.viewport}
+                onResize={(newBounds) => {
+                  onComponentUpdate?.(node.id, {
+                    position: { x: newBounds.x, y: newBounds.y },
+                    size: { width: newBounds.width, height: newBounds.height }
+                  });
+                }}
+                snapToGrid={settings.grid.snapEnabled}
+                gridSize={settings.grid.size}
+              />
+            )}
           </motion.div>
         </Droppable>
       </Draggable>
     );
-  }, [selectedComponents, handleComponentClick, isPanning]);
+  }, [selection, handleComponentClick, isPanning]);
 
   // Get sortable items for DnD
   const sortableItems = componentTree ? flattenComponentTree(componentTree).map(item => item.id) : [];
@@ -222,6 +280,9 @@ export const Canvas: React.FC<CanvasProps> = ({
             cursor: isPanning ? 'grabbing' : 'default'
           }}
           onWheel={handleZoom}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
           onClick={handleCanvasClick}
         >
       {/* Rulers */}
@@ -261,6 +322,14 @@ export const Canvas: React.FC<CanvasProps> = ({
         >
           {componentTree && renderComponent(componentTree)}
         </div>
+        
+        {/* Selection box overlay */}
+        {selection.selectionBox && (
+          <SelectionBox
+            selectionBox={selection.selectionBox}
+            viewport={settings.viewport}
+          />
+        )}
       </motion.div>
 
       {/* Canvas controls overlay */}

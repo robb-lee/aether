@@ -4,12 +4,18 @@ import { Grid } from './Grid';
 import { Rulers } from './Rulers';
 import { ViewportManager } from './viewport';
 import { CanvasSettings, ComponentTreeNode, Point } from '../types';
+import { DragDropProvider } from '../dnd/DragDropContext';
+import { DndProvider } from '../dnd/DndProvider';
+import { Draggable } from '../dnd/Draggable';
+import { Droppable } from '../dnd/Droppable';
+import { flattenComponentTree } from '../dnd/utils/sortableHelpers';
 
 interface CanvasProps {
   componentTree?: ComponentTreeNode;
   settings?: Partial<CanvasSettings>;
   onSelectionChange?: (selectedIds: string[]) => void;
   onComponentUpdate?: (componentId: string, updates: any) => void;
+  onComponentTreeChange?: (tree: ComponentTreeNode) => void;
   className?: string;
 }
 
@@ -40,6 +46,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   settings: userSettings = {},
   onSelectionChange,
   onComponentUpdate,
+  onComponentTreeChange,
   className = ''
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -155,55 +162,68 @@ export const Canvas: React.FC<CanvasProps> = ({
     };
   }, []);
 
-  // Render component tree
+  // Render component tree with drag and drop
   const renderComponent = useCallback((node: ComponentTreeNode, depth = 0): React.ReactNode => {
     const isSelected = selectedComponents.has(node.id);
     
     return (
-      <motion.div
-        key={node.id}
-        className={`
-          relative border-2 transition-colors duration-200
-          ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-300'}
-        `}
-        style={{
-          transform: `translate(${node.position?.x || 0}px, ${node.position?.y || 0}px)`,
-          width: node.size?.width || 'auto',
-          height: node.size?.height || 'auto',
-          zIndex: 100 + depth
-        }}
-        onClick={(e) => handleComponentClick(node.id, e)}
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.2 }}
-      >
-        {/* Component content placeholder */}
-        <div className="p-4 bg-white rounded shadow-sm">
-          <div className="text-xs text-gray-500 mb-2">{node.type}</div>
-          <div className="font-medium">{node.props?.title || node.props?.content || `Component ${node.id}`}</div>
-          {node.props?.description && (
-            <div className="text-sm text-gray-600 mt-1">{node.props.description}</div>
-          )}
-        </div>
-        
-        {/* Render children */}
-        {node.children?.map((child) => renderComponent(child, depth + 1))}
-      </motion.div>
+      <Draggable key={node.id} id={node.id} disabled={isPanning}>
+        <Droppable id={`drop-${node.id}`} showDropZone={!isPanning}>
+          <motion.div
+            className={`
+              relative border-2 transition-colors duration-200
+              ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-gray-300'}
+            `}
+            style={{
+              transform: `translate(${node.position?.x || 0}px, ${node.position?.y || 0}px)`,
+              width: node.size?.width || 'auto',
+              height: node.size?.height || 'auto',
+              zIndex: 100 + depth
+            }}
+            onClick={(e) => handleComponentClick(node.id, e)}
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Component content placeholder */}
+            <div className="p-4 bg-white rounded shadow-sm">
+              <div className="text-xs text-gray-500 mb-2">{node.type}</div>
+              <div className="font-medium">{node.props?.title || node.props?.content || `Component ${node.id}`}</div>
+              {node.props?.description && (
+                <div className="text-sm text-gray-600 mt-1">{node.props.description}</div>
+              )}
+            </div>
+            
+            {/* Render children */}
+            <div className="ml-4 mt-2 space-y-2">
+              {node.children?.map((child) => renderComponent(child, depth + 1))}
+            </div>
+          </motion.div>
+        </Droppable>
+      </Draggable>
     );
-  }, [selectedComponents, handleComponentClick]);
+  }, [selectedComponents, handleComponentClick, isPanning]);
+
+  // Get sortable items for DnD
+  const sortableItems = componentTree ? flattenComponentTree(componentTree).map(item => item.id) : [];
 
   return (
-    <div 
-      ref={canvasRef}
-      className={`relative overflow-hidden ${className}`}
-      style={{ 
-        width: settings.viewport.width,
-        height: settings.viewport.height,
-        backgroundColor: settings.backgroundColor,
-        cursor: isPanning ? 'grabbing' : 'default'
-      }}
-      onWheel={handleZoom}
-      onClick={handleCanvasClick}
+    <DragDropProvider
+      componentTree={componentTree}
+      onComponentTreeChange={onComponentTreeChange}
     >
+      <DndProvider items={sortableItems}>
+        <div 
+          ref={canvasRef}
+          className={`relative overflow-hidden ${className}`}
+          style={{ 
+            width: settings.viewport.width,
+            height: settings.viewport.height,
+            backgroundColor: settings.backgroundColor,
+            cursor: isPanning ? 'grabbing' : 'default'
+          }}
+          onWheel={handleZoom}
+          onClick={handleCanvasClick}
+        >
       {/* Rulers */}
       <Rulers viewport={settings.viewport} settings={settings.rulers} />
       
@@ -269,6 +289,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       <div className="absolute bottom-4 left-4 bg-white border border-gray-300 rounded px-3 py-1 text-sm z-20">
         {Math.round(settings.viewport.zoom * 100)}%
       </div>
-    </div>
+        </div>
+      </DndProvider>
+    </DragDropProvider>
   );
 };

@@ -47,6 +47,11 @@ export { PropertyPanel } from './panels/PropertyPanel';
 export { ComponentLibrary } from './panels/ComponentLibrary';
 export { LayerPanel } from './panels/LayerPanel';
 
+// Controls
+export { ColorPicker } from './controls/ColorPicker';
+export { SpacingControl } from './controls/SpacingControl';
+export { TypographyControl } from './controls/TypographyControl';
+
 // Types
 export type {
   Viewport,
@@ -56,7 +61,10 @@ export type {
   Point,
   BoundingBox,
   ComponentTreeNode,
-  CanvasComponent
+  CanvasComponent,
+  ComponentStyles,
+  ResponsiveSettings,
+  AnimationSettings
 } from './types';
 export type {
   SelectionState,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ComponentTreeNode } from '../types';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ComponentTreeNode, ComponentStyles, ResponsiveSettings, AnimationSettings } from '../types';
+import { ChevronDown, ChevronRight, Smartphone, Tablet, Monitor, Zap } from 'lucide-react';
+import { ColorPicker, SpacingControl, TypographyControl } from '../controls';
 
 interface PropertyPanelProps {
   selectedComponent: ComponentTreeNode | null;
@@ -12,6 +13,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   onUpdateComponent
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['general', 'props']));
+  const [responsiveMode, setResponsiveMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -54,6 +56,36 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
       size: {
         ...selectedComponent.size,
         [dimension]: value
+      }
+    });
+  };
+
+  const handleStyleChange = (styleProp: keyof ComponentStyles, value: any) => {
+    onUpdateComponent(selectedComponent.id, {
+      styles: {
+        ...selectedComponent.styles,
+        [styleProp]: value
+      }
+    });
+  };
+
+  const handleResponsiveStyleChange = (styleProp: keyof ComponentStyles, value: any) => {
+    onUpdateComponent(selectedComponent.id, {
+      responsive: {
+        ...selectedComponent.responsive,
+        [responsiveMode]: {
+          ...selectedComponent.responsive?.[responsiveMode],
+          [styleProp]: value
+        }
+      }
+    });
+  };
+
+  const handleAnimationChange = (prop: keyof AnimationSettings, value: any) => {
+    onUpdateComponent(selectedComponent.id, {
+      animations: {
+        ...selectedComponent.animations,
+        [prop]: value
       }
     });
   };
@@ -210,6 +242,216 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Styles Section */}
+      <div className="border-b">
+        <button
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
+          onClick={() => toggleSection('styles')}
+        >
+          <span className="text-sm font-medium">Styles</span>
+          {expandedSections.has('styles') ? (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+        {expandedSections.has('styles') && (
+          <div className="px-4 pb-4">
+            <div className="space-y-3">
+              <ColorPicker
+                label="Background Color"
+                value={selectedComponent.styles?.backgroundColor || '#FFFFFF'}
+                onChange={(color) => handleStyleChange('backgroundColor', color)}
+              />
+              <ColorPicker
+                label="Text Color"
+                value={selectedComponent.styles?.color || '#000000'}
+                onChange={(color) => handleStyleChange('color', color)}
+              />
+              <SpacingControl
+                label="Padding"
+                type="padding"
+                value={selectedComponent.styles?.padding || '0'}
+                onChange={(value) => handleStyleChange('padding', value)}
+              />
+              <SpacingControl
+                label="Margin"
+                type="margin"
+                value={selectedComponent.styles?.margin || '0'}
+                onChange={(value) => handleStyleChange('margin', value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Typography Section */}
+      <div className="border-b">
+        <button
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
+          onClick={() => toggleSection('typography')}
+        >
+          <span className="text-sm font-medium">Typography</span>
+          {expandedSections.has('typography') ? (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+        {expandedSections.has('typography') && (
+          <div className="px-4 pb-4">
+            <TypographyControl
+              value={selectedComponent.styles?.typography || {}}
+              onChange={(typography) => handleStyleChange('typography', typography)}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Responsive Section */}
+      <div className="border-b">
+        <button
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
+          onClick={() => toggleSection('responsive')}
+        >
+          <span className="text-sm font-medium">Responsive</span>
+          {expandedSections.has('responsive') ? (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+        {expandedSections.has('responsive') && (
+          <div className="px-4 pb-4">
+            {/* Responsive Mode Selector */}
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={() => setResponsiveMode('mobile')}
+                className={`p-2 rounded transition-colors ${
+                  responsiveMode === 'mobile' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
+                }`}
+                title="Mobile"
+              >
+                <Smartphone className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setResponsiveMode('tablet')}
+                className={`p-2 rounded transition-colors ${
+                  responsiveMode === 'tablet' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
+                }`}
+                title="Tablet"
+              >
+                <Tablet className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setResponsiveMode('desktop')}
+                className={`p-2 rounded transition-colors ${
+                  responsiveMode === 'desktop' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
+                }`}
+                title="Desktop"
+              >
+                <Monitor className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">Editing {responsiveMode} view</p>
+            <div className="space-y-3">
+              <SpacingControl
+                label="Padding"
+                type="padding"
+                value={selectedComponent.responsive?.[responsiveMode]?.padding || selectedComponent.styles?.padding || '0'}
+                onChange={(value) => handleResponsiveStyleChange('padding', value)}
+              />
+              <SpacingControl
+                label="Margin"
+                type="margin"
+                value={selectedComponent.responsive?.[responsiveMode]?.margin || selectedComponent.styles?.margin || '0'}
+                onChange={(value) => handleResponsiveStyleChange('margin', value)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Animations Section */}
+      <div className="border-b">
+        <button
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
+          onClick={() => toggleSection('animations')}
+        >
+          <span className="text-sm font-medium">Animations</span>
+          {expandedSections.has('animations') ? (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+        {expandedSections.has('animations') && (
+          <div className="px-4 pb-4">
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-600 flex items-center space-x-1">
+                  <Zap className="w-3 h-3" />
+                  <span>Animation Type</span>
+                </label>
+                <select
+                  value={selectedComponent.animations?.type || 'none'}
+                  onChange={(e) => handleAnimationChange('type', e.target.value)}
+                  className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                >
+                  <option value="none">None</option>
+                  <option value="fade">Fade In</option>
+                  <option value="slide">Slide In</option>
+                  <option value="scale">Scale In</option>
+                  <option value="rotate">Rotate In</option>
+                </select>
+              </div>
+              {selectedComponent.animations?.type && selectedComponent.animations.type !== 'none' && (
+                <>
+                  <div>
+                    <label className="text-xs text-gray-600">Duration (ms)</label>
+                    <input
+                      type="number"
+                      value={selectedComponent.animations?.duration || 300}
+                      onChange={(e) => handleAnimationChange('duration', Number(e.target.value))}
+                      className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                      min="0"
+                      max="5000"
+                      step="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Delay (ms)</label>
+                    <input
+                      type="number"
+                      value={selectedComponent.animations?.delay || 0}
+                      onChange={(e) => handleAnimationChange('delay', Number(e.target.value))}
+                      className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                      min="0"
+                      max="5000"
+                      step="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Easing</label>
+                    <select
+                      value={selectedComponent.animations?.easing || 'ease'}
+                      onChange={(e) => handleAnimationChange('easing', e.target.value)}
+                      className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                    >
+                      <option value="ease">Ease</option>
+                      <option value="ease-in">Ease In</option>
+                      <option value="ease-out">Ease Out</option>
+                      <option value="ease-in-out">Ease In Out</option>
+                      <option value="linear">Linear</option>
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

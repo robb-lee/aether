@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
+import { HeroSplit, FeaturesGrid, HeroCentered, HeaderNav, FooterSimple } from './components/RegistryComponents'
+import { PreviewHeader } from './components/PreviewHeader'
+import { DeviceFrame } from './components/DeviceFrame'
+import { PreviewControls } from './components/PreviewControls'
 
 interface SiteData {
   id: string
@@ -18,6 +22,8 @@ export default function PreviewPage({ params }: PageProps) {
   const [siteData, setSiteData] = useState<SiteData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedDevice, setSelectedDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
+  const [zoomLevel, setZoomLevel] = useState<50 | 75 | 100 | 125>(100)
 
   useEffect(() => {
     async function fetchSiteData() {
@@ -85,56 +91,46 @@ export default function PreviewPage({ params }: PageProps) {
   const components = siteStructure?.pages?.[0]?.components
 
   return (
-    <div className="min-h-screen">
-      {/* Preview Header */}
-      <div className="bg-gray-800 text-white p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-semibold">{siteData.name || 'Generated Site'}</h1>
-            <p className="text-sm text-gray-300">Preview Mode • Site ID: {params.id}</p>
-          </div>
-          <div className="flex space-x-3">
-            <a 
-              href={`/editor/${params.id}`}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-            >
-              Edit Site
-            </a>
-            <a 
-              href="/generate"
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Generate New
-            </a>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Enhanced Preview Header */}
+      <PreviewHeader siteData={siteData} siteId={params.id} />
 
-      {/* Site Content */}
-      <div className="bg-white">
-        {components ? (
-          <SiteRenderer components={components} />
-        ) : (
-          <div className="max-w-4xl mx-auto p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              {siteStructure?.name || 'Generated Site'}
-            </h2>
-            <p className="text-gray-600 mb-8">
-              Site generated successfully, but preview rendering is not yet implemented.
-            </p>
-            <div className="bg-gray-100 p-6 rounded-lg">
-              <pre className="text-left text-sm overflow-auto">
-                {JSON.stringify(siteStructure, null, 2)}
-              </pre>
+      {/* Main Preview Area */}
+      <div className="relative">
+        <DeviceFrame device={selectedDevice} zoom={zoomLevel}>
+          {components ? (
+            <SiteRenderer components={components} />
+          ) : (
+            <div className="max-w-4xl mx-auto p-8 text-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                {siteStructure?.name || 'Generated Site'}
+              </h2>
+              <p className="text-gray-600 mb-8">
+                Site generated successfully, but preview rendering is not yet implemented.
+              </p>
+              <div className="bg-gray-100 p-6 rounded-lg">
+                <pre className="text-left text-sm overflow-auto">
+                  {JSON.stringify(siteStructure, null, 2)}
+                </pre>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </DeviceFrame>
+
+        {/* Floating Preview Controls */}
+        <PreviewControls
+          siteId={params.id}
+          onDeviceChange={setSelectedDevice}
+          onZoomChange={setZoomLevel}
+          selectedDevice={selectedDevice}
+          zoomLevel={zoomLevel}
+        />
       </div>
     </div>
   )
 }
 
-// Simple site renderer for Component Registry components
+// Site renderer for Component Registry components
 function SiteRenderer({ components }: { components: any }) {
   if (!components || !components.root) {
     return (
@@ -144,6 +140,18 @@ function SiteRenderer({ components }: { components: any }) {
     )
   }
 
+  // If root component has children, render them directly
+  if (components.root.children && Array.isArray(components.root.children)) {
+    return (
+      <div className="min-h-screen">
+        {components.root.children.map((child: any, index: number) => (
+          <ComponentRenderer key={child.id || index} component={child} />
+        ))}
+      </div>
+    )
+  }
+
+  // Otherwise render the root component itself
   return (
     <div className="min-h-screen">
       <ComponentRenderer component={components.root} />
@@ -151,76 +159,63 @@ function SiteRenderer({ components }: { components: any }) {
   )
 }
 
-// Component renderer for individual components
+// Direct component renderer using imported components
 function ComponentRenderer({ component }: { component: any }) {
   if (!component) return null
 
-  const { componentId, type, props, children } = component
+  const { componentId, props = {} } = component
 
-  // Render based on componentId from Component Registry
-  switch (componentId) {
-    case 'hero-split':
-    case 'hero-centered':
-      return (
-        <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-          <div className="max-w-6xl mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              {props?.title || 'Welcome'}
-            </h1>
-            <p className="text-xl mb-8 opacity-90">
-              {props?.subtitle || 'AI-generated website'}
-            </p>
-            {props?.ctaText && (
-              <button className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                {props.ctaText}
-              </button>
-            )}
-          </div>
-        </section>
-      )
+  // Map componentId to actual imported components
+  const componentMap = {
+    'hero-split': HeroSplit,
+    'hero-centered': HeroCentered, 
+    'features-grid': FeaturesGrid,
+    'header-nav': HeaderNav,
+    'footer-simple': FooterSimple
+  }
 
-    case 'features-grid':
-      return (
-        <section className="py-16 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              {props?.title || 'Features'}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {props?.features?.map((feature: any, index: number) => (
-                <div key={index} className="p-6 rounded-lg border border-gray-200">
-                  <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )
+  const Component = componentMap[componentId as keyof typeof componentMap]
 
-    default:
-      // Render children if it's a container
-      if (children && Array.isArray(children)) {
-        return (
-          <div>
-            {children.map((child: any, index: number) => (
-              <ComponentRenderer key={index} component={child} />
-            ))}
-          </div>
-        )
-      }
-      
-      return (
-        <div className="p-4 bg-gray-100 border border-gray-300 rounded">
-          <p className="text-sm text-gray-600">
-            Component: {componentId || type || 'Unknown'}
+  if (!Component) {
+    return (
+      <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <h3 className="text-yellow-800 font-semibold mb-2">Component Unavailable</h3>
+        <p className="text-yellow-700 mb-4">Component "{componentId}" not found</p>
+        <div className="bg-white p-4 rounded border">
+          <p className="text-sm text-gray-600 mb-2">
+            <strong>Component ID:</strong> {componentId || 'Unknown'}
           </p>
-          {props && (
-            <pre className="text-xs mt-2 overflow-auto">
+          <details className="mt-2">
+            <summary className="text-sm font-medium text-gray-700 cursor-pointer">
+              Show Props
+            </summary>
+            <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto">
               {JSON.stringify(props, null, 2)}
             </pre>
-          )}
+          </details>
         </div>
-      )
+      </div>
+    )
+  }
+
+  // Render the component with error boundary
+  try {
+    return <Component {...props} />
+  } catch (renderError) {
+    console.error('Component render error:', renderError)
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+        <h3 className="text-red-800 font-semibold mb-2">Render Error</h3>
+        <p className="text-red-700">Failed to render {componentId}</p>
+        <details className="mt-2">
+          <summary className="text-sm font-medium text-red-700 cursor-pointer">
+            Error Details
+          </summary>
+          <pre className="text-xs mt-2 p-2 bg-white rounded overflow-auto">
+            {String(renderError)}
+          </pre>
+        </details>
+      </div>
+    )
   }
 }

@@ -5,9 +5,11 @@ import type { Database } from '../../../../types/database'
 // Ensure this route is never statically evaluated at build time
 export const dynamic = 'force-dynamic'
 
-
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
 // export const runtime = 'edge'
+
+// In-memory storage for generated sites (temporary solution)
+const generatedSites = new Map<string, any>()
 
 export async function POST(request: NextRequest) {
   let siteId: string | null = null;
@@ -80,10 +82,8 @@ export async function POST(request: NextRequest) {
       // Save to temporary storage (skip database for now due to auth requirements)
       console.log('💾 Site generated successfully (database storage disabled for demo)');
       
-      // TODO: Implement proper user authentication and database storage
-      
-      // Return successful response
-      const response = {
+      // Store in memory for GET requests
+      const fullSiteData = {
         id: siteId,
         status: 'completed',
         prompt: prompt,
@@ -91,8 +91,7 @@ export async function POST(request: NextRequest) {
         createdAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
         siteStructure: siteResult,
-        previewUrl: `/preview/${siteId}`,
-        editorUrl: `/editor/${siteId}`,
+        name: siteResult?.name || 'Generated Site',
         metadata: {
           generationMethod: 'registry',
           tokenSavings: siteResult?.metadata?.performance?.tokenSavings || 0,
@@ -100,7 +99,17 @@ export async function POST(request: NextRequest) {
           duration: 15000,
           model: siteResult?.metadata?.model || 'gpt-5-mini',
           cost: 0.01
-        },
+        }
+      }
+      
+      generatedSites.set(siteId, fullSiteData)
+      console.log('💾 Site data stored in memory for preview')
+      
+      // Return successful response
+      const response = {
+        ...fullSiteData,
+        previewUrl: `/preview/${siteId}`,
+        editorUrl: `/editor/${siteId}`,
         message: '✅ Site generated and saved successfully!',
       };
 
@@ -151,9 +160,17 @@ export async function GET(request: NextRequest) {
 
     console.log('📊 Checking status for site:', id);
     
-    // Return a generic completed status for any valid UUID
-    // TODO: In production, this would query the actual database for site status
+    // Check if site exists in memory storage
+    const siteData = generatedSites.get(id)
+    
+    if (siteData) {
+      console.log('✅ Site found in memory storage');
+      return NextResponse.json(siteData);
+    }
+    
+    // Return a generic completed status for any valid UUID (fallback)
     if (id && id.length === 36) { // Basic UUID format check
+      console.log('⚠️ Site not found in memory, returning fallback response');
       const statusResponse = {
         id: id,
         name: 'Generated Site',
@@ -162,6 +179,7 @@ export async function GET(request: NextRequest) {
         stage: 'completed',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        siteStructure: null, // No actual data available
         result: {
           siteId: id,
           editorUrl: `/editor/${id}`,
@@ -174,7 +192,7 @@ export async function GET(request: NextRequest) {
         },
       };
       
-      console.log('✅ Site status response created');
+      console.log('⚠️ Site status fallback response created');
       return NextResponse.json(statusResponse);
     }
     

@@ -13,7 +13,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-gradient-to-b from-slate-900/95 to-slate-800/95 backdrop-blur-md shadow-lg shadow-black/20">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-900 backdrop-blur-md shadow-lg shadow-black/20">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -24,10 +24,10 @@ export function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-8">
             <Link 
               href="/dashboard" 
-              className={`text-sm font-medium transition-colors ${
+              className={`px-3 whitespace-nowrap text-sm font-medium transition-colors ${
                 isActivePath('/dashboard') 
                   ? 'text-purple-400' 
                   : 'text-gray-300 hover:text-white'
@@ -37,7 +37,7 @@ export function Header() {
             </Link>
             <Link 
               href="/templates" 
-              className={`text-sm font-medium transition-colors ${
+              className={`px-3 whitespace-nowrap text-sm font-medium transition-colors ${
                 isActivePath('/templates') 
                   ? 'text-purple-400' 
                   : 'text-gray-300 hover:text-white'
@@ -47,7 +47,7 @@ export function Header() {
             </Link>
             <Link 
               href="/usage" 
-              className={`text-sm font-medium transition-colors ${
+              className={`px-3 whitespace-nowrap text-sm font-medium transition-colors ${
                 isActivePath('/usage') 
                   ? 'text-purple-400' 
                   : 'text-gray-300 hover:text-white'

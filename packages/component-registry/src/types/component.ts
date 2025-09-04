@@ -121,6 +121,22 @@ export interface ComponentVariants {
 }
 
 /**
+ * Design Kit compatibility and styling
+ */
+export interface DesignKitCompatibility {
+  compatibleKits: string[];
+  performanceScore: number;    // 0-100, higher is better
+  kitStyles: Record<string, {
+    containerClass: string;
+    headingClass?: string;
+    textClass?: string;
+    spacing?: string;
+    colors?: Record<string, string>;
+    animations?: string[];
+  }>;
+}
+
+/**
  * Extended component metadata (extensible via JSON)
  */
 export interface ComponentMetadata {
@@ -140,12 +156,16 @@ export interface ComponentMetadata {
   designTokens?: DesignTokens;
   variants?: ComponentVariants;
   
+  // Design Kit integration
+  designKit?: DesignKitCompatibility;
+  
   // AI selection hints
   aiHints?: {
     industries: string[];
     useCases: string[];
     keywords: string[];
     avoidWhen: string[];
+    preferredKits?: string[];
   };
   
   // Extensible custom fields (loaded from JSON)
@@ -184,6 +204,7 @@ export interface SearchCriteria {
   tags?: string[];
   industry?: string;
   style?: string;
+  designKit?: string;           // Filter by design kit compatibility
   performance?: {
     minLighthouse?: number;
     maxBundleSize?: number;

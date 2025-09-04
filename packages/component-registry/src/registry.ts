@@ -138,6 +138,12 @@ export class ComponentRegistry {
         if (!industries.includes(criteria.industry)) return false;
       }
       
+      // Design Kit filter
+      if (criteria.designKit) {
+        const compatibleKits = component.metadata.designKit?.compatibleKits || [];
+        if (!compatibleKits.includes(criteria.designKit)) return false;
+      }
+      
       // Performance filter
       if (criteria.performance) {
         const perf = component.metadata.performance;
@@ -227,6 +233,52 @@ export class ComponentRegistry {
     return compatibleIds
       .map(id => this.getById(id))
       .filter(Boolean) as ComponentDefinition[];
+  }
+
+  /**
+   * Get components compatible with a specific design kit
+   */
+  getComponentsByDesignKit(kitId: string): ComponentDefinition[] {
+    return Array.from(this.components.values())
+      .filter(component => {
+        const compatibleKits = component.metadata.designKit?.compatibleKits || [];
+        return compatibleKits.includes(kitId);
+      })
+      .sort((a, b) => {
+        // Sort by performance score for the kit
+        const scoreA = a.metadata.designKit?.performanceScore || 0;
+        const scoreB = b.metadata.designKit?.performanceScore || 0;
+        return scoreB - scoreA;
+      });
+  }
+
+  /**
+   * Get recommended components for a design kit and industry combination
+   */
+  getRecommendedForKit(kitId: string, industry?: string): {
+    hero: ComponentDefinition[];
+    features: ComponentDefinition[];
+    pricing: ComponentDefinition[];
+    testimonials: ComponentDefinition[];
+    cta: ComponentDefinition[];
+  } {
+    const result = {
+      hero: [] as ComponentDefinition[],
+      features: [] as ComponentDefinition[],
+      pricing: [] as ComponentDefinition[],
+      testimonials: [] as ComponentDefinition[],
+      cta: [] as ComponentDefinition[]
+    };
+
+    for (const [category, components] of Object.entries(result)) {
+      result[category as keyof typeof result] = this.search({
+        category: category as ComponentCategory,
+        designKit: kitId,
+        industry
+      });
+    }
+
+    return result;
   }
 
   /**

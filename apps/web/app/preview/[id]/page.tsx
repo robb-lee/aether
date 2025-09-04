@@ -6,12 +6,14 @@ import { ComponentRenderer } from '@/components/ComponentRenderer'
 import { PreviewHeader } from './components/PreviewHeader'
 import { DeviceFrame } from './components/DeviceFrame'
 import { PreviewControls } from './components/PreviewControls'
+import { DesignKitProvider } from './components/DesignKitProvider'
 
 interface SiteData {
   id: string
   name: string
   siteStructure: any
   metadata: any
+  designKit?: string  // Design kit applied to this site
 }
 
 interface PageProps {
@@ -89,49 +91,52 @@ export default function PreviewPage({ params }: PageProps) {
   // Simple preview rendering for generated sites
   const siteStructure = siteData.siteStructure
   const components = siteStructure?.pages?.[0]?.components || siteStructure
+  const designKit = siteData.designKit || 'modern-saas'  // Default kit
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Enhanced Preview Header */}
       <PreviewHeader siteData={siteData} siteId={params.id} />
 
-      {/* Main Preview Area */}
-      <div className="relative">
-        <DeviceFrame device={selectedDevice} zoom={zoomLevel}>
-          {components ? (
-            <SiteRenderer components={components} />
-          ) : (
-            <div className="max-w-4xl mx-auto p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                {siteStructure?.name || 'Generated Site'}
-              </h2>
-              <p className="text-gray-600 mb-8">
-                Site generated successfully, but preview rendering is not yet implemented.
-              </p>
-              <div className="bg-gray-100 p-6 rounded-lg">
-                <pre className="text-left text-sm overflow-auto">
-                  {JSON.stringify(siteStructure, null, 2)}
-                </pre>
+      {/* Main Preview Area with Design Kit */}
+      <DesignKitProvider kitId={designKit}>
+        <div className="relative">
+          <DeviceFrame device={selectedDevice} zoom={zoomLevel}>
+            {components ? (
+              <SiteRenderer components={components} designKit={designKit} />
+            ) : (
+              <div className="max-w-4xl mx-auto p-8 text-center">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  {siteStructure?.name || 'Generated Site'}
+                </h2>
+                <p className="text-gray-600 mb-8">
+                  Site generated successfully, but preview rendering is not yet implemented.
+                </p>
+                <div className="bg-gray-100 p-6 rounded-lg">
+                  <pre className="text-left text-sm overflow-auto">
+                    {JSON.stringify(siteStructure, null, 2)}
+                  </pre>
+                </div>
               </div>
-            </div>
-          )}
-        </DeviceFrame>
+            )}
+          </DeviceFrame>
 
-        {/* Floating Preview Controls */}
-        <PreviewControls
-          siteId={params.id}
-          onDeviceChange={setSelectedDevice}
-          onZoomChange={setZoomLevel}
-          selectedDevice={selectedDevice}
-          zoomLevel={zoomLevel}
-        />
-      </div>
+          {/* Floating Preview Controls */}
+          <PreviewControls
+            siteId={params.id}
+            onDeviceChange={setSelectedDevice}
+            onZoomChange={setZoomLevel}
+            selectedDevice={selectedDevice}
+            zoomLevel={zoomLevel}
+          />
+        </div>
+      </DesignKitProvider>
     </div>
   )
 }
 
-// Site renderer for Component Registry components
-function SiteRenderer({ components }: { components: any }) {
+// Site renderer for Component Registry components with Design Kit support
+function SiteRenderer({ components, designKit }: { components: any; designKit: string }) {
   if (!components || !components.root) {
     return (
       <div className="max-w-4xl mx-auto p-8 text-center">
@@ -143,9 +148,13 @@ function SiteRenderer({ components }: { components: any }) {
   // If root component has children, render them directly
   if (components.root.children && Array.isArray(components.root.children)) {
     return (
-      <div className="min-h-screen">
+      <div className={`min-h-screen kit-${designKit}`} data-design-kit={designKit}>
         {components.root.children.map((child: any, index: number) => (
-          <ComponentRenderer key={child.id || index} component={child} />
+          <ComponentRenderer 
+            key={child.id || index} 
+            component={child}
+            designKit={designKit}
+          />
         ))}
       </div>
     )
@@ -153,8 +162,11 @@ function SiteRenderer({ components }: { components: any }) {
 
   // Otherwise render the root component itself
   return (
-    <div className="min-h-screen">
-      <ComponentRenderer component={components.root} />
+    <div className={`min-h-screen kit-${designKit}`} data-design-kit={designKit}>
+      <ComponentRenderer 
+        component={components.root} 
+        designKit={designKit}
+      />
     </div>
   )
 }

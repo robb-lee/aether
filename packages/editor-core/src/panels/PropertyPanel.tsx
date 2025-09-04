@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ComponentTreeNode, ComponentStyles, ResponsiveSettings, AnimationSettings } from '../types';
 import { ChevronDown, ChevronRight, Smartphone, Tablet, Monitor, Zap } from 'lucide-react';
 import { ColorPicker, SpacingControl, TypographyControl } from '../controls';
@@ -22,6 +22,33 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['general', 'props']));
   const [responsiveMode, setResponsiveMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+
+  // Auto-expand sections based on selected element type
+  useEffect(() => {
+    if (selectedElementType) {
+      const sectionsToExpand = new Set(expandedSections);
+      
+      switch (selectedElementType) {
+        case 'image':
+        case 'placeholder':
+          sectionsToExpand.add('image-editing');
+          break;
+        case 'text':
+          sectionsToExpand.add('text-editing');
+          break;
+        case 'button':
+          sectionsToExpand.add('button-editing');
+          break;
+        case 'container':
+          sectionsToExpand.add('container-editing');
+          break;
+        default:
+          break;
+      }
+      
+      setExpandedSections(sectionsToExpand);
+    }
+  }, [selectedElementType]);
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -191,6 +218,126 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
     if (!selectedElementId || !selectedElementType) return null;
 
     switch (selectedElementType) {
+      case 'image':
+      case 'placeholder':
+        return (
+          <div className="border-b">
+            <button
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
+              onClick={() => toggleSection('image-editing')}
+            >
+              <span className="text-sm font-medium">Image Properties</span>
+              {expandedSections.has('image-editing') ? (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-500" />
+              )}
+            </button>
+            {expandedSections.has('image-editing') && (
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <label className="text-xs text-gray-600 font-medium">Image URL</label>
+                  <input
+                    type="text"
+                    value={selectedComponent?.props?.imageUrl || ''}
+                    onChange={(e) => {
+                      if (selectedComponent && onUpdateComponent) {
+                        onUpdateComponent(selectedComponent.id, {
+                          props: {
+                            ...selectedComponent.props,
+                            imageUrl: (e.target as HTMLInputElement).value
+                          }
+                        });
+                      }
+                    }}
+                    placeholder="Enter image URL"
+                    className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
+                    data-input-field="true"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 font-medium">Upload Image</label>
+                  <div className="mt-1 space-y-2">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file && selectedComponent && onUpdateComponent) {
+                            const reader = new FileReader()
+                            reader.onloadend = () => {
+                              onUpdateComponent(selectedComponent.id, {
+                                props: {
+                                  ...selectedComponent.props,
+                                  imageUrl: reader.result
+                                }
+                              });
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                        className="hidden"
+                        id="upload-hero-image-element"
+                      />
+                      <label
+                        htmlFor="upload-hero-image-element"
+                        className="block w-full px-3 py-2 text-xs text-center bg-gray-100 hover:bg-gray-200 border rounded-md cursor-pointer transition-colors"
+                      >
+                        Choose File
+                      </label>
+                    </div>
+                    {selectedComponent?.props?.imageUrl && (
+                      <img
+                        src={selectedComponent.props.imageUrl}
+                        alt="Current image"
+                        className="w-full h-24 object-cover rounded border"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Alt Text</label>
+                  <input
+                    type="text"
+                    value={selectedComponent?.props?.imageAlt || ''}
+                    onChange={(e) => {
+                      if (selectedComponent && onUpdateComponent) {
+                        onUpdateComponent(selectedComponent.id, {
+                          props: {
+                            ...selectedComponent.props,
+                            imageAlt: (e.target as HTMLInputElement).value
+                          }
+                        });
+                      }
+                    }}
+                    placeholder="Describe the image"
+                    className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                    data-input-field="true"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Border Radius</label>
+                  <select 
+                    className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                    onChange={(e) => {
+                      if (selectedElementId && onElementStyleUpdate) {
+                        onElementStyleUpdate(selectedElementId, { borderRadius: (e.target as HTMLSelectElement).value });
+                      }
+                    }}
+                  >
+                    <option value="rounded-none">None</option>
+                    <option value="rounded-sm">Small</option>
+                    <option value="rounded">Base</option>
+                    <option value="rounded-lg">Large</option>
+                    <option value="rounded-xl">Extra Large</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
       case 'text':
         return (
           <div className="border-b">
@@ -419,123 +566,6 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     max="50"
                     className="w-full mt-1"
                   />
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'image':
-        return (
-          <div className="border-b">
-            <button
-              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50"
-              onClick={() => toggleSection('image-editing')}
-            >
-              <span className="text-sm font-medium">Image Properties</span>
-              {expandedSections.has('image-editing') ? (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              ) : (
-                <ChevronRight className="w-4 h-4 text-gray-500" />
-              )}
-            </button>
-            {expandedSections.has('image-editing') && (
-              <div className="px-4 pb-4 space-y-3">
-                <div>
-                  <label className="text-xs text-gray-600 font-medium">Image URL</label>
-                  <input
-                    type="text"
-                    value={selectedComponent?.props?.imageUrl || ''}
-                    onChange={(e) => {
-                      if (selectedComponent && onUpdateComponent) {
-                        onUpdateComponent(selectedComponent.id, {
-                          props: {
-                            ...selectedComponent.props,
-                            imageUrl: (e.target as HTMLInputElement).value
-                          }
-                        });
-                      }
-                    }}
-                    placeholder="Enter image URL"
-                    className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600 font-medium">Upload Image</label>
-                  <div className="mt-1 space-y-2">
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file && selectedComponent && onUpdateComponent) {
-                            const reader = new FileReader()
-                            reader.onloadend = () => {
-                              onUpdateComponent(selectedComponent.id, {
-                                props: {
-                                  ...selectedComponent.props,
-                                  imageUrl: reader.result
-                                }
-                              });
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                        }}
-                        className="hidden"
-                        id="upload-hero-image-element"
-                      />
-                      <label
-                        htmlFor="upload-hero-image-element"
-                        className="block w-full px-3 py-2 text-xs text-center bg-gray-100 hover:bg-gray-200 border rounded-md cursor-pointer transition-colors"
-                      >
-                        Choose File
-                      </label>
-                    </div>
-                    {selectedComponent?.props?.imageUrl && (
-                      <img
-                        src={selectedComponent.props.imageUrl}
-                        alt="Current image"
-                        className="w-full h-24 object-cover rounded border"
-                      />
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Alt Text</label>
-                  <input
-                    type="text"
-                    value={selectedComponent?.props?.imageAlt || ''}
-                    onChange={(e) => {
-                      if (selectedComponent && onUpdateComponent) {
-                        onUpdateComponent(selectedComponent.id, {
-                          props: {
-                            ...selectedComponent.props,
-                            imageAlt: (e.target as HTMLInputElement).value
-                          }
-                        });
-                      }
-                    }}
-                    placeholder="Describe the image"
-                    className="w-full mt-1 px-2 py-1 text-sm border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Border Radius</label>
-                  <select 
-                    className="w-full mt-1 px-2 py-1 text-sm border rounded"
-                    onChange={(e) => {
-                      if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { borderRadius: (e.target as HTMLSelectElement).value });
-                      }
-                    }}
-                  >
-                    <option value="rounded-none">None</option>
-                    <option value="rounded-sm">Small</option>
-                    <option value="rounded">Base</option>
-                    <option value="rounded-lg">Large</option>
-                    <option value="rounded-xl">Extra Large</option>
-                  </select>
                 </div>
               </div>
             )}

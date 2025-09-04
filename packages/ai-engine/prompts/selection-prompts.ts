@@ -6,6 +6,7 @@
  */
 
 import { SelectionContext } from '../selectors/component-selector';
+import { getDesignKit, designKits } from '../../component-registry/src/design-kits';
 
 /**
  * Enhanced system prompt for component selection and tree building
@@ -375,14 +376,118 @@ PERFORMANCE TARGET: Maximum Speed
 }
 
 /**
+ * DESIGN KIT-BASED ULTRA-COMPACT PROMPTS (Target: 500 tokens)
+ */
+export function createKitOptimizedPrompt(
+  userInput: string,
+  context: SelectionContext
+): string {
+  // Auto-select design kit
+  const kitId = context.designKit || selectKitByIndustry(context.industry || 'general');
+  const kit = getDesignKit(kitId);
+  
+  // Get preferred components for this kit
+  const preferredComponents = [
+    ...kit.componentPreferences.hero.slice(0, 2),
+    ...kit.componentPreferences.features.slice(0, 2),
+    ...kit.componentPreferences.pricing.slice(0, 1),
+    ...kit.componentPreferences.cta.slice(0, 1)
+  ];
+
+  // Ultra-compact prompt
+  return `${userInput}
+
+Kit: ${kitId}
+Industry: ${context.industry || 'general'}
+
+Available: ${preferredComponents.join(', ')}
+
+Select 3-5 components. JSON only:
+{"selections":[{"componentId":"","props":{"title":"","subtitle":"","ctaText":""}}]}`;
+}
+
+/**
+ * Minimal prompt for pattern matching (Target: 300 tokens)
+ */
+export function createMinimalPrompt(
+  businessType: string,
+  userGoal: string
+): string {
+  const kit = selectKitByIndustry(businessType);
+  
+  return `${businessType} ${userGoal}
+Kit: ${kit}
+Output: {"selections":[{"componentId":"hero-split","props":{"title":"","subtitle":"","ctaText":""}}]}`;
+}
+
+/**
+ * Design kit selection helper
+ */
+function selectKitByIndustry(industry: string): string {
+  const mapping: Record<string, string> = {
+    'saas': 'modern-saas',
+    'startup': 'modern-saas',
+    'tech': 'modern-saas',
+    'enterprise': 'corporate',
+    'financial': 'corporate',
+    'consulting': 'corporate',
+    'design': 'creative-agency',
+    'marketing': 'creative-agency',
+    'retail': 'e-commerce',
+    'fashion': 'e-commerce',
+    'ecommerce': 'e-commerce',
+    'app': 'startup',
+    'mobile': 'startup',
+  };
+  
+  return mapping[industry.toLowerCase()] || 'modern-saas';
+}
+
+/**
  * Token usage comparison prompts
  */
 export function createTokenComparisonPrompt(): string {
   return `
 TOKEN USAGE COMPARISON:
-- Old method: Generate full component code (~20,000 tokens)
-- New method: Select component ID + props (~2,000 tokens)
-- Target savings: 90% token reduction
-- Expected improvement: 3x faster generation
+- Old method: Generate full component code (~2,000 tokens)
+- Kit method: Select component ID + kit (~500 tokens)
+- Target savings: 75% token reduction
+- Expected improvement: 66% faster generation
 `;
+}
+
+/**
+ * Performance measurement for different prompt strategies
+ */
+export function measurePromptEfficiency(): {
+  strategies: {
+    name: string;
+    tokenEstimate: number;
+    description: string;
+  }[];
+} {
+  return {
+    strategies: [
+      {
+        name: 'Kit Optimized',
+        tokenEstimate: 500,
+        description: 'Use design kit + component selection'
+      },
+      {
+        name: 'Compact Selection',
+        tokenEstimate: 800,
+        description: 'Registry selection with minimal context'
+      },
+      {
+        name: 'Standard Selection', 
+        tokenEstimate: 1500,
+        description: 'Full registry prompt with all context'
+      },
+      {
+        name: 'Legacy Generation',
+        tokenEstimate: 2000,
+        description: 'Direct component code generation'
+      }
+    ]
+  };
 }

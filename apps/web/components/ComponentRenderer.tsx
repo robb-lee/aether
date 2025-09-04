@@ -8,12 +8,14 @@ import {
   FooterSimple,
   CTASimple
 } from '@/app/preview/[id]/components/RegistryComponents'
+import { useDesignKit } from '@/app/preview/[id]/components/DesignKitProvider'
 
 interface ComponentRendererProps {
   component: any
   isEditor?: boolean
   onElementClick?: (elementId: string, elementType: string) => void
   selectedElementId?: string
+  designKit?: string
 }
 
 // Map componentId to actual imported components
@@ -30,7 +32,8 @@ export function ComponentRenderer({
   component, 
   isEditor = false,
   onElementClick,
-  selectedElementId 
+  selectedElementId,
+  designKit 
 }: ComponentRendererProps) {
   if (!component) return null
 
@@ -39,6 +42,15 @@ export function ComponentRenderer({
   // Use componentId if available, fallback to type
   const componentKey = componentId || type
   const Component = componentMap[componentKey as keyof typeof componentMap]
+  
+  // Get design kit context if available
+  let kitContext;
+  try {
+    kitContext = useDesignKit();
+  } catch {
+    // Not within DesignKitProvider, continue without kit
+    kitContext = null;
+  }
 
   // For editor mode, show placeholder if component not found
   if (!Component && isEditor) {
@@ -94,6 +106,16 @@ export function ComponentRenderer({
     )
   }
 
+  // Apply design kit styling if available
+  const enhancedProps = kitContext 
+    ? {
+        ...props,
+        className: kitContext.applyKitToElement(props.className || ''),
+        designKitId: kitContext.kitId,
+        kitConfig: kitContext.kit,
+      }
+    : props;
+
   // Render the component with error boundary
   try {
     // For components with children, we need to render them recursively
@@ -103,12 +125,13 @@ export function ComponentRenderer({
           key={child.id || index} 
           component={child} 
           isEditor={isEditor}
+          designKit={designKit}
         />
       ))
       
       return (
         <Component 
-          {...props}
+          {...enhancedProps}
           onElementClick={onElementClick}
           selectedElementId={selectedElementId}
           customStyles={component.customStyles}
@@ -121,7 +144,7 @@ export function ComponentRenderer({
     
     return (
       <Component 
-        {...props}
+        {...enhancedProps}
         onElementClick={onElementClick}
         selectedElementId={selectedElementId}
         customStyles={component.customStyles}

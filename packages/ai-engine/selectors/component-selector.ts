@@ -31,6 +31,7 @@ export interface SelectionContext {
   accessibility?: 'basic' | 'enhanced' | 'full';
   keywords?: string[];
   targetAudience?: string;
+  designKit?: string; // Preferred design kit
 }
 
 /**
@@ -61,9 +62,15 @@ export class ComponentSelector {
    * Select optimal components based on context
    */
   selectComponentsForContext(context: SelectionContext): ComponentDefinition[] {
+    // Auto-select design kit if not specified
+    if (!context.designKit && context.industry) {
+      context.designKit = this.selectOptimalDesignKit(context);
+    }
+
     const searchCriteria: SearchCriteria = {
       industry: context.industry,
       keywords: context.keywords,
+      designKit: context.designKit,
       performance: this.mapPerformanceCriteria(context.performance),
       accessibility: this.mapAccessibilityCriteria(context.accessibility)
     };
@@ -76,6 +83,35 @@ export class ComponentSelector {
     }
 
     return this.prioritizeComponents(candidates, context);
+  }
+
+  /**
+   * Get components optimized for a specific design kit
+   */
+  selectComponentsForKit(kitId: string, context?: Partial<SelectionContext>): ComponentDefinition[] {
+    return this.registry.getComponentsByDesignKit(kitId);
+  }
+
+  /**
+   * Select optimal design kit for context
+   */
+  selectOptimalDesignKit(context: SelectionContext): string {
+    const industryMapping: Record<string, string> = {
+      'saas': 'modern-saas',
+      'startup': 'modern-saas',
+      'tech': 'modern-saas',
+      'enterprise': 'corporate',
+      'financial': 'corporate',
+      'consulting': 'corporate',
+      'design': 'creative-agency',
+      'marketing': 'creative-agency',
+      'retail': 'e-commerce',
+      'fashion': 'e-commerce',
+      'app': 'startup',
+    };
+
+    const industry = context.industry || context.businessType;
+    return industry ? (industryMapping[industry.toLowerCase()] || 'modern-saas') : 'modern-saas';
   }
 
   /**
@@ -124,44 +160,44 @@ export class ComponentSelector {
   }
 
   /**
-   * Get component selection prompt for AI
+   * Get component selection prompt for AI (optimized for minimal tokens)
    */
   generateSelectionPrompt(context: SelectionContext): string {
-    const availableComponents = this.getComponentDescriptions();
-    const recommendations = this.selectComponentsForContext(context);
+    // Auto-select design kit
+    const designKit = context.designKit || this.selectOptimalDesignKit(context);
+    
+    // Get pre-filtered components for the kit
+    const kitComponents = this.registry.getComponentsByDesignKit(designKit);
+    
+    // Get recommended combinations for this kit
+    const recommendations = this.registry.getRecommendedForKit(designKit, context.industry);
 
-    return `You are a website component selector. Choose the BEST component IDs from the registry below for this context:
+    // Generate ultra-compact prompt (target: 500 tokens vs 2000)
+    return `Select components for ${context.industry || 'website'} using ${designKit} kit.
 
-CONTEXT:
-${JSON.stringify(context, null, 2)}
+Available:
+${kitComponents.slice(0, 10).map(c => `${c.id}: ${c.category}`).join('\n')}
 
-AVAILABLE COMPONENTS:
-${Object.entries(availableComponents).map(([id, desc]) => `- ${id}: ${desc}`).join('\n')}
+Recommended:
+Hero: ${recommendations.hero.slice(0, 2).map(c => c.id).join(', ')}
+Features: ${recommendations.features.slice(0, 2).map(c => c.id).join(', ')}
+Pricing: ${recommendations.pricing.slice(0, 2).map(c => c.id).join(', ')}
 
-RECOMMENDED FOR THIS CONTEXT:
-${recommendations.map(comp => `- ${comp.id}: ${comp.metadata.description}`).join('\n')}
+Required: hero, features, pricing, cta
+Max components: 5
 
-INSTRUCTIONS:
-1. Select 2-4 component IDs that work well together
-2. Generate appropriate props for each component
-3. Consider industry best practices and target audience
-4. Ensure components are compatible and create good user flow
+JSON format:
+{"selections":[{"componentId":"hero-split","props":{"title":"...","subtitle":"...","ctaText":"..."}}]}`;
+  }
 
-OUTPUT FORMAT (JSON only):
-{
-  "selections": [
-    {
-      "componentId": "hero-split",
-      "props": {
-        "title": "Your compelling title",
-        "description": "Your description",
-        "ctaText": "Your CTA"
-      }
-    }
-  ]
-}
-
-Return ONLY the JSON, no explanations.`;
+  /**
+   * Generate even more compact prompt for known patterns
+   */
+  generateCompactPrompt(context: SelectionContext): string {
+    const kit = context.designKit || this.selectOptimalDesignKit(context);
+    const industry = context.industry || 'general';
+    
+    return `${industry} site, ${kit} kit. Select: hero,features,pricing,cta. JSON only:{"selections":[{"componentId":"","props":{}}]}`;
   }
 
   /**

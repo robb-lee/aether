@@ -151,7 +151,6 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Handle component selection
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
-    console.log('Selection changed:', selectedIds)
     setSelectedElement(selectedIds)
   }, [])
   
@@ -276,7 +275,6 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Helper function to find component by ID
   const findComponentById = (node: ComponentTreeNode, id: string): ComponentTreeNode | null => {
-    console.log('Finding component:', id, 'in node:', node.id)
     if (node.id === id) return node
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
@@ -292,7 +290,6 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     ? findComponentById(componentTree, selectedElement[0])
     : null
   
-  console.log('Selected element:', selectedElement, 'Found component:', selectedComponent)
   
   // Setup keyboard shortcut handling with delete functionality
   useEffect(() => {

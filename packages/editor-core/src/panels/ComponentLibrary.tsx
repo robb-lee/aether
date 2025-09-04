@@ -85,7 +85,9 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onAddCompone
         
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Search className="w-4 h-4 text-gray-400" />
+          </div>
           <input
             type="text"
             placeholder="Search components..."

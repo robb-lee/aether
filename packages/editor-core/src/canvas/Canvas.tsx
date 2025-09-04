@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
-import { motion, PanInfo } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Grid } from './Grid';
 import { Rulers } from './Rulers';
 import { ViewportManager } from './viewport';
@@ -79,12 +79,20 @@ export const Canvas: React.FC<CanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   // Wrapper that sits under rulers; used to measure actual content offset
   const contentWrapperRef = useRef<HTMLDivElement>(null);
+  // Layer that receives CSS transform for pan/zoom (inner content)
+  const transformLayerRef = useRef<HTMLDivElement>(null);
+  // Grid layer wrapper to move grid without re-render
+  const gridLayerRef = useRef<HTMLDivElement>(null);
   const viewportManagerRef = useRef<ViewportManager>();
   const [settings, setSettings] = useState<CanvasSettings>(() => ({
     ...DEFAULT_SETTINGS,
     ...userSettings
   }));
   const [isPanning, setIsPanning] = useState(false);
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
+  const lastPanPointRef = useRef<Point | null>(null);
+  const panRafRef = useRef<number | null>(null);
+  const panDeltaRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStartPoint, setSelectionStartPoint] = useState<Point | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -94,6 +102,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [dragPosition, setDragPosition] = useState<Point | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const dragIdleTimeoutRef = useRef<number | null>(null);
+  const lastStateSyncRef = useRef<number>(0);
 
   // Reset drag state helper function
   const resetDragState = useCallback(() => {
@@ -175,8 +184,13 @@ export const Canvas: React.FC<CanvasProps> = ({
       setSelectionStartPoint(null);
       // Also stop panning on mouseup to avoid a stuck draggable state
       // when the user releases the mouse while holding Space.
-      // The Space keyup handler will re-enable panning as needed.
       setIsPanning(false);
+      // Cancel any pending RAF pan update
+      if (panRafRef.current != null) {
+        cancelAnimationFrame(panRafRef.current);
+        panRafRef.current = null;
+      }
+      lastPanPointRef.current = null;
       resetDragState();
     };
 
@@ -223,27 +237,106 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     const delta = -event.deltaY * 0.001;
     viewportManagerRef.current.zoom(delta, center);
-    
+    // Apply transform immediately for smoothness
+    const vp = viewportManagerRef.current.getViewport();
+    const transform = `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})`;
+    if (transformLayerRef.current) {
+      transformLayerRef.current.style.transform = transform;
+      transformLayerRef.current.style.transformOrigin = '0 0';
+    }
+    if (gridLayerRef.current) {
+      gridLayerRef.current.style.transform = transform;
+      gridLayerRef.current.style.transformOrigin = '0 0';
+    }
+    // Also sync React state (wheel is not 60fps continuous typically)
     setSettings(prev => ({
       ...prev,
-      viewport: viewportManagerRef.current!.getViewport()
+      viewport: vp
     }));
   }, []);
 
-  // Handle pan
-  const handlePan = useCallback((event: MouseEvent, info: PanInfo) => {
-    if (!viewportManagerRef.current || !isPanning) return;
-    // Defensive: if the pointer is no longer pressed, ignore any pan updates
-    // that might slip through due to event ordering.
-    // @ts-expect-error - some event types (e.g., TouchEvent) don't have `buttons`.
-    if (typeof event?.buttons === 'number' && event.buttons === 0) return;
-    
-    viewportManagerRef.current.pan(info.delta.x, info.delta.y);
-    setSettings(prev => ({
-      ...prev,
-      viewport: viewportManagerRef.current!.getViewport()
-    }));
-  }, [isPanning]);
+  // Manual panning helpers (replace framer-motion drag to avoid stuck states)
+  const flushPan = useCallback(() => {
+    if (!viewportManagerRef.current) return;
+    const { dx, dy } = panDeltaRef.current;
+    if (dx === 0 && dy === 0) return;
+    viewportManagerRef.current.pan(dx, dy);
+    panDeltaRef.current = { dx: 0, dy: 0 };
+    // Imperatively apply transform to avoid full React re-render each frame
+    const vp = viewportManagerRef.current.getViewport();
+    const transform = `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})`;
+    if (transformLayerRef.current) {
+      transformLayerRef.current.style.transform = transform;
+      transformLayerRef.current.style.transformOrigin = '0 0';
+    }
+    if (gridLayerRef.current) {
+      gridLayerRef.current.style.transform = transform;
+      gridLayerRef.current.style.transformOrigin = '0 0';
+    }
+    // Throttle React state sync for rulers/indicators (~80ms)
+    const now = performance.now();
+    if (now - lastStateSyncRef.current > 80) {
+      lastStateSyncRef.current = now;
+      setSettings(prev => ({
+        ...prev,
+        viewport: vp
+      }));
+    }
+    panRafRef.current = null;
+  }, []);
+
+  const schedulePan = useCallback((dx: number, dy: number) => {
+    panDeltaRef.current.dx += dx;
+    panDeltaRef.current.dy += dy;
+    if (panRafRef.current == null) {
+      panRafRef.current = window.requestAnimationFrame(flushPan);
+    }
+  }, [flushPan]);
+
+  const stopPanning = useCallback(() => {
+    setIsPanning(false);
+    lastPanPointRef.current = null;
+    if (panRafRef.current != null) {
+      cancelAnimationFrame(panRafRef.current);
+      panRafRef.current = null;
+    }
+  }, []);
+
+  const handlePanMouseDown = useCallback((event: React.MouseEvent) => {
+    if (!isSpacePressed) return;
+    if (event.button !== 0) return; // primary only
+    event.preventDefault();
+    event.stopPropagation();
+    setIsPanning(true);
+    lastPanPointRef.current = { x: event.clientX, y: event.clientY };
+
+    const onMove = (e: MouseEvent) => {
+      // if button released, stop
+      if (typeof e.buttons === 'number' && e.buttons === 0) {
+        onUp();
+        return;
+      }
+      const last = lastPanPointRef.current;
+      if (!last) return;
+      const dx = e.clientX - last.x;
+      const dy = e.clientY - last.y;
+      lastPanPointRef.current = { x: e.clientX, y: e.clientY };
+      schedulePan(dx, dy);
+    };
+
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove, true);
+      window.removeEventListener('mouseup', onUp, true);
+      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener('blur', onUp, true);
+      stopPanning();
+    };
+
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onUp, true);
+    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener('blur', onUp, true);
+  }, [isSpacePressed, schedulePan, stopPanning]);
 
   // Initialize selection system
   const selection = useSelection(componentTree || null, {
@@ -278,7 +371,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   // Handle component selection
   const handleComponentClick = useCallback((componentId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    console.log('Component clicked:', componentId);
     selection.select(componentId, event.ctrlKey || event.metaKey);
   }, [selection]);
 
@@ -468,7 +560,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       // Only handle space for panning if not in an input field
       if (event.code === 'Space' && !event.repeat && !isInputField) {
         event.preventDefault();
-        setIsPanning(true);
+        setIsSpacePressed(true);
       }
       // ESC key to cancel drag operation
       if (event.code === 'Escape' && isDragging) {
@@ -479,7 +571,8 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.code === 'Space') {
-        setIsPanning(false);
+        setIsSpacePressed(false);
+        stopPanning();
       }
     };
 
@@ -490,7 +583,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isDragging, resetDragState]);
+  }, [isDragging, resetDragState, stopPanning]);
 
   // Render component tree with drag and drop
   const renderComponent = useCallback((node: ComponentTreeNode, depth = 0): React.ReactNode => {
@@ -565,7 +658,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             width: '100%',
             height: '100%',
             backgroundColor: settings.backgroundColor,
-            cursor: isPanning ? 'grabbing' : 'default'
+            cursor: isPanning ? 'grabbing' : (isSpacePressed ? 'grab' : 'default')
           }}
           onWheel={handleZoom}
           onMouseDown={handleCanvasMouseDown}
@@ -578,8 +671,10 @@ export const Canvas: React.FC<CanvasProps> = ({
           onDragLeave={handleDragLeave}
           onDragEnd={handleDragEnd}
         >
-      {/* Rulers */}
-      <Rulers viewport={settings.viewport} settings={settings.rulers} />
+      {/* Rulers (dim during panning) */}
+      <div style={{ opacity: isPanning ? 0.45 : 1, transition: 'opacity 120ms ease', pointerEvents: 'none' }}>
+        <Rulers viewport={settings.viewport} settings={settings.rulers} />
+      </div>
       
       {/* Canvas content area */}
       <motion.div
@@ -590,25 +685,22 @@ export const Canvas: React.FC<CanvasProps> = ({
           right: 0,
           bottom: 0
         }}
-        drag={isPanning}
-        onPan={handlePan}
-        dragMomentum={false}
-        dragElastic={0}
+        onMouseDown={handlePanMouseDown}
         ref={contentWrapperRef}
       >
-        {/* Grid */}
-        <Grid 
-          viewport={settings.viewport} 
-          settings={settings.grid} 
-        />
+        {/* Grid (wrapped to receive CSS transform without re-render) */}
+        <div ref={gridLayerRef} className="absolute inset-0" style={{ transformOrigin: '0 0' }}>
+          <Grid 
+            viewport={settings.viewport} 
+            settings={settings.grid} 
+          />
+        </div>
         
         {/* Component rendering area (scaled with viewport) */}
         <div 
           className="absolute inset-0"
-          style={{
-            transform: `translate(${settings.viewport.x}px, ${settings.viewport.y}px) scale(${settings.viewport.zoom})`,
-            transformOrigin: '0 0'
-          }}
+          ref={transformLayerRef}
+          style={{ transformOrigin: '0 0' }}
         >
           {componentTree && renderComponent(componentTree)}
 

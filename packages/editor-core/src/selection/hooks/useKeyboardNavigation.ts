@@ -18,6 +18,17 @@ export const useKeyboardNavigation = ({
 
     const { code, ctrlKey, metaKey, shiftKey } = event;
     const isModifier = ctrlKey || metaKey;
+    
+    // Check if the target is an input, textarea, or contenteditable element
+    const target = event.target as HTMLElement;
+    const isInputField = target.tagName === 'INPUT' || 
+                        target.tagName === 'TEXTAREA' || 
+                        target.contentEditable === 'true';
+
+    // Don't handle keyboard shortcuts when focused on input fields
+    if (isInputField) {
+      return;
+    }
 
     // Prevent default behavior for navigation keys
     const navigationKeys = [

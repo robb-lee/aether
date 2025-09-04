@@ -150,7 +150,7 @@ export function EditorComponentRenderer({
   }
 
   // For hero components - use the new granular selection system
-  if (['hero-split', 'hero-centered', 'features-grid'].includes(component.type)) {
+  if (['hero-split', 'hero-centered', 'features-grid', 'cta-simple'].includes(component.type)) {
     return (
       <ComponentRenderer 
         component={component} 

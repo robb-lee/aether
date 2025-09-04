@@ -16,6 +16,7 @@ interface EditableElementProps {
  * - Click detection and event handling
  * - Visual feedback on hover and selection
  * - Element type identification for the PropertyPanel
+ * - Dynamic wrapper element to prevent invalid HTML nesting
  */
 export const EditableElement: React.FC<EditableElementProps> = ({ 
   id, 
@@ -23,18 +24,32 @@ export const EditableElement: React.FC<EditableElementProps> = ({
   children, 
   onClick,
   'data-editable-type': editableType
-}) => (
-  <div 
-    id={id}
-    className={`${className} cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-300 hover:bg-blue-50 hover:bg-opacity-30`}
-    onClick={onClick}
-    data-editable-type={editableType}
-    data-element-id={id}
-    title={`Click to edit ${editableType}`}
-  >
-    {children}
-  </div>
-);
+}) => {
+  // Determine wrapper element based on content type to prevent invalid HTML nesting
+  const isInlineElement = editableType === 'button' || editableType === 'text' || editableType === 'link';
+  const WrapperElement = isInlineElement ? 'span' : 'div';
+  
+  // For section elements, don't add background hover effects that might interfere
+  const isSection = editableType === 'section';
+  const hoverClasses = isSection 
+    ? 'hover:ring-2 hover:ring-blue-300 hover:ring-opacity-50'
+    : 'hover:ring-2 hover:ring-blue-300 hover:bg-blue-50 hover:bg-opacity-30';
+  
+  const combinedClassName = `${className} cursor-pointer transition-all duration-200 ${hoverClasses} ${isInlineElement ? 'inline-block' : ''}`.trim();
+  
+  return React.createElement(
+    WrapperElement,
+    {
+      id,
+      className: combinedClassName,
+      onClick,
+      'data-editable-type': editableType,
+      'data-element-id': id,
+      title: `Click to edit ${editableType}`
+    },
+    children
+  );
+};
 
 /**
  * Helper function to generate click handlers for editable elements

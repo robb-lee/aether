@@ -21,6 +21,29 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   const [componentTree, setComponentTree] = useState<ComponentTreeNode | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [leftPanelTab, setLeftPanelTab] = useState<'components' | 'layers'>('components')
+  
+  // Panel collapse state management with localStorage persistence
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('aether-editor-left-panel-collapsed') === 'true'
+    }
+    return false
+  })
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('aether-editor-right-panel-collapsed') === 'true'
+    }
+    return false
+  })
+  
+  // Persist panel state to localStorage
+  useEffect(() => {
+    localStorage.setItem('aether-editor-left-panel-collapsed', leftPanelCollapsed.toString())
+  }, [leftPanelCollapsed])
+  
+  useEffect(() => {
+    localStorage.setItem('aether-editor-right-panel-collapsed', rightPanelCollapsed.toString())
+  }, [rightPanelCollapsed])
 
   // Fetch site data
   useEffect(() => {
@@ -136,6 +159,17 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       setSelectedElementComponent(containingComponent)
     }
   }, [componentTree, findComponentContainingElement])
+
+  // Update selectedElementComponent whenever componentTree changes (for real-time editing)
+  useEffect(() => {
+    if (selectedElement[0] && selectedElementType && componentTree) {
+      const updatedComponent = findComponentContainingElement(selectedElement[0], componentTree)
+      if (updatedComponent) {
+        console.log('Syncing selectedElementComponent with updated componentTree:', updatedComponent)
+        setSelectedElementComponent(updatedComponent)
+      }
+    }
+  }, [componentTree, selectedElement, selectedElementType, findComponentContainingElement])
 
   // Handle element style updates
   const handleElementStyleUpdate = useCallback((elementId: string, styleUpdates: React.CSSProperties) => {
@@ -290,6 +324,40 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     console.log('Selected component:', selectedComponent)
     console.log('Component tree structure:', componentTree)
   }, [selectedElement, selectedComponent, componentTree])
+  
+  // Panel toggle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input field
+      const target = e.target as HTMLElement
+      const isInputField = target.tagName === 'INPUT' || 
+                          target.tagName === 'TEXTAREA' || 
+                          target.contentEditable === 'true' ||
+                          target.getAttribute('role') === 'textbox' ||
+                          target.getAttribute('data-input-field') === 'true' ||
+                          target.closest('input') ||
+                          target.closest('textarea') ||
+                          target.closest('[contenteditable]') ||
+                          target.closest('[data-input-field="true"]') ||
+                          target.closest('.property-panel')
+      
+      if (isInputField) return
+      
+      // Panel toggle shortcuts
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault()
+        setLeftPanelCollapsed(!leftPanelCollapsed)
+      }
+      
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault()
+        setRightPanelCollapsed(!rightPanelCollapsed)
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown, { capture: false })
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [leftPanelCollapsed, rightPanelCollapsed])
   
   
   // Setup keyboard shortcut handling with delete functionality - TEMPORARILY DISABLED FOR DEBUGGING
@@ -453,48 +521,69 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       </div>
 
       {/* Left Panel - Components & Layers */}
-      <div className="w-64 lg:w-72 xl:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-12 flex flex-col">
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
+      <div className={`${leftPanelCollapsed ? 'w-12' : 'w-64 lg:w-72 xl:w-80'} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 pt-12 flex flex-col transition-all duration-300 ease-in-out`}>
+        {/* Panel header with toggle button */}
+        <div className="flex items-center border-b border-gray-200 dark:border-gray-700">
           <button
-            onClick={() => setLeftPanelTab('components')}
-            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-              leftPanelTab === 'components'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title={leftPanelCollapsed ? 'Expand panel' : 'Collapse panel'}
           >
-            Components
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {leftPanelCollapsed ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              )}
+            </svg>
           </button>
-          <button
-            onClick={() => setLeftPanelTab('layers')}
-            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-              leftPanelTab === 'layers'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Layers
-          </button>
+          
+          {!leftPanelCollapsed && (
+            <>
+              <button
+                onClick={() => setLeftPanelTab('components')}
+                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                  leftPanelTab === 'components'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Components
+              </button>
+              <button
+                onClick={() => setLeftPanelTab('layers')}
+                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                  leftPanelTab === 'layers'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Layers
+              </button>
+            </>
+          )}
         </div>
         <div className="flex-1 overflow-hidden">
-          {leftPanelTab === 'components' ? (
-            <ComponentLibrary onAddComponent={handleAddComponent} />
-          ) : (
-            <LayerPanel
-              componentTree={componentTree}
-              selectedIds={selectedElement}
-              onSelectComponent={(id, multi) => {
-                if (multi) {
-                  setSelectedElement(prev => 
-                    prev.includes(id) 
-                      ? prev.filter(i => i !== id)
-                      : [...prev, id]
-                  )
-                } else {
-                  setSelectedElement([id])
-                }
-              }}
-            />
+          {!leftPanelCollapsed && (
+            leftPanelTab === 'components' ? (
+              <ComponentLibrary onAddComponent={handleAddComponent} />
+            ) : (
+              <LayerPanel
+                componentTree={componentTree}
+                selectedIds={selectedElement}
+                onSelectComponent={(id, multi) => {
+                  if (multi) {
+                    setSelectedElement(prev => 
+                      prev.includes(id) 
+                        ? prev.filter(i => i !== id)
+                        : [...prev, id]
+                    )
+                  } else {
+                    setSelectedElement([id])
+                  }
+                }}
+              />
+            )
           )}
         </div>
       </div>
@@ -552,17 +641,49 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       </div>
       
       {/* Right Panel - Properties */}
-      <div className="w-80 lg:w-96 xl:w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
-        <div className="pt-12 h-full">
-          <PropertyPanel
-            selectedComponent={selectedElementType ? selectedElementComponent : selectedComponent}
-            onUpdateComponent={handleComponentUpdate}
-            selectedElementId={selectedElement[0]}
-            selectedElementType={selectedElementType || undefined}
-            onElementStyleUpdate={handleElementStyleUpdate}
-          />
+      {!rightPanelCollapsed && (
+        <div className="w-80 lg:w-96 xl:w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out">
+          <div className="pt-12 h-full">
+            {/* Panel header with toggle button */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Properties</h3>
+              <button
+                onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded"
+                title="Collapse panel"
+              >
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            
+            <PropertyPanel
+              selectedComponent={selectedElementType ? selectedElementComponent : selectedComponent}
+              onUpdateComponent={handleComponentUpdate}
+              selectedElementId={selectedElement[0]}
+              selectedElementType={selectedElementType || undefined}
+              onElementStyleUpdate={handleElementStyleUpdate}
+              elementStyles={elementStyles}
+            />
+          </div>
         </div>
-      </div>
+      )}
+      
+      {/* Right panel collapsed toggle button */}
+      {rightPanelCollapsed && (
+        <div className="w-10 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 pt-12 transition-all duration-300 ease-in-out">
+          <button
+            onClick={() => setRightPanelCollapsed(false)}
+            className="w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Expand properties panel"
+          >
+            <svg className="w-4 h-4 text-gray-600 dark:text-gray-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   )
 }

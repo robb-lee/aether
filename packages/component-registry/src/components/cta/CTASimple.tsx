@@ -122,6 +122,5 @@ export function CTASimple({
     </EditableElement>
   );
 }
-}
 
 export default CTASimple;

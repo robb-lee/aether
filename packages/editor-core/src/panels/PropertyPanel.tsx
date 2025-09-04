@@ -9,6 +9,7 @@ interface PropertyPanelProps {
   selectedElementId?: string;
   selectedElementType?: string;
   onElementStyleUpdate?: (elementId: string, styleUpdates: React.CSSProperties) => void;
+  elementStyles?: Record<string, React.CSSProperties>;
 }
 
 export const PropertyPanel: React.FC<PropertyPanelProps> = ({
@@ -16,7 +17,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   onUpdateComponent,
   selectedElementId,
   selectedElementType,
-  onElementStyleUpdate
+  onElementStyleUpdate,
+  elementStyles = {}
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['general', 'props']));
   const [responsiveMode, setResponsiveMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
@@ -211,35 +213,20 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     className="w-full mt-1 px-2 py-1 text-sm border rounded resize-none"
                     rows={selectedElementId?.includes('description') ? 3 : 2}
                     value={getTextContent(selectedElementId, selectedComponent)}
+                    data-input-field="true"
                     onChange={(e) => {
-                      console.log('Text onChange triggered:', { 
-                        value: e.target.value, 
-                        selectedElementId, 
-                        selectedComponent: selectedComponent?.id,
-                        propName: getTextPropName(selectedElementId)
-                      });
-                      
                       if (selectedComponent && onUpdateComponent) {
                         const propName = getTextPropName(selectedElementId);
                         if (propName) {
-                          console.log('Calling onUpdateComponent with:', {
-                            componentId: selectedComponent.id,
-                            propName,
-                            value: e.target.value
-                          });
-                          
                           onUpdateComponent(selectedComponent.id, {
                             props: {
                               ...selectedComponent.props,
-                              [propName]: e.target.value
+                              [propName]: (e.target as HTMLTextAreaElement).value
                             }
                           });
                         }
                       }
                     }}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    onKeyPress={(e) => e.stopPropagation()}
                     placeholder="Enter text content"
                     autoFocus={true}
                   />
@@ -249,10 +236,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <input
                     type="color"
                     className="w-full mt-1 h-8 border rounded"
+                    value={elementStyles[selectedElementId]?.color || '#000000'}
                     onChange={(e) => {
                       // Apply text color to selected element
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { color: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { color: (e.target as HTMLInputElement).value });
                       }
                     }}
                   />
@@ -261,26 +249,35 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <label className="text-xs text-gray-600">Font Size</label>
                   <select 
                     className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                    value={elementStyles[selectedElementId]?.fontSize || '16px'}
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { fontSize: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { fontSize: (e.target as HTMLSelectElement).value });
                       }
                     }}
                   >
-                    <option value="text-sm">Small</option>
-                    <option value="text-base">Base</option>
-                    <option value="text-lg">Large</option>
-                    <option value="text-xl">Extra Large</option>
-                    <option value="text-2xl">2X Large</option>
+                    <option value="14px">Small</option>
+                    <option value="16px">Base</option>
+                    <option value="18px">Large</option>
+                    <option value="20px">Extra Large</option>
+                    <option value="24px">2X Large</option>
                   </select>
                 </div>
                 <div>
                   <label className="text-xs text-gray-600">Font Weight</label>
-                  <select className="w-full mt-1 px-2 py-1 text-sm border rounded">
-                    <option value="font-normal">Normal</option>
-                    <option value="font-medium">Medium</option>
-                    <option value="font-semibold">Semi Bold</option>
-                    <option value="font-bold">Bold</option>
+                  <select 
+                    className="w-full mt-1 px-2 py-1 text-sm border rounded"
+                    value={elementStyles[selectedElementId]?.fontWeight || '400'}
+                    onChange={(e) => {
+                      if (selectedElementId && onElementStyleUpdate) {
+                        onElementStyleUpdate(selectedElementId, { fontWeight: (e.target as HTMLSelectElement).value });
+                      }
+                    }}
+                  >
+                    <option value="400">Normal</option>
+                    <option value="500">Medium</option>
+                    <option value="600">Semi Bold</option>
+                    <option value="700">Bold</option>
                   </select>
                 </div>
               </div>
@@ -310,23 +307,22 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     type="text"
                     placeholder="Enter button text"
                     className="w-full mt-1 px-2 py-1 text-sm border rounded"
-                    value={getButtonText(selectedElementId, selectedComponent)}
-                    onChange={(e) => {
+                    key={`button-${selectedElementId}-${getButtonText(selectedElementId, selectedComponent)}`}
+                    defaultValue={getButtonText(selectedElementId, selectedComponent)}
+                    data-input-field="true"
+                    onBlur={(e) => {
                       if (selectedComponent && onUpdateComponent) {
                         const propName = getButtonPropName(selectedElementId);
                         if (propName) {
                           onUpdateComponent(selectedComponent.id, {
                             props: {
                               ...selectedComponent.props,
-                              [propName]: e.target.value
+                              [propName]: (e.target as HTMLInputElement).value
                             }
                           });
                         }
                       }
                     }}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    onKeyPress={(e) => e.stopPropagation()}
                   />
                 </div>
                 <div>
@@ -334,10 +330,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <input
                     type="color"
                     className="w-full mt-1 h-8 border rounded"
-                    defaultValue="#3B82F6"
+                    value={elementStyles[selectedElementId]?.backgroundColor || '#3B82F6'}
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { backgroundColor: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { backgroundColor: (e.target as HTMLInputElement).value });
                       }
                     }}
                   />
@@ -347,10 +343,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <input
                     type="color"
                     className="w-full mt-1 h-8 border rounded"
-                    defaultValue="#FFFFFF"
+                    value={elementStyles[selectedElementId]?.color || '#FFFFFF'}
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { color: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { color: (e.target as HTMLInputElement).value });
                       }
                     }}
                   />
@@ -359,18 +355,18 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <label className="text-xs text-gray-600">Border Radius</label>
                   <select 
                     className="w-full mt-1 px-2 py-1 text-sm border rounded"
-                    defaultValue="rounded-lg"
+                    value={elementStyles[selectedElementId]?.borderRadius || '8px'}
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { borderRadius: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { borderRadius: (e.target as HTMLSelectElement).value });
                       }
                     }}
                   >
-                    <option value="rounded-none">None</option>
-                    <option value="rounded-sm">Small</option>
-                    <option value="rounded">Base</option>
-                    <option value="rounded-lg">Large</option>
-                    <option value="rounded-xl">Extra Large</option>
+                    <option value="0px">None</option>
+                    <option value="2px">Small</option>
+                    <option value="4px">Base</option>
+                    <option value="8px">Large</option>
+                    <option value="12px">Extra Large</option>
                   </select>
                 </div>
               </div>
@@ -401,7 +397,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     className="w-full mt-1 h-8 border rounded"
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { backgroundColor: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { backgroundColor: (e.target as HTMLInputElement).value });
                       }
                     }}
                   />
@@ -455,7 +451,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         onUpdateComponent(selectedComponent.id, {
                           props: {
                             ...selectedComponent.props,
-                            imageUrl: e.target.value
+                            imageUrl: (e.target as HTMLInputElement).value
                           }
                         });
                       }
@@ -515,7 +511,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         onUpdateComponent(selectedComponent.id, {
                           props: {
                             ...selectedComponent.props,
-                            imageAlt: e.target.value
+                            imageAlt: (e.target as HTMLInputElement).value
                           }
                         });
                       }
@@ -530,7 +526,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     className="w-full mt-1 px-2 py-1 text-sm border rounded"
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { borderRadius: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { borderRadius: (e.target as HTMLSelectElement).value });
                       }
                     }}
                   >
@@ -577,7 +573,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     className="w-full mt-1 h-8 border rounded"
                     onChange={(e) => {
                       if (selectedElementId && onElementStyleUpdate) {
-                        onElementStyleUpdate(selectedElementId, { backgroundColor: e.target.value });
+                        onElementStyleUpdate(selectedElementId, { backgroundColor: (e.target as HTMLInputElement).value });
                       }
                     }}
                   />
@@ -658,7 +654,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         <input
                           type="text"
                           value={value as string || ''}
-                          onChange={(e) => handlePropChange(key, e.target.value)}
+                          onChange={(e) => handlePropChange(key, (e.target as HTMLInputElement).value)}
                           className="w-full mt-1 px-2 py-1 text-sm border rounded"
                         />
                       </div>
@@ -812,7 +808,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <input
                   type="number"
                   value={selectedComponent.position?.x || 0}
-                  onChange={(e) => handlePositionChange('x', Number(e.target.value))}
+                  onChange={(e) => handlePositionChange('x', Number((e.target as HTMLInputElement).value))}
                   className="w-full mt-1 px-2 py-1 text-sm border rounded"
                 />
               </div>
@@ -821,7 +817,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <input
                   type="number"
                   value={selectedComponent.position?.y || 0}
-                  onChange={(e) => handlePositionChange('y', Number(e.target.value))}
+                  onChange={(e) => handlePositionChange('y', Number((e.target as HTMLInputElement).value))}
                   className="w-full mt-1 px-2 py-1 text-sm border rounded"
                 />
               </div>
@@ -830,7 +826,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <input
                   type="number"
                   value={selectedComponent.size?.width || 'auto'}
-                  onChange={(e) => handleSizeChange('width', Number(e.target.value))}
+                  onChange={(e) => handleSizeChange('width', Number((e.target as HTMLInputElement).value))}
                   className="w-full mt-1 px-2 py-1 text-sm border rounded"
                 />
               </div>
@@ -839,7 +835,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <input
                   type="number"
                   value={selectedComponent.size?.height || 'auto'}
-                  onChange={(e) => handleSizeChange('height', Number(e.target.value))}
+                  onChange={(e) => handleSizeChange('height', Number((e.target as HTMLInputElement).value))}
                   className="w-full mt-1 px-2 py-1 text-sm border rounded"
                 />
               </div>
@@ -870,14 +866,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <label className="text-xs text-gray-600 font-medium">Title</label>
                   <textarea
                     value={selectedComponent.props.title || ''}
-                    onChange={(e) => handlePropChange('title', e.target.value)}
+                    onChange={(e) => handlePropChange('title', (e.target as HTMLTextAreaElement).value)}
                     className="w-full mt-1 px-3 py-2 text-sm border rounded-md resize-none"
                     rows={2}
                     placeholder="Enter hero title"
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    onKeyPress={(e) => e.stopPropagation()}
-                    autoFocus={true}
+                    data-input-field="true"
                   />
                 </div>
                 
@@ -886,12 +879,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <input
                     type="text"
                     value={selectedComponent.props.subtitle || ''}
-                    onChange={(e) => handlePropChange('subtitle', e.target.value)}
+                    onChange={(e) => handlePropChange('subtitle', (e.target as HTMLInputElement).value)}
                     className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
                     placeholder="Enter subtitle"
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    onKeyPress={(e) => e.stopPropagation()}
+                    data-input-field="true"
                   />
                 </div>
                 
@@ -899,13 +890,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <label className="text-xs text-gray-600 font-medium">Description</label>
                   <textarea
                     value={selectedComponent.props.description || ''}
-                    onChange={(e) => handlePropChange('description', e.target.value)}
+                    onChange={(e) => handlePropChange('description', (e.target as HTMLTextAreaElement).value)}
                     className="w-full mt-1 px-3 py-2 text-sm border rounded-md resize-none"
                     rows={3}
                     placeholder="Enter description"
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    onKeyPress={(e) => e.stopPropagation()}
+                    data-input-field="true"
                   />
                 </div>
                 
@@ -915,12 +904,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     <input
                       type="text"
                       value={selectedComponent.props.ctaText || ''}
-                      onChange={(e) => handlePropChange('ctaText', e.target.value)}
+                      onChange={(e) => handlePropChange('ctaText', (e.target as HTMLInputElement).value)}
                       className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
                       placeholder="Button text"
-                      onKeyDown={(e) => e.stopPropagation()}
-                      onKeyUp={(e) => e.stopPropagation()}
-                      onKeyPress={(e) => e.stopPropagation()}
+                      data-input-field="true"
                     />
                   </div>
                   
@@ -930,12 +917,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                       <input
                         type="text"
                         value={selectedComponent.props.secondaryCtaText || ''}
-                        onChange={(e) => handlePropChange('secondaryCtaText', e.target.value)}
+                        onChange={(e) => handlePropChange('secondaryCtaText', (e.target as HTMLInputElement).value)}
                         className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
                         placeholder="Secondary button text"
-                        onKeyDown={(e) => e.stopPropagation()}
-                        onKeyUp={(e) => e.stopPropagation()}
-                        onKeyPress={(e) => e.stopPropagation()}
+                        data-input-field="true"
                       />
                     </div>
                   )}
@@ -947,7 +932,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     <input
                       type="text"
                       value={selectedComponent.props.imageUrl || ''}
-                      onChange={(e) => handlePropChange('imageUrl', e.target.value)}
+                      onChange={(e) => handlePropChange('imageUrl', (e.target as HTMLInputElement).value)}
                       placeholder="Enter image URL"
                       className="w-full px-3 py-2 text-sm border rounded-md"
                     />
@@ -993,7 +978,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <input
                     type="text"
                     value={selectedComponent.props.title || ''}
-                    onChange={(e) => handlePropChange('title', e.target.value)}
+                    onChange={(e) => handlePropChange('title', (e.target as HTMLInputElement).value)}
                     className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
                     placeholder="Enter section title"
                   />
@@ -1004,7 +989,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <input
                     type="text"
                     value={selectedComponent.props.subtitle || ''}
-                    onChange={(e) => handlePropChange('subtitle', e.target.value)}
+                    onChange={(e) => handlePropChange('subtitle', (e.target as HTMLInputElement).value)}
                     className="w-full mt-1 px-3 py-2 text-sm border rounded-md"
                     placeholder="Enter subtitle"
                   />
@@ -1014,7 +999,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <label className="text-xs text-gray-600 font-medium">Description</label>
                   <textarea
                     value={selectedComponent.props.description || ''}
-                    onChange={(e) => handlePropChange('description', e.target.value)}
+                    onChange={(e) => handlePropChange('description', (e.target as HTMLTextAreaElement).value)}
                     className="w-full mt-1 px-3 py-2 text-sm border rounded-md resize-none"
                     rows={3}
                     placeholder="Enter section description"
@@ -1032,22 +1017,24 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                             value={feature.title || ''}
                             onChange={(e) => {
                               const updatedFeatures = [...(selectedComponent.props.features || [])];
-                              updatedFeatures[index] = { ...feature, title: e.target.value };
+                              updatedFeatures[index] = { ...feature, title: (e.target as HTMLInputElement).value };
                               handlePropChange('features', updatedFeatures);
                             }}
                             className="w-full px-2 py-1 text-sm border rounded"
                             placeholder="Feature title"
+                            data-input-field="true"
                           />
                           <textarea
                             value={feature.description || ''}
                             onChange={(e) => {
                               const updatedFeatures = [...(selectedComponent.props.features || [])];
-                              updatedFeatures[index] = { ...feature, description: e.target.value };
+                              updatedFeatures[index] = { ...feature, description: (e.target as HTMLTextAreaElement).value };
                               handlePropChange('features', updatedFeatures);
                             }}
                             className="w-full px-2 py-1 text-sm border rounded resize-none"
                             rows={2}
                             placeholder="Feature description"
+                            data-input-field="true"
                           />
                           <button
                             onClick={() => {
@@ -1087,7 +1074,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         <input
                           type="text"
                           value={value as string || ''}
-                          onChange={(e) => handlePropChange(key, e.target.value)}
+                          onChange={(e) => handlePropChange(key, (e.target as HTMLInputElement).value)}
                           placeholder="Enter image URL"
                           className="w-full px-2 py-1 text-sm border rounded"
                         />
@@ -1128,7 +1115,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                       <input
                         type="text"
                         value={value}
-                        onChange={(e) => handlePropChange(key, e.target.value)}
+                        onChange={(e) => handlePropChange(key, (e.target as HTMLInputElement).value)}
                         className="w-full mt-1 px-2 py-1 text-sm border rounded"
                       />
                     ) : typeof value === 'boolean' ? (
@@ -1136,7 +1123,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         <input
                           type="checkbox"
                           checked={value}
-                          onChange={(e) => handlePropChange(key, e.target.checked)}
+                          onChange={(e) => handlePropChange(key, (e.target as HTMLInputElement).checked)}
                           className="mr-2"
                         />
                         <span className="text-sm">{value ? 'Yes' : 'No'}</span>
@@ -1311,7 +1298,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 </label>
                 <select
                   value={selectedComponent.animations?.type || 'none'}
-                  onChange={(e) => handleAnimationChange('type', e.target.value)}
+                  onChange={(e) => handleAnimationChange('type', (e.target as HTMLSelectElement).value)}
                   className="w-full mt-1 px-2 py-1 text-sm border rounded"
                 >
                   <option value="none">None</option>
@@ -1328,7 +1315,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     <input
                       type="number"
                       value={selectedComponent.animations?.duration || 300}
-                      onChange={(e) => handleAnimationChange('duration', Number(e.target.value))}
+                      onChange={(e) => handleAnimationChange('duration', Number((e.target as HTMLInputElement).value))}
                       className="w-full mt-1 px-2 py-1 text-sm border rounded"
                       min="0"
                       max="5000"
@@ -1340,7 +1327,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     <input
                       type="number"
                       value={selectedComponent.animations?.delay || 0}
-                      onChange={(e) => handleAnimationChange('delay', Number(e.target.value))}
+                      onChange={(e) => handleAnimationChange('delay', Number((e.target as HTMLInputElement).value))}
                       className="w-full mt-1 px-2 py-1 text-sm border rounded"
                       min="0"
                       max="5000"
@@ -1351,7 +1338,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     <label className="text-xs text-gray-600">Easing</label>
                     <select
                       value={selectedComponent.animations?.easing || 'ease'}
-                      onChange={(e) => handleAnimationChange('easing', e.target.value)}
+                      onChange={(e) => handleAnimationChange('easing', (e.target as HTMLSelectElement).value)}
                       className="w-full mt-1 px-2 py-1 text-sm border rounded"
                     >
                       <option value="ease">Ease</option>

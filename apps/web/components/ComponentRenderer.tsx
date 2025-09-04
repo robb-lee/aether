@@ -5,7 +5,8 @@ import {
   HeroCentered, 
   FeaturesGrid, 
   HeaderNav, 
-  FooterSimple 
+  FooterSimple,
+  CTASimple
 } from '@/app/preview/[id]/components/RegistryComponents'
 
 interface ComponentRendererProps {
@@ -21,7 +22,8 @@ const componentMap = {
   'hero-centered': HeroCentered, 
   'features-grid': FeaturesGrid,
   'header-nav': HeaderNav,
-  'footer-simple': FooterSimple
+  'footer-simple': FooterSimple,
+  'cta-simple': CTASimple
 }
 
 export function ComponentRenderer({ 

@@ -6,7 +6,9 @@ module.exports = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     // Only scan UI package source to avoid node_modules
-    '../../packages/ui/src/**/*.{ts,tsx}'
+    '../../packages/ui/src/**/*.{ts,tsx}',
+    // Scan component-registry package for Tailwind classes
+    '../../packages/component-registry/src/**/*.{ts,tsx}'
   ],
   darkMode: 'class',
   theme: {

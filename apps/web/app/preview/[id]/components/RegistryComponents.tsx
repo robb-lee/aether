@@ -2,8 +2,9 @@
 
 import React from 'react'
 
-// Import the enhanced HeroSplit component from component registry
+// Import the enhanced components from component registry
 export { HeroSplit } from '@aether/component-registry/components/hero/HeroSplit'
+export { CTASimple } from '@aether/component-registry/components/cta/CTASimple'
 
 // HeroCentered Component (adapted from Component Registry)
 interface HeroCenteredProps {

@@ -181,6 +181,5 @@ export function FeaturesCards({
     </EditableElement>
   );
 }
-}
 
 export default FeaturesCards;

@@ -4,9 +4,16 @@ import { ComponentRenderer } from './ComponentRenderer'
 interface EditorComponentRendererProps {
   component: any
   onUpdateComponent: (componentId: string, updates: any) => void
+  onElementSelect?: (elementId: string, elementType: string) => void
+  selectedElementId?: string
 }
 
-export function EditorComponentRenderer({ component, onUpdateComponent }: EditorComponentRendererProps) {
+export function EditorComponentRenderer({ 
+  component, 
+  onUpdateComponent, 
+  onElementSelect,
+  selectedElementId 
+}: EditorComponentRendererProps) {
   const [editingField, setEditingField] = useState<string | null>(null)
   const [editValue, setEditValue] = useState<string>('')
 
@@ -142,24 +149,15 @@ export function EditorComponentRenderer({ component, onUpdateComponent }: Editor
     }
   }
 
-  // For hero components with dynamic props
+  // For hero components - use the new granular selection system
   if (['hero-split', 'hero-centered', 'features-grid'].includes(component.type)) {
     return (
-      <div className="w-full">
-        <ComponentRenderer component={component} isEditor={true} />
-        {/* Render children if they exist */}
-        {component.children && component.children.length > 0 && (
-          <div className="space-y-4">
-            {component.children.map((child: any, index: number) => (
-              <EditorComponentRenderer
-                key={child.id || index}
-                component={child}
-                onUpdateComponent={onUpdateComponent}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <ComponentRenderer 
+        component={component} 
+        isEditor={true}
+        onElementClick={onElementSelect}
+        selectedElementId={selectedElementId}
+      />
     )
   }
 

@@ -1,6 +1,14 @@
 import React from 'react';
 import { z } from 'zod';
 
+interface EditableElementProps {
+  id: string;
+  className?: string;
+  children: React.ReactNode;
+  onClick?: (e: React.MouseEvent) => void;
+  'data-editable-type'?: string;
+}
+
 /**
  * Props schema for Hero Split component
  */
@@ -22,7 +30,30 @@ export const HeroSplitPropsSchema = z.object({
   className: z.string().optional()
 });
 
-export type HeroSplitProps = z.infer<typeof HeroSplitPropsSchema>;
+export type HeroSplitProps = z.infer<typeof HeroSplitPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+};
+
+// Editable wrapper component for individual elements
+const EditableElement: React.FC<EditableElementProps> = ({ 
+  id, 
+  className = '', 
+  children, 
+  onClick,
+  'data-editable-type': editableType
+}) => (
+  <div 
+    id={id}
+    className={`${className} cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-200`}
+    onClick={onClick}
+    data-editable-type={editableType}
+    data-element-id={id}
+  >
+    {children}
+  </div>
+);
 
 /**
  * Hero Split - Perfect for SaaS and tech products needing explanation
@@ -42,7 +73,10 @@ export function HeroSplit({
   animation = 'slide-in',
   showDemo = false,
   demoImageUrl,
-  className = ''
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {}
 }: HeroSplitProps) {
   const isRightLayout = layout === 'right-content';
   
@@ -73,93 +107,212 @@ export function HeroSplit({
     'stagger': 'animate-stagger'
   };
 
+  const handleElementClick = (elementId: string, elementType: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onElementClick?.(elementId, elementType);
+  };
+
+  const getElementClassName = (elementId: string, baseClassName: string) => {
+    const isSelected = selectedElementId === elementId;
+    return `${baseClassName} ${isSelected ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`;
+  };
+
+  const getElementStyle = (elementId: string) => {
+    return customStyles[elementId] || {};
+  };
+
   const ContentSection = () => (
-    <div className={`flex-1 ${animations[animation]}`}>
+    <EditableElement
+      id="hero-content-wrapper"
+      className={`flex-1 ${animations[animation]}`}
+      onClick={handleElementClick('hero-content-wrapper', 'container')}
+      data-editable-type="container"
+    >
       {subtitle && (
-        <p className={`text-sm font-medium tracking-wide uppercase mb-4 ${styles[style].subtitle}`}>
-          {subtitle}
-        </p>
+        <EditableElement
+          id="hero-subtitle"
+          className=""
+          onClick={handleElementClick('hero-subtitle', 'text')}
+          data-editable-type="text"
+        >
+          <p 
+            className={getElementClassName('hero-subtitle', `text-sm font-medium tracking-wide uppercase mb-4 ${styles[style].subtitle}`)}
+            style={getElementStyle('hero-subtitle')}
+          >
+            {subtitle}
+          </p>
+        </EditableElement>
       )}
       
-      <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${styles[style].text}`}>
-        {title}
-      </h1>
+      <EditableElement
+        id="hero-title"
+        className=""
+        onClick={handleElementClick('hero-title', 'text')}
+        data-editable-type="text"
+      >
+        <h1 
+          className={getElementClassName('hero-title', `text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${styles[style].text}`)}
+          style={getElementStyle('hero-title')}
+        >
+          {title}
+        </h1>
+      </EditableElement>
       
       {description && (
-        <p className={`text-lg md:text-xl mb-8 leading-relaxed ${styles[style].description}`}>
-          {description}
-        </p>
+        <EditableElement
+          id="hero-description"
+          className=""
+          onClick={handleElementClick('hero-description', 'text')}
+          data-editable-type="text"
+        >
+          <p 
+            className={getElementClassName('hero-description', `text-lg md:text-xl mb-8 leading-relaxed ${styles[style].description}`)}
+            style={getElementStyle('hero-description')}
+          >
+            {description}
+          </p>
+        </EditableElement>
       )}
       
-      <div className="flex flex-col sm:flex-row gap-4">
-        <a
-          href={ctaHref}
-          className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center"
-        >
-          {ctaText}
-        </a>
-        
-        {secondaryCtaText && (
-          <a
-            href={secondaryCtaHref}
-            className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold text-lg hover:bg-blue-600 hover:text-white transition-all duration-300 text-center"
+      <EditableElement
+        id="hero-button-group"
+        className=""
+        onClick={handleElementClick('hero-button-group', 'container')}
+        data-editable-type="container"
+      >
+        <div className="flex flex-col sm:flex-row gap-4">
+          <EditableElement
+            id="hero-primary-button"
+            className=""
+            onClick={handleElementClick('hero-primary-button', 'button')}
+            data-editable-type="button"
           >
-            {secondaryCtaText}
-          </a>
-        )}
-      </div>
+            <a
+              href={ctaHref}
+              className={getElementClassName('hero-primary-button', "px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center")}
+              style={getElementStyle('hero-primary-button')}
+            >
+              {ctaText}
+            </a>
+          </EditableElement>
+          
+          {secondaryCtaText && (
+            <EditableElement
+              id="hero-secondary-button"
+              className=""
+              onClick={handleElementClick('hero-secondary-button', 'button')}
+              data-editable-type="button"
+            >
+              <a
+                href={secondaryCtaHref}
+                className={getElementClassName('hero-secondary-button', "px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold text-lg hover:bg-blue-600 hover:text-white transition-all duration-300 text-center")}
+                style={getElementStyle('hero-secondary-button')}
+              >
+                {secondaryCtaText}
+              </a>
+            </EditableElement>
+          )}
+        </div>
+      </EditableElement>
       
       {showDemo && (
-        <p className="mt-6 text-sm text-gray-500">
-          ⚡ Try it free - No credit card required
-        </p>
+        <EditableElement
+          id="hero-demo-text"
+          className=""
+          onClick={handleElementClick('hero-demo-text', 'text')}
+          data-editable-type="text"
+        >
+          <p className={getElementClassName('hero-demo-text', "mt-6 text-sm text-gray-500")}>
+            ⚡ Try it free - No credit card required
+          </p>
+        </EditableElement>
       )}
-    </div>
+    </EditableElement>
   );
 
   const ImageSection = () => (
-    <div className="flex-1 relative">
+    <EditableElement
+      id="hero-image-wrapper"
+      className="flex-1 relative"
+      onClick={handleElementClick('hero-image-wrapper', 'container')}
+      data-editable-type="container"
+    >
       {imageUrl || demoImageUrl ? (
         <div className="relative">
-          <img
-            src={imageUrl || demoImageUrl}
-            alt={imageAlt}
-            className="w-full h-auto rounded-xl shadow-2xl transform hover:scale-105 transition-transform duration-500"
-          />
+          <EditableElement
+            id="hero-image"
+            className=""
+            onClick={handleElementClick('hero-image', 'image')}
+            data-editable-type="image"
+          >
+            <img
+              src={imageUrl || demoImageUrl}
+              alt={imageAlt}
+              className={getElementClassName('hero-image', "w-full h-auto rounded-xl shadow-2xl transform hover:scale-105 transition-transform duration-500")}
+            />
+          </EditableElement>
           {showDemo && (
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl flex items-end p-6">
-              <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-900">
-                Live Demo
-              </span>
+              <EditableElement
+                id="hero-demo-badge"
+                className=""
+                onClick={handleElementClick('hero-demo-badge', 'text')}
+                data-editable-type="text"
+              >
+                <span className={getElementClassName('hero-demo-badge', "bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-900")}>
+                  Live Demo
+                </span>
+              </EditableElement>
             </div>
           )}
         </div>
       ) : (
-        <div className="w-full h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-24 h-24 bg-blue-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-              <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+        <EditableElement
+          id="hero-image-placeholder"
+          className=""
+          onClick={handleElementClick('hero-image-placeholder', 'placeholder')}
+          data-editable-type="placeholder"
+        >
+          <div className={getElementClassName('hero-image-placeholder', "w-full h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center")}>
+            <div className="text-center">
+              <div className="w-24 h-24 bg-blue-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-gray-500">Hero Image Placeholder</p>
             </div>
-            <p className="text-gray-500">Hero Image Placeholder</p>
           </div>
-        </div>
+        </EditableElement>
       )}
-    </div>
+    </EditableElement>
   );
 
   return (
-    <section className={`${styles[style].bg} py-20 px-4 sm:px-6 lg:px-8 ${className}`}>
-      <div className="max-w-7xl mx-auto">
-        <div className={`flex flex-col gap-12 items-center ${
-          isRightLayout ? 'lg:flex-row-reverse' : 'lg:flex-row'
-        }`}>
-          <ContentSection />
-          <ImageSection />
-        </div>
-      </div>
-    </section>
+    <EditableElement
+      id="hero-section"
+      className=""
+      onClick={handleElementClick('hero-section', 'section')}
+      data-editable-type="section"
+    >
+      <section className={getElementClassName('hero-section', `${styles[style].bg} py-20 px-4 sm:px-6 lg:px-8 ${className}`)}>
+        <EditableElement
+          id="hero-container"
+          className=""
+          onClick={handleElementClick('hero-container', 'container')}
+          data-editable-type="container"
+        >
+          <div className="max-w-7xl mx-auto">
+            <div className={`flex flex-col gap-12 items-center ${
+              isRightLayout ? 'lg:flex-row-reverse' : 'lg:flex-row'
+            }`}>
+              <ContentSection />
+              <ImageSection />
+            </div>
+          </div>
+        </EditableElement>
+      </section>
+    </EditableElement>
   );
 }
 

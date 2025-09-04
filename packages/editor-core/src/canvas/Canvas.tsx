@@ -371,6 +371,13 @@ export const Canvas: React.FC<CanvasProps> = ({
   // Handle component selection
   const handleComponentClick = useCallback((componentId: string, event: React.MouseEvent) => {
     event.stopPropagation();
+    
+    // Prevent selection if clicking on an editing overlay
+    const target = event.target as HTMLElement;
+    if (target.closest('.inline-editor') || target.closest('[class*="Edit"]')) {
+      return;
+    }
+    
     selection.select(componentId, event.ctrlKey || event.metaKey);
   }, [selection]);
 
@@ -585,8 +592,34 @@ export const Canvas: React.FC<CanvasProps> = ({
     };
   }, [isDragging, resetDragState, stopPanning]);
 
+  // Handle wheel events with non-passive listener
+  useEffect(() => {
+    const canvasElement = canvasRef.current;
+    if (!canvasElement) return;
+
+    const wheelHandler = (event: WheelEvent) => {
+      handleZoom(event as any); // Cast to React.WheelEvent for compatibility
+    };
+
+    // Add non-passive wheel listener to allow preventDefault
+    canvasElement.addEventListener('wheel', wheelHandler, { passive: false });
+
+    return () => {
+      canvasElement.removeEventListener('wheel', wheelHandler);
+    };
+  }, [handleZoom]);
+
   // Render component tree with drag and drop
   const renderComponent = useCallback((node: ComponentTreeNode, depth = 0): React.ReactNode => {
+    // Skip rendering the page-root wrapper, render its children directly
+    if (node.type === 'page-root' && node.children) {
+      return (
+        <>
+          {node.children.map(child => renderComponent(child, depth))}
+        </>
+      );
+    }
+    
     const isSelected = selection.isSelected(node.id);
     const componentBounds = selection.selectionManager?.getComponentBounds(node.id);
     
@@ -636,11 +669,14 @@ export const Canvas: React.FC<CanvasProps> = ({
                 gridSize={settings.grid.size}
               />
             )}
+
+            {/* Render child components */}
+            {node.children && node.children.map(child => renderComponent(child, depth + 1))}
           </motion.div>
         </Droppable>
       </Draggable>
     );
-  }, [selection, handleComponentClick, isPanning]);
+  }, [selection, handleComponentClick, isPanning, externalRenderComponent]);
 
   // Get sortable items for DnD
   const sortableItems = componentTree ? flattenComponentTree(componentTree).map(item => item.id) : [];
@@ -660,7 +696,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             backgroundColor: settings.backgroundColor,
             cursor: isPanning ? 'grabbing' : (isSpacePressed ? 'grab' : 'default')
           }}
-          onWheel={handleZoom}
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}

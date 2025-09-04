@@ -8,6 +8,7 @@ export default function DragZoomTest() {
   const [componentTree, setComponentTree] = useState<ComponentTreeNode>({
     id: 'root',
     type: 'page',
+    props: {},
     position: { x: 0, y: 0 },
     children: []
   });
@@ -25,7 +26,8 @@ export default function DragZoomTest() {
         props: {
           title: 'Dropped Component',
           description: `Position: ${Math.round(updates.position.x)}, ${Math.round(updates.position.y)}`
-        }
+        },
+        children: []
       };
       
       setComponentTree(prev => ({

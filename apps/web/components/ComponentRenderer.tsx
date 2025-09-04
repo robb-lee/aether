@@ -11,6 +11,8 @@ import {
 interface ComponentRendererProps {
   component: any
   isEditor?: boolean
+  onElementClick?: (elementId: string, elementType: string) => void
+  selectedElementId?: string
 }
 
 // Map componentId to actual imported components
@@ -22,7 +24,12 @@ const componentMap = {
   'footer-simple': FooterSimple
 }
 
-export function ComponentRenderer({ component, isEditor = false }: ComponentRendererProps) {
+export function ComponentRenderer({ 
+  component, 
+  isEditor = false,
+  onElementClick,
+  selectedElementId 
+}: ComponentRendererProps) {
   if (!component) return null
 
   const { componentId, type, props = {}, children = [] } = component
@@ -97,10 +104,24 @@ export function ComponentRenderer({ component, isEditor = false }: ComponentRend
         />
       ))
       
-      return <Component {...props}>{renderedChildren}</Component>
+      return (
+        <Component 
+          {...props}
+          onElementClick={onElementClick}
+          selectedElementId={selectedElementId}
+        >
+          {renderedChildren}
+        </Component>
+      )
     }
     
-    return <Component {...props} />
+    return (
+      <Component 
+        {...props}
+        onElementClick={onElementClick}
+        selectedElementId={selectedElementId}
+      />
+    )
   } catch (renderError) {
     console.error('Component render error:', renderError)
     return (

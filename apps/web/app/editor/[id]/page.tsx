@@ -38,7 +38,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
         
         // Transform components to ComponentTreeNode format
         if (data.components && data.components.root) {
+          console.log('Raw site data:', data.components)
           const transformedTree = transformToComponentTree(data.components.root)
+          console.log('Transformed tree:', transformedTree)
           setComponentTree(transformedTree)
         }
       } catch (err) {
@@ -63,87 +65,12 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       children: []
     }
     
-    // Handle hero components - convert props to children
-    if (component.type === 'hero' || component.componentId === 'hero-split' || component.componentId === 'hero-centered') {
-      const heroChildren: ComponentTreeNode[] = []
-      
-      // Add title as heading component
-      if (component.props?.title) {
-        heroChildren.push({
-          id: `${component.id}-title`,
-          type: 'heading',
-          props: { 
-            text: component.props.title,
-            level: 1,
-            title: component.props.title
-          },
-          children: []
-        })
-      }
-      
-      // Add subtitle/description as text component
-      if (component.props?.subtitle || component.props?.description) {
-        heroChildren.push({
-          id: `${component.id}-subtitle`,
-          type: 'text-block',
-          props: { 
-            content: component.props.subtitle || component.props.description,
-            title: 'Subtitle'
-          },
-          children: []
-        })
-      }
-      
-      // Add CTA button
-      if (component.props?.ctaText) {
-        heroChildren.push({
-          id: `${component.id}-cta`,
-          type: 'button',
-          props: { 
-            text: component.props.ctaText,
-            variant: 'primary',
-            title: component.props.ctaText
-          },
-          children: []
-        })
-      }
-      
-      // Add image placeholder
-      if (component.props?.imagePrompt) {
-        heroChildren.push({
-          id: `${component.id}-image`,
-          type: 'image',
-          props: { 
-            alt: 'Hero image',
-            title: 'Hero Image',
-            imagePrompt: component.props.imagePrompt
-          },
-          children: []
-        })
-      }
-      
-      transformed.children = heroChildren
-    }
+    console.log('Transforming component:', component)
     
-    // Handle features grid components - convert features array to children
-    else if (component.type === 'features' || component.componentId === 'features-grid') {
-      if (component.props?.features && Array.isArray(component.props.features)) {
-        transformed.children = component.props.features.map((feature: any, index: number) => ({
-          id: `${component.id}-feature-${index}`,
-          type: 'card',
-          props: {
-            title: feature.title,
-            description: feature.description,
-            icon: feature.icon
-          },
-          children: []
-        }))
-      }
-    }
-    
-    // Handle regular components with children
-    else if (component.children && Array.isArray(component.children)) {
+    // Always process children for all components (including root)
+    if (component.children && Array.isArray(component.children)) {
       transformed.children = component.children.map(transformToComponentTree)
+      console.log(`Component ${component.id || 'unknown'} has ${transformed.children?.length || 0} children`)
     }
     
     return transformed
@@ -151,7 +78,29 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Handle component selection
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
+    console.log('Selection changed to:', selectedIds)
     setSelectedElement(selectedIds)
+  }, [])
+
+  // Handle element selection for granular editing
+  const [selectedElementType, setSelectedElementType] = useState<string | null>(null)
+  const [elementStyles, setElementStyles] = useState<Record<string, React.CSSProperties>>({})
+  
+  const handleElementSelect = useCallback((elementId: string, elementType: string) => {
+    console.log('Element selected:', { elementId, elementType })
+    setSelectedElement([elementId])
+    setSelectedElementType(elementType)
+  }, [])
+
+  // Handle element style updates
+  const handleElementStyleUpdate = useCallback((elementId: string, styleUpdates: React.CSSProperties) => {
+    setElementStyles(prev => ({
+      ...prev,
+      [elementId]: {
+        ...prev[elementId],
+        ...styleUpdates
+      }
+    }))
   }, [])
   
   // Handle component updates
@@ -289,6 +238,13 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   const selectedComponent = componentTree && selectedElement.length > 0
     ? findComponentById(componentTree, selectedElement[0])
     : null
+  
+  // Debug selected component
+  useEffect(() => {
+    console.log('Selected element IDs:', selectedElement)
+    console.log('Selected component:', selectedComponent)
+    console.log('Component tree structure:', componentTree)
+  }, [selectedElement, selectedComponent, componentTree])
   
   
   // Setup keyboard shortcut handling with delete functionality
@@ -494,8 +450,13 @@ export default function EditorPage({ params }: { params: { id: string } }) {
             className="h-full w-full"
             renderComponent={(component) => (
               <EditorComponentRenderer 
-                component={component} 
+                component={{
+                  ...component,
+                  customStyles: elementStyles
+                }}
                 onUpdateComponent={handleComponentUpdate}
+                onElementSelect={handleElementSelect}
+                selectedElementId={selectedElement[0]}
               />
             )}
             settings={{
@@ -536,6 +497,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
           <PropertyPanel
             selectedComponent={selectedComponent}
             onUpdateComponent={handleComponentUpdate}
+            selectedElementId={selectedElement[0]}
+            selectedElementType={selectedElementType || undefined}
+            onElementStyleUpdate={handleElementStyleUpdate}
           />
         </div>
       </div>

@@ -173,6 +173,10 @@ export const Canvas: React.FC<CanvasProps> = ({
       // stale closures missing the latest isSelecting state.
       setIsSelecting(false);
       setSelectionStartPoint(null);
+      // Also stop panning on mouseup to avoid a stuck draggable state
+      // when the user releases the mouse while holding Space.
+      // The Space keyup handler will re-enable panning as needed.
+      setIsPanning(false);
       resetDragState();
     };
 
@@ -229,6 +233,10 @@ export const Canvas: React.FC<CanvasProps> = ({
   // Handle pan
   const handlePan = useCallback((event: MouseEvent, info: PanInfo) => {
     if (!viewportManagerRef.current || !isPanning) return;
+    // Defensive: if the pointer is no longer pressed, ignore any pan updates
+    // that might slip through due to event ordering.
+    // @ts-expect-error - some event types (e.g., TouchEvent) don't have `buttons`.
+    if (typeof event?.buttons === 'number' && event.buttons === 0) return;
     
     viewportManagerRef.current.pan(info.delta.x, info.delta.y);
     setSettings(prev => ({
@@ -451,7 +459,14 @@ export const Canvas: React.FC<CanvasProps> = ({
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space' && !event.repeat) {
+      // Check if the target is an input, textarea, or contenteditable element
+      const target = event.target as HTMLElement;
+      const isInputField = target.tagName === 'INPUT' || 
+                          target.tagName === 'TEXTAREA' || 
+                          target.contentEditable === 'true';
+      
+      // Only handle space for panning if not in an input field
+      if (event.code === 'Space' && !event.repeat && !isInputField) {
         event.preventDefault();
         setIsPanning(true);
       }

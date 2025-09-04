@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { EditableElement } from '../shared/EditableElement';
+import { z } from 'zod';
+import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
 
 interface GalleryItem {
   id?: string;
@@ -17,15 +18,34 @@ interface GalleryItem {
   tags?: string[];
 }
 
-interface PortfolioGalleryProps {
-  title?: string;
-  subtitle?: string;
-  items?: GalleryItem[];
-  categories?: string[];
-  showFilters?: boolean;
-}
+/**
+ * Props schema for Portfolio Gallery component
+ */
+export const PortfolioGalleryPropsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  items: z.array(z.object({
+    id: z.string().optional(),
+    title: z.string(),
+    description: z.string().optional(),
+    image: z.string(),
+    category: z.string().optional(),
+    link: z.string().optional(),
+    tags: z.array(z.string()).optional()
+  })).optional(),
+  categories: z.array(z.string()).optional(),
+  showFilters: z.boolean().optional(),
+  className: z.string().optional()
+});
 
-export const PortfolioGallery: React.FC<PortfolioGalleryProps> = ({
+export type PortfolioGalleryProps = z.infer<typeof PortfolioGalleryPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
+};
+
+export function PortfolioGallery({
   title = "Our Work",
   subtitle = "Showcasing our latest projects and achievements",
   showFilters = true,
@@ -67,8 +87,13 @@ export const PortfolioGallery: React.FC<PortfolioGalleryProps> = ({
       link: "#",
       tags: ["Dashboard", "Analytics", "D3.js"]
     }
-  ]
-}) => {
+  ],
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {},
+  isEditor = false
+}: PortfolioGalleryProps) {
   const [selectedCategory, setSelectedCategory] = React.useState("All");
   const [filteredItems, setFilteredItems] = React.useState(items);
 
@@ -80,9 +105,22 @@ export const PortfolioGallery: React.FC<PortfolioGalleryProps> = ({
     }
   }, [selectedCategory, items]);
 
+  const handleElementClick = (elementId: string, elementType: string) => 
+    createElementClickHandler(elementId, elementType, onElementClick);
+
   return (
-    <section className="py-16 px-4 bg-gray-50" role="region" aria-label="Portfolio gallery">
-      <div className="max-w-7xl mx-auto">
+    <EditableElement
+      id="portfolio-gallery-section"
+      onClick={handleElementClick('portfolio-gallery-section', 'section')}
+      data-editable-type="section"
+    >
+      <section 
+        className={getElementClassName('portfolio-gallery-section', `py-16 px-4 bg-gray-50 ${className}`, selectedElementId)}
+        style={getElementStyle('portfolio-gallery-section', customStyles)}
+        role="region" 
+        aria-label="Portfolio gallery"
+      >
+        <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
@@ -186,6 +224,7 @@ export const PortfolioGallery: React.FC<PortfolioGalleryProps> = ({
         )}
       </div>
     </section>
+    </EditableElement>
   );
 };
 

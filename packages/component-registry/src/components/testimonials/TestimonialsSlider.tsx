@@ -5,22 +5,33 @@
  */
 
 import React from 'react';
+import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
 
-interface TestimonialsSliderProps {
-  title?: string;
-  testimonials?: Array<{
-    name: string;
-    company: string;
-    content: string;
-    avatar?: string;
-    rating?: number;
-  }>;
-  autoSlide?: boolean;
-  slideInterval?: number;
+export const TestimonialsSliderPropsSchema = z.object({
+  title: z.string().default("What Our Customers Say"),
+  testimonials: z.array(z.object({
+    name: z.string(),
+    company: z.string(),
+    content: z.string(),
+    avatar: z.string().optional(),
+    rating: z.number().min(1).max(5).optional()
+  })).optional(),
+  autoSlide: z.boolean().default(true),
+  slideInterval: z.number().default(5000),
+  className: z.string().optional()
+});
+
+export type TestimonialsSliderProps = z.infer<typeof TestimonialsSliderPropsSchema>;
+
+interface TestimonialsSliderPropsInternal extends TestimonialsSliderProps {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
 }
 
-export const TestimonialsSlider: React.FC<TestimonialsSliderProps> = ({
+export const TestimonialsSlider: React.FC<TestimonialsSliderPropsInternal> = ({
   title = "What Our Customers Say",
   testimonials = [
     {

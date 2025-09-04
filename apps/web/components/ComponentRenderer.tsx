@@ -6,7 +6,16 @@ import {
   FeaturesGrid, 
   HeaderNav, 
   FooterSimple,
-  CTASimple
+  CTASimple,
+  TestimonialsSlider,
+  PricingTable,
+  StatsSection,
+  ContactForm,
+  FAQSection,
+  TeamGrid,
+  PortfolioGallery,
+  BlogGrid,
+  Timeline
 } from '@/app/preview/[id]/components/RegistryComponents'
 import { useDesignKit } from '@/app/preview/[id]/components/DesignKitProvider'
 
@@ -25,7 +34,16 @@ const componentMap = {
   'features-grid': FeaturesGrid,
   'header-nav': HeaderNav,
   'footer-simple': FooterSimple,
-  'cta-simple': CTASimple
+  'cta-simple': CTASimple,
+  'testimonials-slider': TestimonialsSlider,
+  'pricing-table': PricingTable,
+  'stats-section': StatsSection,
+  'contact-form': ContactForm,
+  'faq-section': FAQSection,
+  'team-grid': TeamGrid,
+  'portfolio-gallery': PortfolioGallery,
+  'blog-grid': BlogGrid,
+  'timeline': Timeline
 }
 
 export function ComponentRenderer({ 

@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
 
 interface TimelineItem {
@@ -15,14 +16,30 @@ interface TimelineItem {
   icon?: string;
 }
 
-interface TimelineProps {
-  title?: string;
-  subtitle?: string;
-  items?: TimelineItem[];
-  orientation?: 'vertical' | 'horizontal';
+export const TimelinePropsSchema = z.object({
+  title: z.string().default("Our Journey"),
+  subtitle: z.string().default("Key milestones in our growth and development"),
+  items: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.string().optional(),
+    status: z.enum(['completed', 'current', 'upcoming']).optional(),
+    icon: z.string().optional()
+  })).optional(),
+  orientation: z.enum(['vertical', 'horizontal']).default('vertical'),
+  className: z.string().optional()
+});
+
+export type TimelineProps = z.infer<typeof TimelinePropsSchema>;
+
+interface TimelinePropsInternal extends TimelineProps {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
 }
 
-export const Timeline: React.FC<TimelineProps> = ({
+export const Timeline: React.FC<TimelinePropsInternal> = ({
   title = "Our Journey",
   subtitle = "Key milestones in our growth and development",
   orientation = 'vertical',

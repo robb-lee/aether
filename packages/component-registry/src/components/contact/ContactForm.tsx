@@ -5,23 +5,35 @@
  */
 
 import React from 'react';
-import { EditableElement } from '../shared/EditableElement';
+import { z } from 'zod';
+import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
 
-interface ContactFormProps {
-  title?: string;
-  subtitle?: string;
-  includePhone?: boolean;
-  includeCompany?: boolean;
-  includeMessage?: boolean;
-  submitText?: string;
-  contactInfo?: {
-    email?: string;
-    phone?: string;
-    address?: string;
-  };
-}
+/**
+ * Props schema for Contact Form component
+ */
+export const ContactFormPropsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  includePhone: z.boolean().optional(),
+  includeCompany: z.boolean().optional(),
+  includeMessage: z.boolean().optional(),
+  submitText: z.string().optional(),
+  contactInfo: z.object({
+    email: z.string().optional(),
+    phone: z.string().optional(),
+    address: z.string().optional()
+  }).optional(),
+  className: z.string().optional()
+});
 
-export const ContactForm: React.FC<ContactFormProps> = ({
+export type ContactFormProps = z.infer<typeof ContactFormPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
+};
+
+export function ContactForm({
   title = "Get In Touch",
   subtitle = "We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
   includePhone = true,
@@ -32,8 +44,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     email: "hello@company.com",
     phone: "+1 (555) 123-4567",
     address: "123 Business St, City, ST 12345"
-  }
-}) => {
+  },
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {},
+  isEditor = false
+}: ContactFormProps) {
   const [formData, setFormData] = React.useState({
     name: '',
     email: '',
@@ -93,9 +110,22 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     }
   };
 
+  const handleElementClick = (elementId: string, elementType: string) => 
+    createElementClickHandler(elementId, elementType, onElementClick);
+
   return (
-    <section className="py-16 px-4 bg-white" role="region" aria-label="Contact form">
-      <div className="max-w-6xl mx-auto">
+    <EditableElement
+      id="contact-form-section"
+      onClick={handleElementClick('contact-form-section', 'section')}
+      data-editable-type="section"
+    >
+      <section 
+        className={getElementClassName('contact-form-section', `py-16 px-4 bg-white ${className}`, selectedElementId)}
+        style={getElementStyle('contact-form-section', customStyles)}
+        role="region" 
+        aria-label="Contact form"
+      >
+        <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact Information */}
           <div>
@@ -293,6 +323,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         </div>
       </div>
     </section>
+    </EditableElement>
   );
 };
 

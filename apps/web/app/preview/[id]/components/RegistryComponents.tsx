@@ -6,6 +6,17 @@ import React from 'react'
 export { HeroSplit } from '@aether/component-registry/components/hero/HeroSplit'
 export { CTASimple } from '@aether/component-registry/components/cta/CTASimple'
 
+// Import all the newly created components
+export { TestimonialsSlider } from '@aether/component-registry/components/testimonials/TestimonialsSlider'
+export { PricingTable } from '@aether/component-registry/components/pricing/PricingTable'
+export { StatsSection } from '@aether/component-registry/components/stats/StatsSection'
+export { ContactForm } from '@aether/component-registry/components/contact/ContactForm'
+export { FAQSection } from '@aether/component-registry/components/faq/FAQSection'
+export { TeamGrid } from '@aether/component-registry/components/team/TeamGrid'
+export { PortfolioGallery } from '@aether/component-registry/components/gallery/PortfolioGallery'
+export { BlogGrid } from '@aether/component-registry/components/blog/BlogGrid'
+export { Timeline } from '@aether/component-registry/components/timeline/Timeline'
+
 // HeroCentered Component (adapted from Component Registry)
 interface HeroCenteredProps {
   title: string

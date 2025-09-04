@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
 
 interface PricingPlan {
@@ -17,14 +18,32 @@ interface PricingPlan {
   ctaText?: string;
 }
 
-interface PricingTableProps {
-  title?: string;
-  subtitle?: string;
-  plans?: PricingPlan[];
-  currency?: string;
+export const PricingTablePropsSchema = z.object({
+  title: z.string().default("Choose Your Plan"),
+  subtitle: z.string().default("Flexible pricing for teams of all sizes"),
+  currency: z.string().default("$"),
+  plans: z.array(z.object({
+    name: z.string(),
+    price: z.string(),
+    period: z.string().optional(),
+    description: z.string(),
+    features: z.array(z.string()),
+    highlighted: z.boolean().optional(),
+    ctaText: z.string().optional()
+  })).optional(),
+  className: z.string().optional()
+});
+
+export type PricingTableProps = z.infer<typeof PricingTablePropsSchema>;
+
+interface PricingTablePropsInternal extends PricingTableProps {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
 }
 
-export const PricingTable: React.FC<PricingTableProps> = ({
+export const PricingTable: React.FC<PricingTablePropsInternal> = ({
   title = "Choose Your Plan",
   subtitle = "Flexible pricing for teams of all sizes",
   currency = "$",

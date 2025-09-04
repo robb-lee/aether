@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { EditableElement } from '../shared/EditableElement';
+import { z } from 'zod';
+import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
 
 interface FAQItem {
   question: string;
@@ -13,15 +14,30 @@ interface FAQItem {
   category?: string;
 }
 
-interface FAQSectionProps {
-  title?: string;
-  subtitle?: string;
-  faqs?: FAQItem[];
-  showSearch?: boolean;
-  showCategories?: boolean;
-}
+/**
+ * Props schema for FAQ Section component
+ */
+export const FAQSectionPropsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  faqs: z.array(z.object({
+    question: z.string(),
+    answer: z.string(),
+    category: z.string().optional()
+  })).optional(),
+  showSearch: z.boolean().optional(),
+  showCategories: z.boolean().optional(),
+  className: z.string().optional()
+});
 
-export const FAQSection: React.FC<FAQSectionProps> = ({
+export type FAQSectionProps = z.infer<typeof FAQSectionPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
+};
+
+export function FAQSection({
   title = "Frequently Asked Questions",
   subtitle = "Find answers to common questions about our services",
   showSearch = true,
@@ -57,8 +73,13 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
       answer: "Yes, we offer integrations with 100+ popular tools including Slack, Zoom, Google Workspace, and more.",
       category: "Integrations"
     }
-  ]
-}) => {
+  ],
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {},
+  isEditor = false
+}: FAQSectionProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState('All');
   const [openItems, setOpenItems] = React.useState<Set<number>>(new Set());
@@ -87,9 +108,22 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
     });
   };
 
+  const handleElementClick = (elementId: string, elementType: string) => 
+    createElementClickHandler(elementId, elementType, onElementClick);
+
   return (
-    <section className="py-16 px-4 bg-gray-50" role="region" aria-label="Frequently asked questions">
-      <div className="max-w-4xl mx-auto">
+    <EditableElement
+      id="faq-section"
+      onClick={handleElementClick('faq-section', 'section')}
+      data-editable-type="section"
+    >
+      <section 
+        className={getElementClassName('faq-section', `py-16 px-4 bg-gray-50 ${className}`, selectedElementId)}
+        style={getElementStyle('faq-section', customStyles)}
+        role="region" 
+        aria-label="Frequently asked questions"
+      >
+        <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
@@ -218,6 +252,7 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
         </div>
       </div>
     </section>
+    </EditableElement>
   );
 };
 

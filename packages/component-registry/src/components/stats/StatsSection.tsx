@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { EditableElement } from '../shared/EditableElement';
+import { z } from 'zod';
+import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
 
 interface Stat {
   value: string;
@@ -16,15 +17,33 @@ interface Stat {
   suffix?: string;
 }
 
-interface StatsSectionProps {
-  title?: string;
-  subtitle?: string;
-  stats?: Stat[];
-  layout?: 'grid' | 'horizontal';
-  animated?: boolean;
-}
+/**
+ * Props schema for Stats Section component
+ */
+export const StatsSectionPropsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  stats: z.array(z.object({
+    value: z.string(),
+    label: z.string(),
+    description: z.string().optional(),
+    icon: z.string().optional(),
+    prefix: z.string().optional(),
+    suffix: z.string().optional()
+  })).optional(),
+  layout: z.enum(['grid', 'horizontal']).optional(),
+  animated: z.boolean().optional(),
+  className: z.string().optional()
+});
 
-export const StatsSection: React.FC<StatsSectionProps> = ({
+export type StatsSectionProps = z.infer<typeof StatsSectionPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
+};
+
+export function StatsSection({
   title = "Trusted by Thousands",
   subtitle = "Join the growing community of satisfied customers",
   layout = 'grid',
@@ -54,8 +73,13 @@ export const StatsSection: React.FC<StatsSectionProps> = ({
       description: "We're here when you need us",
       icon: "support"
     }
-  ]
-}) => {
+  ],
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {},
+  isEditor = false
+}: StatsSectionProps) {
   const [isVisible, setIsVisible] = React.useState(false);
   const sectionRef = React.useRef<HTMLElement>(null);
 
@@ -109,14 +133,23 @@ export const StatsSection: React.FC<StatsSectionProps> = ({
     ? 'flex flex-wrap justify-center gap-8 lg:gap-16' 
     : 'grid md:grid-cols-2 lg:grid-cols-4 gap-8';
 
+  const handleElementClick = (elementId: string, elementType: string) => 
+    createElementClickHandler(elementId, elementType, onElementClick);
+
   return (
-    <section 
-      ref={sectionRef}
-      className="py-16 px-4 bg-blue-600 text-white" 
-      role="region" 
-      aria-label="Statistics and achievements"
+    <EditableElement
+      id="stats-section"
+      onClick={handleElementClick('stats-section', 'section')}
+      data-editable-type="section"
     >
-      <div className="max-w-6xl mx-auto">
+      <section 
+        ref={sectionRef}
+        className={getElementClassName('stats-section', `py-16 px-4 bg-blue-600 text-white ${className}`, selectedElementId)}
+        style={getElementStyle('stats-section', customStyles)}
+        role="region" 
+        aria-label="Statistics and achievements"
+      >
+        <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
@@ -174,6 +207,7 @@ export const StatsSection: React.FC<StatsSectionProps> = ({
         </div>
       </div>
     </section>
+    </EditableElement>
   );
 };
 

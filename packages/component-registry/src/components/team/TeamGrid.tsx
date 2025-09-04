@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
 
 interface TeamMember {
@@ -19,13 +20,33 @@ interface TeamMember {
   };
 }
 
-interface TeamGridProps {
-  title?: string;
-  subtitle?: string;
-  members?: TeamMember[];
+export const TeamGridPropsSchema = z.object({
+  title: z.string().default("Meet Our Team"),
+  subtitle: z.string().default("The experts behind our success"),
+  members: z.array(z.object({
+    name: z.string(),
+    role: z.string(),
+    bio: z.string().optional(),
+    avatar: z.string().optional(),
+    social: z.object({
+      linkedin: z.string().optional(),
+      twitter: z.string().optional(),
+      email: z.string().optional()
+    }).optional()
+  })).optional(),
+  className: z.string().optional()
+});
+
+export type TeamGridProps = z.infer<typeof TeamGridPropsSchema>;
+
+interface TeamGridPropsInternal extends TeamGridProps {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
 }
 
-export const TeamGrid: React.FC<TeamGridProps> = ({
+export const TeamGrid: React.FC<TeamGridPropsInternal> = ({
   title = "Meet Our Team",
   subtitle = "The experts behind our success",
   members = [

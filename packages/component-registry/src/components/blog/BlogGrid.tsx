@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { EditableElement } from '../shared/EditableElement';
+import { z } from 'zod';
+import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
 
 interface BlogPost {
   id?: string;
@@ -20,17 +21,39 @@ interface BlogPost {
   tags?: string[];
 }
 
-interface BlogGridProps {
-  title?: string;
-  subtitle?: string;
-  posts?: BlogPost[];
-  showCategories?: boolean;
-  postsPerPage?: number;
-  ctaText?: string;
-  ctaLink?: string;
-}
+/**
+ * Props schema for Blog Grid component
+ */
+export const BlogGridPropsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  posts: z.array(z.object({
+    id: z.string().optional(),
+    title: z.string(),
+    excerpt: z.string(),
+    author: z.string(),
+    publishedAt: z.string(),
+    readTime: z.string().optional(),
+    category: z.string().optional(),
+    image: z.string().optional(),
+    link: z.string().optional(),
+    tags: z.array(z.string()).optional()
+  })).optional(),
+  showCategories: z.boolean().optional(),
+  postsPerPage: z.number().optional(),
+  ctaText: z.string().optional(),
+  ctaLink: z.string().optional(),
+  className: z.string().optional()
+});
 
-export const BlogGrid: React.FC<BlogGridProps> = ({
+export type BlogGridProps = z.infer<typeof BlogGridPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
+};
+
+export function BlogGrid({
   title = "Latest Articles",
   subtitle = "Stay updated with our latest insights and news",
   showCategories = true,
@@ -74,8 +97,13 @@ export const BlogGrid: React.FC<BlogGridProps> = ({
       link: "/blog/scalable-teams",
       tags: ["Teams", "Startup", "Management"]
     }
-  ]
-}) => {
+  ],
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {},
+  isEditor = false
+}: BlogGridProps) {
   const [selectedCategory, setSelectedCategory] = React.useState("All");
   
   const categories = ["All", ...Array.from(new Set(posts.map(post => post.category).filter(Boolean)))];
@@ -92,9 +120,22 @@ export const BlogGrid: React.FC<BlogGridProps> = ({
     });
   };
 
+  const handleElementClick = (elementId: string, elementType: string) => 
+    createElementClickHandler(elementId, elementType, onElementClick);
+
   return (
-    <section className="py-16 px-4 bg-white" role="region" aria-label="Blog articles">
-      <div className="max-w-6xl mx-auto">
+    <EditableElement
+      id="blog-grid-section"
+      onClick={handleElementClick('blog-grid-section', 'section')}
+      data-editable-type="section"
+    >
+      <section 
+        className={getElementClassName('blog-grid-section', `py-16 px-4 bg-white ${className}`, selectedElementId)}
+        style={getElementStyle('blog-grid-section', customStyles)}
+        role="region" 
+        aria-label="Blog articles"
+      >
+        <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
@@ -216,6 +257,7 @@ export const BlogGrid: React.FC<BlogGridProps> = ({
         )}
       </div>
     </section>
+    </EditableElement>
   );
 };
 

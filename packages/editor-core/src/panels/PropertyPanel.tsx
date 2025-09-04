@@ -214,7 +214,49 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   <label className="text-xs text-gray-600 capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </label>
-                  {typeof value === 'string' && key !== 'imagePrompt' ? (
+                  {key === 'src' || key === 'imageSrc' || key === 'imageUrl' ? (
+                    <div className="mt-1 space-y-2">
+                      <input
+                        type="text"
+                        value={value as string || ''}
+                        onChange={(e) => handlePropChange(key, e.target.value)}
+                        placeholder="Enter image URL"
+                        className="w-full px-2 py-1 text-sm border rounded"
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              // Convert to base64 for local preview
+                              const reader = new FileReader()
+                              reader.onloadend = () => {
+                                handlePropChange(key, reader.result)
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
+                          className="hidden"
+                          id={`upload-${key}`}
+                        />
+                        <label
+                          htmlFor={`upload-${key}`}
+                          className="block w-full px-3 py-1 text-xs text-center bg-gray-100 hover:bg-gray-200 border rounded cursor-pointer transition-colors"
+                        >
+                          Upload Image
+                        </label>
+                      </div>
+                      {value && (
+                        <img
+                          src={value as string}
+                          alt="Preview"
+                          className="w-full h-20 object-cover rounded border"
+                        />
+                      )}
+                    </div>
+                  ) : typeof value === 'string' && key !== 'imagePrompt' ? (
                     <input
                       type="text"
                       value={value}

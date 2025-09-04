@@ -29,6 +29,7 @@ const COMPONENT_LIBRARY: ComponentItem[] = [
   // Media
   { id: 'image', name: 'Image', category: 'Media', icon: <Image className="w-4 h-4" />, description: 'Single image' },
   { id: 'gallery', name: 'Image Gallery', category: 'Media', icon: <Layers className="w-4 h-4" />, description: 'Grid of images' },
+  { id: 'video-youtube', name: 'YouTube Video', category: 'Media', icon: <Box className="w-4 h-4" />, description: 'Embed YouTube video' },
   
   // Components
   { id: 'card', name: 'Card', category: 'Components', icon: <Box className="w-4 h-4" />, description: 'Content card' },
@@ -53,6 +54,28 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onAddCompone
     e.dataTransfer.effectAllowed = 'copy';
     // Set a text/plain type for better browser support
     e.dataTransfer.setData('text/plain', componentId);
+
+    // Suppress the browser's default drag preview (ghost image),
+    // which can appear offset when the canvas is scaled via CSS transforms.
+    // We use a tiny transparent element as the drag image.
+    const ghost = document.createElement('div');
+    ghost.style.width = '1px';
+    ghost.style.height = '1px';
+    ghost.style.opacity = '0';
+    ghost.style.position = 'fixed';
+    ghost.style.top = '-1000px';
+    document.body.appendChild(ghost);
+    try {
+      e.dataTransfer.setDragImage(ghost, 0, 0);
+    } catch {}
+    // Cleanup when the drag operation ends
+    const cleanup = () => {
+      ghost.remove();
+      window.removeEventListener('dragend', cleanup, true);
+      window.removeEventListener('drop', cleanup, true);
+    };
+    window.addEventListener('dragend', cleanup, true);
+    window.addEventListener('drop', cleanup, true);
   };
 
   return (
@@ -62,7 +85,7 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onAddCompone
         
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search components..."

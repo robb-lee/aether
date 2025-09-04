@@ -197,8 +197,12 @@ export class SelectionManager {
   }
 
   private deleteSelected() {
-    // This would need to integrate with the component tree management
-    // For now, just clear selection
+    // Notify consumer so it can remove nodes from the tree
+    const ids = Array.from(this.state.selectedIds);
+    if (ids.length > 0) {
+      this.options.onDeleteSelected?.(ids);
+    }
+    // Clear selection regardless
     this.clearSelection();
   }
 

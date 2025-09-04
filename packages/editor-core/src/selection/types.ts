@@ -18,6 +18,8 @@ export interface SelectionManagerOptions {
   onComponentUpdate?: (componentId: string, updates: any) => void;
   snapToGrid?: boolean;
   gridSize?: number;
+  // Called when user requests deletion (Delete/Backspace)
+  onDeleteSelected?: (selectedIds: string[]) => void;
 }
 
 export interface ResizeHandle {

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Canvas, PropertyPanel, ComponentLibrary, LayerPanel } from '@aether/editor-core'
 import type { ComponentTreeNode } from '@aether/editor-core'
 import { Loader2 } from 'lucide-react'
-import { ComponentRenderer } from '@/components/ComponentRenderer'
+import { EditorComponentRenderer } from '@/components/EditorComponentRenderer'
 
 interface SiteData {
   id: string
@@ -170,10 +170,23 @@ export default function EditorPage({ params }: { params: { id: string } }) {
         size: { width: 300, height: 200 }
       }
       
-      // Add to root
-      const updatedTree = {
-        ...componentTree,
-        children: [...(componentTree.children || []), newComponent]
+      let updatedTree = { ...componentTree }
+      
+      // Special positioning logic for navigation components
+      if (updates.type === 'header-nav') {
+        // Always add nav at the top
+        updatedTree.children = [newComponent, ...(componentTree.children || [])]
+      } else if (updates.type === 'footer-simple') {
+        // Always add footer at the bottom
+        updatedTree.children = [...(componentTree.children || []), newComponent]
+      } else if (updates.dropIndex !== undefined) {
+        // Insert at specific position based on drop location
+        const children = [...(componentTree.children || [])]
+        children.splice(updates.dropIndex, 0, newComponent)
+        updatedTree.children = children
+      } else {
+        // Default: add to end
+        updatedTree.children = [...(componentTree.children || []), newComponent]
       }
       
       setComponentTree(updatedTree)
@@ -229,8 +242,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       'text-block': { content: 'Enter your text here' },
       'heading': { text: 'Heading', level: 2 },
       'paragraph': { text: 'Lorem ipsum dolor sit amet' },
-      'image': { alt: 'Image placeholder' },
-      'button': { text: 'Click me', variant: 'primary' }
+      'image': { alt: 'Image placeholder', src: '' },
+      'button': { text: 'Click me', variant: 'primary' },
+      'video-youtube': { videoUrl: '', title: 'YouTube Video' }
     }
     return defaults[componentType] || {}
   }
@@ -283,7 +297,14 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   // Setup keyboard shortcut handling with delete functionality
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Check if the target is an input, textarea, or contenteditable element
+      const target = e.target as HTMLElement
+      const isInputField = target.tagName === 'INPUT' || 
+                          target.tagName === 'TEXTAREA' || 
+                          target.contentEditable === 'true'
+      
+      // Only handle delete/backspace if not in an input field
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputField) {
         e.preventDefault()
         if (selectedElement.length > 0) {
           selectedElement.forEach(id => handleDeleteComponent(id))
@@ -298,6 +319,17 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   // Helper function to update a component in the tree
   const updateComponentInTree = (node: ComponentTreeNode, id: string, updates: any): ComponentTreeNode => {
     if (node.id === id) {
+      // Deep merge for props to preserve existing properties
+      if (updates.props) {
+        return { 
+          ...node, 
+          ...updates,
+          props: {
+            ...node.props,
+            ...updates.props
+          }
+        }
+      }
       return { ...node, ...updates }
     }
     
@@ -464,7 +496,10 @@ export default function EditorPage({ params }: { params: { id: string } }) {
             onComponentTreeChange={handleComponentTreeChange}
             className="h-full w-full"
             renderComponent={(component) => (
-              <ComponentRenderer component={component} isEditor={true} />
+              <EditorComponentRenderer 
+                component={component} 
+                onUpdateComponent={handleComponentUpdate}
+              />
             )}
             settings={{
               viewport: {

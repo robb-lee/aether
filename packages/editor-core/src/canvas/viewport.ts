@@ -18,7 +18,7 @@ export const GRID_SIZES = [8, 16, 24, 32, 48, 64];
 export class ViewportManager {
   private viewport: Viewport;
   private canvasRect: DOMRect | null = null;
-  private rulerOffset = 24; // Consistent ruler offset
+  private rulerOffset = 24; // Default; can be overridden by runtime measurement
 
   constructor(initialViewport: Viewport = DEFAULT_VIEWPORT) {
     this.viewport = { ...initialViewport };
@@ -30,6 +30,14 @@ export class ViewportManager {
 
   getRulerOffset(): number {
     return this.rulerOffset;
+  }
+
+  // Allow runtime override when actual UI offsets differ
+  setRulerOffset(offset: number): void {
+    // Guard against NaN or negative values
+    if (Number.isFinite(offset) && offset >= 0) {
+      this.rulerOffset = offset;
+    }
   }
 
   getViewport(): Viewport {

@@ -43,6 +43,7 @@ export const Draggable: React.FC<DraggableProps> = ({
         !disabled && 'cursor-grab active:cursor-grabbing',
         className
       )}
+      data-draggable-root
       {...attributes}
     >
       {showHandle && !disabled && (
@@ -56,6 +57,10 @@ export const Draggable: React.FC<DraggableProps> = ({
             'cursor-grab active:cursor-grabbing',
             'z-10'
           )}
+          data-draggable-handle
+          onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); (e.nativeEvent as any)?.stopImmediatePropagation?.(); }}
+          onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); (e.nativeEvent as any)?.stopImmediatePropagation?.(); }}
+          onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); (e.nativeEvent as any)?.stopImmediatePropagation?.(); }}
           aria-label="Drag handle"
         >
           <svg

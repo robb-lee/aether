@@ -109,6 +109,8 @@ export function ComponentRenderer({
           {...props}
           onElementClick={onElementClick}
           selectedElementId={selectedElementId}
+          customStyles={component.customStyles}
+          isEditor={isEditor}
         >
           {renderedChildren}
         </Component>
@@ -120,6 +122,8 @@ export function ComponentRenderer({
         {...props}
         onElementClick={onElementClick}
         selectedElementId={selectedElementId}
+        customStyles={component.customStyles}
+        isEditor={isEditor}
       />
     )
   } catch (renderError) {

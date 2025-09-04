@@ -1,5 +1,6 @@
 import React from 'react';
 import { z } from 'zod';
+import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
 
 /**
  * Props schema for Hero Video Background component
@@ -23,7 +24,12 @@ export const HeroVideoBgPropsSchema = z.object({
   className: z.string().optional()
 });
 
-export type HeroVideoBgProps = z.infer<typeof HeroVideoBgPropsSchema>;
+export type HeroVideoBgProps = z.infer<typeof HeroVideoBgPropsSchema> & {
+  onElementClick?: (elementId: string, elementType: string) => void;
+  selectedElementId?: string;
+  customStyles?: Record<string, React.CSSProperties>;
+  isEditor?: boolean;
+};
 
 /**
  * Hero Video Background - Perfect for entertainment and lifestyle brands
@@ -44,7 +50,11 @@ export function HeroVideoBg({
   autoplay = true,
   muted = true,
   loop = true,
-  className = ''
+  className = '',
+  onElementClick,
+  selectedElementId,
+  customStyles = {},
+  isEditor = false
 }: HeroVideoBgProps) {
   const layouts = {
     'overlay-center': 'absolute inset-0 flex items-center justify-center text-center',
@@ -79,87 +89,177 @@ export function HeroVideoBg({
     'overlay-slide': 'animate-slide-up-slow'
   };
 
+  const handleElementClick = (elementId: string, elementType: string) => 
+    createElementClickHandler(elementId, elementType, onElementClick);
+
   return (
-    <section className={`relative min-h-screen overflow-hidden ${className}`}>
-      {/* Video Background */}
-      {videoUrl ? (
-        <video
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay={autoplay}
-          muted={muted}
-          loop={loop}
-          playsInline
-          poster={posterImage}
+    <EditableElement
+      id="hero-video-section"
+      onClick={handleElementClick('hero-video-section', 'section')}
+      data-editable-type="section"
+    >
+      <section 
+        className={getElementClassName('hero-video-section', `relative min-h-screen overflow-hidden ${className}`, selectedElementId)}
+        style={getElementStyle('hero-video-section', customStyles)}
+      >
+        {/* Video Background */}
+        <EditableElement
+          id="hero-video-background"
+          onClick={handleElementClick('hero-video-background', 'video')}
+          data-editable-type="video"
         >
-          <source src={videoUrl} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      ) : (
-        <div 
-          className="absolute inset-0 w-full h-full bg-cover bg-center"
-          style={{ 
-            backgroundImage: posterImage 
-              ? `url(${posterImage})` 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-          }}
-        />
-      )}
-
-      {/* Overlay */}
-      <div className={`absolute inset-0 ${styles[style].overlay}`} />
-
-      {/* Content */}
-      <div className={`${layouts[layout]} ${animations[animation]}`}>
-        <div className="max-w-4xl mx-auto px-4">
-          {subtitle && (
-            <p className={`text-sm font-medium tracking-wide uppercase mb-4 ${styles[style].subtitle}`}>
-              {subtitle}
-            </p>
-          )}
-          
-          <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${styles[style].text}`}>
-            {title}
-          </h1>
-          
-          {description && (
-            <p className={`text-lg md:text-xl mb-8 leading-relaxed ${styles[style].description} max-w-2xl ${
-              layout === 'overlay-center' ? 'mx-auto' : ''
-            }`}>
-              {description}
-            </p>
-          )}
-          
-          <div className={`flex flex-col sm:flex-row gap-4 ${
-            layout === 'overlay-center' ? 'justify-center' : ''
-          }`}>
-            <a
-              href={ctaHref}
-              className="px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-center"
+          {videoUrl ? (
+            <video
+              className={getElementClassName('hero-video-background', 'absolute inset-0 w-full h-full object-cover', selectedElementId)}
+              style={getElementStyle('hero-video-background', customStyles)}
+              autoPlay={autoplay}
+              muted={muted}
+              loop={loop}
+              playsInline
+              poster={posterImage}
             >
-              {ctaText}
-            </a>
-            
-            {secondaryCtaText && (
-              <a
-                href={secondaryCtaHref}
-                className="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300 text-center"
-              >
-                {secondaryCtaText}
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
+              <source src={videoUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div 
+              className={getElementClassName('hero-video-background', 'absolute inset-0 w-full h-full bg-cover bg-center', selectedElementId)}
+              style={{
+                ...getElementStyle('hero-video-background', customStyles),
+                backgroundImage: posterImage 
+                  ? `url(${posterImage})` 
+                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              }}
+            />
+          )}
+        </EditableElement>
 
-      {/* Scroll indicator for overlay-center layout */}
-      {layout === 'overlay-center' && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
-      )}
-    </section>
+        {/* Overlay */}
+        <EditableElement
+          id="hero-video-overlay"
+          onClick={handleElementClick('hero-video-overlay', 'container')}
+          data-editable-type="container"
+        >
+          <div 
+            className={getElementClassName('hero-video-overlay', `absolute inset-0 ${styles[style].overlay}`, selectedElementId)}
+            style={getElementStyle('hero-video-overlay', customStyles)}
+          />
+        </EditableElement>
+
+        {/* Content */}
+        <EditableElement
+          id="hero-video-content-wrapper"
+          className={`${layouts[layout]} ${animations[animation]}`}
+          onClick={handleElementClick('hero-video-content-wrapper', 'container')}
+          data-editable-type="container"
+        >
+          <div className="max-w-4xl mx-auto px-4">
+            {subtitle && (
+              <EditableElement
+                id="hero-video-subtitle"
+                onClick={handleElementClick('hero-video-subtitle', 'text')}
+                data-editable-type="text"
+              >
+                <p 
+                  className={getElementClassName('hero-video-subtitle', `text-sm font-medium tracking-wide uppercase mb-4 ${styles[style].subtitle}`, selectedElementId)}
+                  style={getElementStyle('hero-video-subtitle', customStyles)}
+                >
+                  {subtitle}
+                </p>
+              </EditableElement>
+            )}
+            
+            <EditableElement
+              id="hero-video-title"
+              onClick={handleElementClick('hero-video-title', 'text')}
+              data-editable-type="text"
+            >
+              <h1 
+                className={getElementClassName('hero-video-title', `text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${styles[style].text}`, selectedElementId)}
+                style={getElementStyle('hero-video-title', customStyles)}
+              >
+                {title}
+              </h1>
+            </EditableElement>
+            
+            {description && (
+              <EditableElement
+                id="hero-video-description"
+                onClick={handleElementClick('hero-video-description', 'text')}
+                data-editable-type="text"
+              >
+                <p 
+                  className={getElementClassName('hero-video-description', `text-lg md:text-xl mb-8 leading-relaxed ${styles[style].description} max-w-2xl ${
+                    layout === 'overlay-center' ? 'mx-auto' : ''
+                  }`, selectedElementId)}
+                  style={getElementStyle('hero-video-description', customStyles)}
+                >
+                  {description}
+                </p>
+              </EditableElement>
+            )}
+            
+            <EditableElement
+              id="hero-video-button-group"
+              onClick={handleElementClick('hero-video-button-group', 'container')}
+              data-editable-type="container"
+            >
+              <div className={`flex flex-col sm:flex-row gap-4 ${
+                layout === 'overlay-center' ? 'justify-center' : ''
+              }`}>
+                <EditableElement
+                  id="hero-video-primary-button"
+                  onClick={handleElementClick('hero-video-primary-button', 'button')}
+                  data-editable-type="button"
+                >
+                  <a
+                    href={ctaHref}
+                    className={getElementClassName('hero-video-primary-button', 'px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-center', selectedElementId)}
+                    style={getElementStyle('hero-video-primary-button', customStyles)}
+                  >
+                    {ctaText}
+                  </a>
+                </EditableElement>
+                
+                {secondaryCtaText && (
+                  <EditableElement
+                    id="hero-video-secondary-button"
+                    onClick={handleElementClick('hero-video-secondary-button', 'button')}
+                    data-editable-type="button"
+                  >
+                    <a
+                      href={secondaryCtaHref}
+                      className={getElementClassName('hero-video-secondary-button', 'px-8 py-4 border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300 text-center', selectedElementId)}
+                      style={getElementStyle('hero-video-secondary-button', customStyles)}
+                    >
+                      {secondaryCtaText}
+                    </a>
+                  </EditableElement>
+                )}
+              </div>
+            </EditableElement>
+          </div>
+        </EditableElement>
+
+        {/* Scroll indicator for overlay-center layout */}
+        {layout === 'overlay-center' && (
+          <EditableElement
+            id="hero-video-scroll-indicator"
+            onClick={handleElementClick('hero-video-scroll-indicator', 'icon')}
+            data-editable-type="icon"
+          >
+            <div 
+              className={getElementClassName('hero-video-scroll-indicator', 'absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce', selectedElementId)}
+              style={getElementStyle('hero-video-scroll-indicator', customStyles)}
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </EditableElement>
+        )}
+      </section>
+    </EditableElement>
   );
 }
 

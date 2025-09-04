@@ -80,17 +80,62 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
     console.log('Selection changed to:', selectedIds)
     setSelectedElement(selectedIds)
+    // Clear element-specific selections when selecting components directly
+    setSelectedElementType(null)
+    setSelectedElementComponent(null)
   }, [])
 
   // Handle element selection for granular editing
   const [selectedElementType, setSelectedElementType] = useState<string | null>(null)
+  const [selectedElementComponent, setSelectedElementComponent] = useState<ComponentTreeNode | null>(null)
   const [elementStyles, setElementStyles] = useState<Record<string, React.CSSProperties>>({})
+  
+  // Helper function to find component containing an element
+  const findComponentContainingElement = useCallback((elementId: string, tree: ComponentTreeNode): ComponentTreeNode | null => {
+    // Check if this component contains the element
+    const componentElementIds = getElementIdsForComponent(tree.type)
+    if (componentElementIds.includes(elementId)) {
+      return tree
+    }
+    
+    // Search children recursively
+    if (tree.children) {
+      for (const child of tree.children) {
+        const found = findComponentContainingElement(elementId, child)
+        if (found) return found
+      }
+    }
+    
+    return null
+  }, [])
+  
+  // Helper function to get element IDs for a component type
+  const getElementIdsForComponent = useCallback((componentType: string): string[] => {
+    const elementMap: Record<string, string[]> = {
+      'hero-split': [
+        'hero-section', 'hero-container', 'hero-content-wrapper', 'hero-subtitle',
+        'hero-title', 'hero-description', 'hero-button-group', 'hero-primary-button',
+        'hero-secondary-button', 'hero-demo-text', 'hero-image-wrapper', 'hero-image',
+        'hero-demo-badge', 'hero-image-placeholder'
+      ],
+      'hero-centered': ['hero-section', 'hero-container', 'hero-content'],
+      'features-grid': ['features-section', 'features-container', 'features-header', 'features-grid']
+    }
+    return elementMap[componentType] || []
+  }, [])
   
   const handleElementSelect = useCallback((elementId: string, elementType: string) => {
     console.log('Element selected:', { elementId, elementType })
     setSelectedElement([elementId])
     setSelectedElementType(elementType)
-  }, [])
+    
+    // Find the component containing this element
+    if (componentTree) {
+      const containingComponent = findComponentContainingElement(elementId, componentTree)
+      console.log('Found containing component:', containingComponent)
+      setSelectedElementComponent(containingComponent)
+    }
+  }, [componentTree, findComponentContainingElement])
 
   // Handle element style updates
   const handleElementStyleUpdate = useCallback((elementId: string, styleUpdates: React.CSSProperties) => {
@@ -247,27 +292,42 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   }, [selectedElement, selectedComponent, componentTree])
   
   
-  // Setup keyboard shortcut handling with delete functionality
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if the target is an input, textarea, or contenteditable element
-      const target = e.target as HTMLElement
-      const isInputField = target.tagName === 'INPUT' || 
-                          target.tagName === 'TEXTAREA' || 
-                          target.contentEditable === 'true'
-      
-      // Only handle delete/backspace if not in an input field
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputField) {
-        e.preventDefault()
-        if (selectedElement.length > 0) {
-          selectedElement.forEach(id => handleDeleteComponent(id))
-        }
-      }
-    }
-    
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedElement, handleDeleteComponent])
+  // Setup keyboard shortcut handling with delete functionality - TEMPORARILY DISABLED FOR DEBUGGING
+  // useEffect(() => {
+  //   const handleKeyDown = (e: KeyboardEvent) => {
+  //     // Check if the target is an input, textarea, or contenteditable element
+  //     const target = e.target as HTMLElement
+  //     
+  //     // More comprehensive input field detection
+  //     const isInputField = target.tagName === 'INPUT' || 
+  //                         target.tagName === 'TEXTAREA' || 
+  //                         target.contentEditable === 'true' ||
+  //                         target.getAttribute('role') === 'textbox' ||
+  //                         target.closest('input') ||
+  //                         target.closest('textarea') ||
+  //                         target.closest('[contenteditable]') ||
+  //                         target.closest('.property-panel') ||
+  //                         // Check if we're in any form control
+  //                         target.closest('form') ||
+  //                         // Check if target has input-related classes
+  //                         target.className?.includes('border') && target.className?.includes('rounded')
+  //     
+  //     // ONLY handle Delete/Backspace for component deletion, and ONLY if we're definitely NOT in an input
+  //     if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputField && selectedElement.length > 0) {
+  //       e.preventDefault()
+  //       selectedElement.forEach(id => handleDeleteComponent(id))
+  //       return
+  //     }
+  //     
+  //     // For all other keys, if we're in an input field, don't interfere at all
+  //     if (isInputField) {
+  //       return // Let the input handle the event normally
+  //     }
+  //   }
+  //   
+  //   window.addEventListener('keydown', handleKeyDown, { capture: false })
+  //   return () => window.removeEventListener('keydown', handleKeyDown)
+  // }, [selectedElement, handleDeleteComponent])
   
   // Helper function to update a component in the tree
   const updateComponentInTree = (node: ComponentTreeNode, id: string, updates: any): ComponentTreeNode => {
@@ -495,7 +555,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       <div className="w-80 lg:w-96 xl:w-[400px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
         <div className="pt-12 h-full">
           <PropertyPanel
-            selectedComponent={selectedComponent}
+            selectedComponent={selectedElementType ? selectedElementComponent : selectedComponent}
             onUpdateComponent={handleComponentUpdate}
             selectedElementId={selectedElement[0]}
             selectedElementType={selectedElementType || undefined}

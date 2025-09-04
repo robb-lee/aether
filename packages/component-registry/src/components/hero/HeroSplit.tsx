@@ -46,10 +46,11 @@ const EditableElement: React.FC<EditableElementProps> = ({
 }) => (
   <div 
     id={id}
-    className={`${className} cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-200`}
+    className={`${className} cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-300 hover:bg-blue-50 hover:bg-opacity-30`}
     onClick={onClick}
     data-editable-type={editableType}
     data-element-id={id}
+    title={`Click to edit ${editableType}`}
   >
     {children}
   </div>
@@ -114,7 +115,7 @@ export function HeroSplit({
 
   const getElementClassName = (elementId: string, baseClassName: string) => {
     const isSelected = selectedElementId === elementId;
-    return `${baseClassName} ${isSelected ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`;
+    return `${baseClassName} ${isSelected ? 'ring-2 ring-green-400 ring-opacity-75 bg-green-50' : ''}`;
   };
 
   const getElementStyle = (elementId: string) => {

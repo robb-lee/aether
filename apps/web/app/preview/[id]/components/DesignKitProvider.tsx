@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect } from 'react';
-import { getDesignKit, DesignKitConfig } from '../../../../../packages/component-registry/src/design-kits';
+import { getDesignKit, DesignKitConfig } from '@aether/component-registry/design-kits';
 
 interface DesignKitContextType {
   kit: DesignKitConfig;

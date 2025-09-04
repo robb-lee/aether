@@ -1,11 +1,13 @@
 import React from 'react';
 
 interface EditableElementProps {
-  id: string;
+  id?: string;
   className?: string;
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent) => void;
   'data-editable-type'?: string;
+  as?: keyof JSX.IntrinsicElements;
+  ariaLevel?: number;
 }
 
 /**
@@ -19,15 +21,17 @@ interface EditableElementProps {
  * - Dynamic wrapper element to prevent invalid HTML nesting
  */
 export const EditableElement: React.FC<EditableElementProps> = ({ 
-  id, 
+  id = `editable-${Math.random().toString(36).substr(2, 9)}`, 
   className = '', 
   children, 
   onClick,
-  'data-editable-type': editableType
+  'data-editable-type': editableType,
+  as,
+  ariaLevel
 }) => {
   // Determine wrapper element based on content type to prevent invalid HTML nesting
   const isInlineElement = editableType === 'button' || editableType === 'text' || editableType === 'link';
-  const WrapperElement = isInlineElement ? 'span' : 'div';
+  const WrapperElement = as || (isInlineElement ? 'span' : 'div');
   
   // For section elements, don't add background hover effects that might interfere
   const isSection = editableType === 'section';
@@ -37,16 +41,23 @@ export const EditableElement: React.FC<EditableElementProps> = ({
   
   const combinedClassName = `${className} cursor-pointer transition-all duration-200 ${hoverClasses} ${isInlineElement ? 'inline-block' : ''}`.trim();
   
+  const elementProps: any = {
+    id,
+    className: combinedClassName,
+    onClick,
+    'data-editable-type': editableType,
+    'data-element-id': id,
+    title: `Click to edit ${editableType}`
+  };
+
+  // Add aria-level for heading elements
+  if (ariaLevel && (WrapperElement === 'h1' || WrapperElement === 'h2' || WrapperElement === 'h3' || WrapperElement === 'h4' || WrapperElement === 'h5' || WrapperElement === 'h6')) {
+    elementProps['aria-level'] = ariaLevel;
+  }
+
   return React.createElement(
     WrapperElement,
-    {
-      id,
-      className: combinedClassName,
-      onClick,
-      'data-editable-type': editableType,
-      'data-element-id': id,
-      title: `Click to edit ${editableType}`
-    },
+    elementProps,
     children
   );
 };

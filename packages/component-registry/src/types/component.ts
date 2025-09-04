@@ -15,7 +15,13 @@ export type ComponentCategory =
   | 'contact'
   | 'navigation'
   | 'content'
-  | 'layout';
+  | 'layout'
+  | 'team'
+  | 'gallery'
+  | 'faq'
+  | 'stats'
+  | 'blog'
+  | 'timeline';
 
 /**
  * Performance metrics for components

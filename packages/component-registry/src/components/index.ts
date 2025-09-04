@@ -9,6 +9,17 @@ import HeroVideoBg, { HeroVideoBgPropsSchema } from './hero/HeroVideoBg';
 // Features Components  
 import FeaturesGrid, { FeaturesGridPropsSchema } from './features/FeaturesGrid';
 
+// New Components
+import TestimonialsSlider from './testimonials/TestimonialsSlider';
+import PricingTable from './pricing/PricingTable';
+import TeamGrid from './team/TeamGrid';
+import PortfolioGallery from './gallery/PortfolioGallery';
+import ContactForm from './contact/ContactForm';
+import FAQSection from './faq/FAQSection';
+import StatsSection from './stats/StatsSection';
+import BlogGrid from './blog/BlogGrid';
+import Timeline from './timeline/Timeline';
+
 /**
  * Core component definitions with metadata
  */
@@ -275,7 +286,16 @@ export {
   HeroCentered,
   HeroSplit, 
   HeroVideoBg,
-  FeaturesGrid
+  FeaturesGrid,
+  TestimonialsSlider,
+  PricingTable,
+  TeamGrid,
+  PortfolioGallery,
+  ContactForm,
+  FAQSection,
+  StatsSection,
+  BlogGrid,
+  Timeline
 };
 
 // Export schemas

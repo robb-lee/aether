@@ -93,7 +93,7 @@ export const ComponentMetadataSchema = z.object({
   author: z.string().optional(),
   description: z.string(),
   tags: z.array(z.string()),
-  category: z.enum(['hero', 'features', 'cta', 'header', 'footer', 'pricing', 'testimonials', 'contact', 'navigation', 'content', 'layout']),
+  category: z.enum(['hero', 'features', 'cta', 'header', 'footer', 'pricing', 'testimonials', 'contact', 'navigation', 'content', 'layout', 'team', 'gallery', 'faq', 'stats', 'blog', 'timeline']),
   
   // Core metrics
   performance: PerformanceMetricsSchema,

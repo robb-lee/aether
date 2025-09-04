@@ -25,16 +25,35 @@ AVAILABLE COMPONENTS:
 - hero-split: Ideal for SaaS, tech products, feature explanations (Lighthouse: 92)
 - hero-video-bg: Best for entertainment, lifestyle, immersive experiences (Lighthouse: 75)
 - features-grid: Showcase multiple features with equal importance (Lighthouse: 88)
+- testimonials-slider: Customer reviews and testimonials carousel (Lighthouse: 90)
+- pricing-table: Professional 3-tier pricing plans (Lighthouse: 94)
+- team-grid: Team member showcase with photos and bios (Lighthouse: 88)
+- portfolio-gallery: Project showcase with filtering (Lighthouse: 86)
+- contact-form: Professional contact form with validation (Lighthouse: 93)
+- faq-section: Expandable FAQ with search (Lighthouse: 91)
+- stats-section: Key metrics and achievements display (Lighthouse: 89)
+- blog-grid: Blog posts display with categories (Lighthouse: 87)
+- timeline: Company milestones and processes (Lighthouse: 90)
 - header-nav: Navigation with logo and menu items (Lighthouse: 98)
 - footer-simple: Basic footer with links and contact info (Lighthouse: 95)
 - cta-banner: Call-to-action section for conversions (Lighthouse: 92)
 
 COMPONENT FLOW GUIDELINES:
-1. Start with header-nav for navigation (always first if needed)
-2. Follow with hero component (hero-centered, hero-split, or hero-video-bg)
-3. Add supporting sections (features-grid, cta-banner)
-4. End with footer-simple for completeness
-5. Maintain logical visual hierarchy and user journey
+1. Start with header-nav for navigation (optional)
+2. Choose ONE hero component (hero-centered, hero-split, or hero-video-bg) 
+3. Add 2-6 supporting sections based on user needs:
+   - features-grid: Product/service capabilities
+   - testimonials-slider: Social proof and credibility
+   - pricing-table: Plans and subscription tiers
+   - team-grid: About page or team showcase
+   - portfolio-gallery: Work samples and projects
+   - stats-section: Key metrics and achievements
+   - blog-grid: Content and articles
+   - timeline: Company history or processes
+   - faq-section: Common questions and support
+   - contact-form: Lead generation and inquiries
+4. Optionally end with footer-simple for completeness
+5. Choose components that create a complete user journey for the specific business type
 
 SELECTION CRITERIA:
 1. Industry fit (SaaS → hero-split, E-commerce → hero-centered, etc.)
@@ -119,7 +138,11 @@ CONTEXT:
 - Performance Requirement: ${context.performance || 'balanced'}
 - Target Audience: ${context.targetAudience || 'general'}
 
-TASK: Select 2-4 components that create the best website for this user's needs. Focus on conversion optimization and user experience.`;
+TASK: Select 3-8 components that create a complete website for this user's specific business needs. Focus on:
+- Creating a logical user journey from awareness to action
+- Including relevant sections for the industry (pricing for SaaS, portfolio for agencies, etc.)
+- Balancing performance with functionality
+- Optimizing for conversion and user experience`;
 }
 
 /**
@@ -130,40 +153,90 @@ export const INDUSTRY_PROMPTS = {
     systemAddition: `
 SAAS OPTIMIZATION:
 - Prioritize hero-split for feature explanation
-- Include features-grid for capability showcase
-- Focus on conversion and trial signups
-- Emphasize technical benefits and ROI`,
-    recommendedComponents: ['hero-split', 'features-grid']
+- Include features-grid for capability showcase  
+- Add pricing-table for subscription plans
+- Include testimonials-slider for social proof
+- Add stats-section for credibility
+- Consider faq-section for common questions
+- End with contact-form for lead generation
+- Focus on conversion and trial signups`,
+    recommendedComponents: ['hero-split', 'features-grid', 'pricing-table', 'testimonials-slider', 'stats-section', 'faq-section', 'contact-form']
   },
 
   ecommerce: {
     systemAddition: `
 E-COMMERCE OPTIMIZATION:
 - Prioritize hero-centered for product focus
-- Emphasize visual appeal and trust signals
-- Focus on purchase conversion
-- Highlight product benefits and social proof`,
-    recommendedComponents: ['hero-centered', 'features-grid']
+- Include features-grid for product benefits
+- Add testimonials-slider for customer reviews
+- Include stats-section for trust signals
+- Consider portfolio-gallery for product showcase
+- Add contact-form for customer service
+- Focus on purchase conversion and trust`,
+    recommendedComponents: ['hero-centered', 'features-grid', 'testimonials-slider', 'stats-section', 'portfolio-gallery', 'contact-form']
   },
 
   entertainment: {
     systemAddition: `
 ENTERTAINMENT OPTIMIZATION:
-- Consider hero-video-bg for immersive experience
-- Focus on engagement and emotional connection
-- Prioritize visual impact over technical details
-- Emphasize experience and entertainment value`,
-    recommendedComponents: ['hero-video-bg', 'features-grid']
+- Use hero-video-bg for immersive experience
+- Include portfolio-gallery for content showcase
+- Add blog-grid for news and updates
+- Consider team-grid for cast/crew
+- Include testimonials-slider for reviews
+- Focus on engagement and emotional connection`,
+    recommendedComponents: ['hero-video-bg', 'portfolio-gallery', 'blog-grid', 'team-grid', 'testimonials-slider']
   },
 
   portfolio: {
     systemAddition: `
 PORTFOLIO OPTIMIZATION:
-- Use hero-centered for personal branding focus
-- Emphasize unique value and creative work
-- Focus on professional presentation
-- Highlight skills and achievements`,
-    recommendedComponents: ['hero-centered']
+- Use hero-centered for personal branding
+- Include portfolio-gallery for work showcase
+- Add team-grid for personal/team introduction
+- Include testimonials-slider for client feedback
+- Consider timeline for career/company history
+- Add contact-form for business inquiries
+- Focus on professional presentation`,
+    recommendedComponents: ['hero-centered', 'portfolio-gallery', 'team-grid', 'testimonials-slider', 'timeline', 'contact-form']
+  },
+
+  agency: {
+    systemAddition: `
+AGENCY OPTIMIZATION:
+- Use hero-split or hero-centered for brand focus
+- Include portfolio-gallery for case studies
+- Add team-grid for expertise showcase
+- Include testimonials-slider for client success
+- Add stats-section for achievements
+- Include contact-form for new business
+- Consider timeline for company growth`,
+    recommendedComponents: ['hero-split', 'portfolio-gallery', 'team-grid', 'testimonials-slider', 'stats-section', 'contact-form', 'timeline']
+  },
+
+  consulting: {
+    systemAddition: `
+CONSULTING OPTIMIZATION:
+- Use hero-split for professional positioning
+- Include features-grid for service overview
+- Add team-grid for expertise showcase
+- Include testimonials-slider for client success
+- Add timeline for methodology/process
+- Include contact-form for consultations
+- Focus on expertise and results`,
+    recommendedComponents: ['hero-split', 'features-grid', 'team-grid', 'testimonials-slider', 'timeline', 'contact-form']
+  },
+
+  blog: {
+    systemAddition: `
+BLOG/CONTENT OPTIMIZATION:
+- Use hero-centered for blog introduction
+- Include blog-grid for latest articles
+- Add team-grid for author showcase
+- Consider faq-section for reader help
+- Include contact-form for submissions
+- Focus on content discovery and engagement`,
+    recommendedComponents: ['hero-centered', 'blog-grid', 'team-grid', 'faq-section', 'contact-form']
   }
 };
 
@@ -333,9 +406,9 @@ function getLayoutGuidance(layout: string): string {
  */
 function getContentGuidance(length: string): string {
   const guidance = {
-    minimal: 'Select 2-3 components max, focus on essential messaging only',
-    medium: 'Select 3-4 components, balance information with brevity',
-    comprehensive: 'Select 4-6 components, provide detailed information and multiple CTAs'
+    minimal: 'Select 3-4 components max, focus on essential messaging only',
+    medium: 'Select 4-6 components, balance information with comprehensive coverage',
+    comprehensive: 'Select 6-8 components, provide detailed information and complete user journey'
   };
   
   return guidance[length as keyof typeof guidance] || '';

@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 interface Stat {
   value: string;
@@ -130,8 +131,8 @@ export function StatsSection({
   };
 
   const gridClasses = layout === 'horizontal' 
-    ? 'flex flex-wrap justify-center gap-8 lg:gap-16' 
-    : 'grid md:grid-cols-2 lg:grid-cols-4 gap-8';
+    ? 'flex flex-wrap justify-center gap-6 sm:gap-8 lg:gap-16' 
+    : `grid ${responsiveGrids['4-col']} gap-6 sm:gap-8`;
 
   const handleElementClick = (elementId: string, elementType: string) => 
     createElementClickHandler(elementId, elementType, onElementClick);
@@ -144,16 +145,16 @@ export function StatsSection({
     >
       <section 
         ref={sectionRef}
-        className={getElementClassName('stats-section', `py-16 px-4 bg-blue-600 text-white ${className}`, selectedElementId)}
+        className={getElementClassName('stats-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-blue-600 text-white ${className}`, selectedElementId)}
         style={getElementStyle('stats-section', customStyles)}
         role="region" 
         aria-label="Statistics and achievements"
       >
-        <div className="max-w-6xl mx-auto">
+        <div className={`${responsiveContainers.wide} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-white"
+            className={`${responsiveText.h2} font-bold mb-4 text-white`}
             ariaLevel={2}
           >
             {title}
@@ -161,7 +162,7 @@ export function StatsSection({
           
           <EditableElement
             as="p"
-            className="text-xl text-blue-100 max-w-2xl mx-auto"
+            className={`${responsiveText.lead} text-blue-100 max-w-2xl mx-auto`}
           >
             {subtitle}
           </EditableElement>
@@ -188,7 +189,7 @@ export function StatsSection({
               )}
               
               <div className="mb-2">
-                <span className="text-4xl lg:text-5xl font-bold text-white block">
+                <span className={`${responsiveText.display} font-bold text-white block`}>
                   {stat.prefix || ''}{stat.value}{stat.suffix || ''}
                 </span>
               </div>

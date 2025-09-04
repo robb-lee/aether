@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveContainers } from '../../utils/responsive-utils';
 
 const NavigationItemSchema = z.object({
   label: z.string(),
@@ -36,6 +37,8 @@ export function HeaderSimple({
   customStyles = {},
   isEditor = false
 }: HeaderSimpleProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const styles = {
     minimal: 'bg-white border-b border-gray-200',
     professional: 'bg-white shadow-sm',
@@ -44,6 +47,8 @@ export function HeaderSimple({
 
   const handleElementClick = (elementId: string, elementType: string) => 
     createElementClickHandler(elementId, elementType, onElementClick);
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   return (
     <EditableElement
@@ -60,7 +65,7 @@ export function HeaderSimple({
           onClick={handleElementClick('header-simple-container', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`${responsiveContainers.wide} mx-auto ${responsiveSpacing.container.px}`}>
             <EditableElement
               id="header-simple-nav"
               onClick={handleElementClick('header-simple-nav', 'container')}
@@ -83,7 +88,7 @@ export function HeaderSimple({
                       />
                     ) : (
                       <span 
-                        className={getElementClassName('header-simple-logo', 'text-xl font-bold text-gray-900', selectedElementId)}
+                        className={getElementClassName('header-simple-logo', 'text-lg sm:text-xl font-bold text-gray-900', selectedElementId)}
                         style={getElementStyle('header-simple-logo', customStyles)}
                       >
                         {logoText}
@@ -98,7 +103,7 @@ export function HeaderSimple({
                   onClick={handleElementClick('header-simple-navigation', 'container')}
                   data-editable-type="container"
                 >
-                  <nav className="hidden md:flex space-x-8">
+                  <nav className="hidden md:flex space-x-6 lg:space-x-8">
                     {navigation.map((item, index) => (
                       <EditableElement
                         key={index}
@@ -129,11 +134,18 @@ export function HeaderSimple({
                   data-editable-type="button"
                 >
                   <button 
-                    className={getElementClassName('header-simple-mobile-menu', 'md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600', selectedElementId)}
+                    onClick={toggleMobileMenu}
+                    className={getElementClassName('header-simple-mobile-menu', 'md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors', selectedElementId)}
                     style={getElementStyle('header-simple-mobile-menu', customStyles)}
+                    aria-label="Toggle mobile menu"
+                    aria-expanded={isMobileMenuOpen}
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {isMobileMenuOpen ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      )}
                     </svg>
                   </button>
                 </EditableElement>
@@ -141,6 +153,43 @@ export function HeaderSimple({
             </EditableElement>
           </div>
         </EditableElement>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <EditableElement
+            id="header-simple-mobile-nav"
+            onClick={handleElementClick('header-simple-mobile-nav', 'container')}
+            data-editable-type="container"
+          >
+            <div className={`md:hidden ${transparent ? 'bg-white/95 backdrop-blur-md' : 'bg-white'} border-t border-gray-200`}>
+              <div className={`${responsiveContainers.wide} mx-auto ${responsiveSpacing.container.px} py-4`}>
+                <nav className="flex flex-col space-y-3">
+                  {navigation.map((item, index) => (
+                    <EditableElement
+                      key={index}
+                      id={`header-simple-mobile-nav-item-${index}`}
+                      onClick={handleElementClick(`header-simple-mobile-nav-item-${index}`, 'text')}
+                      data-editable-type="text"
+                    >
+                      <a
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={getElementClassName(`header-simple-mobile-nav-item-${index}`, `block py-2 text-base font-medium transition-colors duration-200 ${
+                          item.active 
+                            ? 'text-blue-600 bg-blue-50 px-3 rounded-md' 
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-3 rounded-md'
+                        }`, selectedElementId)}
+                        style={getElementStyle(`header-simple-mobile-nav-item-${index}`, customStyles)}
+                      >
+                        {item.label}
+                      </a>
+                    </EditableElement>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          </EditableElement>
+        )}
       </header>
     </EditableElement>
   );

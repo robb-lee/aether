@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 interface TeamMember {
   name: string;
@@ -77,12 +78,12 @@ export const TeamGrid: React.FC<TeamGridPropsInternal> = ({
   ]
 }) => {
   return (
-    <section className="py-16 px-4 bg-white" role="region" aria-label="Team members">
-      <div className="max-w-6xl mx-auto">
+    <section className={`${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-white`} role="region" aria-label="Team members">
+      <div className={`${responsiveContainers.wide} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-gray-900"
+            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
             ariaLevel={2}
           >
             {title}
@@ -90,13 +91,13 @@ export const TeamGrid: React.FC<TeamGridPropsInternal> = ({
           
           <EditableElement
             as="p"
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className={`${responsiveText.lead} text-gray-600 max-w-2xl mx-auto`}
           >
             {subtitle}
           </EditableElement>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className={`grid ${responsiveGrids['4-col']} gap-6 sm:gap-8`}>
           {members.map((member, index) => (
             <div 
               key={index}

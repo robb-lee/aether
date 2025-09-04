@@ -1,6 +1,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, getButtonGroupClasses, getContentImageClasses } from '../../utils/responsive-utils';
 
 /**
  * Props schema for Hero Split component
@@ -104,7 +105,7 @@ export function HeroSplit({
           data-editable-type="text"
         >
           <p 
-            className={getElementClassName('hero-subtitle', `text-sm font-medium tracking-wide uppercase mb-4 ${styles[style].subtitle}`, selectedElementId)}
+            className={getElementClassName('hero-subtitle', `${responsiveText.caption} font-medium tracking-wide uppercase mb-3 sm:mb-4 ${styles[style].subtitle}`, selectedElementId)}
             style={getElementStyle('hero-subtitle', customStyles)}
           >
             {subtitle}
@@ -119,7 +120,7 @@ export function HeroSplit({
         data-editable-type="text"
       >
         <h1 
-          className={getElementClassName('hero-title', `text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${styles[style].text}`, selectedElementId)}
+          className={getElementClassName('hero-title', `${responsiveText.display} font-bold mb-4 sm:mb-6 leading-tight ${styles[style].text}`, selectedElementId)}
           style={getElementStyle('hero-title', customStyles)}
         >
           {title}
@@ -134,7 +135,7 @@ export function HeroSplit({
           data-editable-type="text"
         >
           <p 
-            className={getElementClassName('hero-description', `text-lg md:text-xl mb-8 leading-relaxed ${styles[style].description}`, selectedElementId)}
+            className={getElementClassName('hero-description', `${responsiveText.lead} mb-6 sm:mb-8 leading-relaxed ${styles[style].description}`, selectedElementId)}
             style={getElementStyle('hero-description', customStyles)}
           >
             {description}
@@ -148,7 +149,7 @@ export function HeroSplit({
         onClick={handleElementClick('hero-button-group', 'container')}
         data-editable-type="container"
       >
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className={getButtonGroupClasses('stack')}>
           <EditableElement
             id="hero-primary-button"
             className=""
@@ -157,7 +158,7 @@ export function HeroSplit({
           >
             <a
               href={ctaHref}
-              className={getElementClassName('hero-primary-button', "px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center", selectedElementId)}
+              className={getElementClassName('hero-primary-button', `${responsiveSpacing.button.px} ${responsiveSpacing.button.py} bg-blue-600 text-white rounded-lg font-semibold ${responsiveText.body} hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center w-full sm:w-auto`, selectedElementId)}
               style={getElementStyle('hero-primary-button', customStyles)}
             >
               {ctaText}
@@ -173,7 +174,7 @@ export function HeroSplit({
             >
               <a
                 href={secondaryCtaHref}
-                className={getElementClassName('hero-secondary-button', "px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold text-lg hover:bg-blue-600 hover:text-white transition-all duration-300 text-center", selectedElementId)}
+                className={getElementClassName('hero-secondary-button', `${responsiveSpacing.button.px} ${responsiveSpacing.button.py} border-2 border-blue-600 text-blue-600 rounded-lg font-semibold ${responsiveText.body} hover:bg-blue-600 hover:text-white transition-all duration-300 text-center w-full sm:w-auto`, selectedElementId)}
                 style={getElementStyle('hero-secondary-button', customStyles)}
               >
                 {secondaryCtaText}
@@ -216,7 +217,7 @@ export function HeroSplit({
             <img
               src={imageUrl || demoImageUrl}
               alt={imageAlt}
-              className={getElementClassName('hero-image', "w-full h-auto rounded-xl shadow-2xl transform hover:scale-105 transition-transform duration-500", selectedElementId)}
+              className={getElementClassName('hero-image', "w-full h-auto max-h-96 sm:max-h-[500px] lg:max-h-[600px] object-cover rounded-xl shadow-2xl transform hover:scale-105 transition-transform duration-500", selectedElementId)}
             />
           </EditableElement>
           {showDemo && (
@@ -241,14 +242,14 @@ export function HeroSplit({
           onClick={handleElementClick('hero-image-placeholder', 'placeholder')}
           data-editable-type="placeholder"
         >
-          <div className={getElementClassName('hero-image-placeholder', "w-full h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center", selectedElementId)}>
+          <div className={getElementClassName('hero-image-placeholder', "w-full h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center", selectedElementId)}>
             <div className="text-center">
-              <div className="w-24 h-24 bg-blue-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-blue-200 rounded-lg mx-auto mb-3 sm:mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-gray-500">Hero Image Placeholder</p>
+              <p className="text-sm sm:text-base text-gray-500">Hero Image Placeholder</p>
             </div>
           </div>
         </EditableElement>
@@ -263,16 +264,16 @@ export function HeroSplit({
       onClick={handleElementClick('hero-section', 'section')}
       data-editable-type="section"
     >
-      <section className={getElementClassName('hero-section', `${styles[style].bg} py-20 px-4 sm:px-6 lg:px-8 ${className}`, selectedElementId)}>
+      <section className={getElementClassName('hero-section', `${styles[style].bg} ${responsiveSpacing.section.py} ${responsiveSpacing.section.px} ${className}`, selectedElementId)}>
         <EditableElement
           id="hero-container"
           className=""
           onClick={handleElementClick('hero-container', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-7xl mx-auto">
-            <div className={`flex flex-col md:flex-row gap-12 items-center ${
-              isRightLayout ? 'md:flex-row-reverse' : ''
+          <div className={`${responsiveContainers.wide} mx-auto`}>
+            <div className={`${getContentImageClasses('split')} ${
+              isRightLayout ? 'lg:flex-row-reverse' : ''
             }`}>
               <ContentSection />
               <ImageSection />

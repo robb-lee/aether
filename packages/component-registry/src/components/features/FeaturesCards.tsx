@@ -1,6 +1,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 const FeatureCardSchema = z.object({
   title: z.string(),
@@ -54,7 +55,7 @@ export function FeaturesCards({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('features-cards-section', `py-20 px-4 sm:px-6 lg:px-8 ${className}`, selectedElementId)}
+        className={getElementClassName('features-cards-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} ${className}`, selectedElementId)}
         style={getElementStyle('features-cards-section', customStyles)}
       >
         <EditableElement
@@ -62,7 +63,7 @@ export function FeaturesCards({
           onClick={handleElementClick('features-cards-container', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className={`${responsiveContainers.wide} mx-auto`}>
             <EditableElement
               id="features-cards-header"
               onClick={handleElementClick('features-cards-header', 'container')}
@@ -89,7 +90,7 @@ export function FeaturesCards({
                   data-editable-type="text"
                 >
                   <h2 
-                    className={getElementClassName('features-cards-title', 'text-3xl md:text-4xl font-bold text-gray-900 mb-6', selectedElementId)}
+                    className={getElementClassName('features-cards-title', `${responsiveText.h2} font-bold text-gray-900 mb-6`, selectedElementId)}
                     style={getElementStyle('features-cards-title', customStyles)}
                   >
                     {title}
@@ -103,7 +104,7 @@ export function FeaturesCards({
               onClick={handleElementClick('features-cards-grid', 'container')}
               data-editable-type="container"
             >
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div className={`grid gap-6 sm:gap-8 md:gap-8 ${responsiveGrids['3-col']}`}>
                 {features.map((feature, index) => (
                   <EditableElement
                     key={index}
@@ -112,7 +113,7 @@ export function FeaturesCards({
                     data-editable-type="container"
                   >
                     <div 
-                      className={getElementClassName(`features-cards-item-${index}`, `p-6 transition-all duration-300 ${styles[style]}`, selectedElementId)}
+                      className={getElementClassName(`features-cards-item-${index}`, `${responsiveSpacing.card.p} transition-all duration-300 ${styles[style]}`, selectedElementId)}
                       style={getElementStyle(`features-cards-item-${index}`, customStyles)}
                     >
                       {feature.icon && (
@@ -136,7 +137,7 @@ export function FeaturesCards({
                         data-editable-type="text"
                       >
                         <h3 
-                          className={getElementClassName(`features-cards-item-title-${index}`, 'text-xl font-semibold mb-3 text-gray-900', selectedElementId)}
+                          className={getElementClassName(`features-cards-item-title-${index}`, `${responsiveText.h3} font-semibold mb-3 text-gray-900`, selectedElementId)}
                           style={getElementStyle(`features-cards-item-title-${index}`, customStyles)}
                         >
                           {feature.title}
@@ -149,7 +150,7 @@ export function FeaturesCards({
                         data-editable-type="text"
                       >
                         <p 
-                          className={getElementClassName(`features-cards-item-description-${index}`, 'text-gray-600', selectedElementId)}
+                          className={getElementClassName(`features-cards-item-description-${index}`, `${responsiveText.body} text-gray-600`, selectedElementId)}
                           style={getElementStyle(`features-cards-item-description-${index}`, customStyles)}
                         >
                           {feature.description}

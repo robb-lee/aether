@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 interface BlogPost {
   id?: string;
@@ -130,16 +131,16 @@ export function BlogGrid({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('blog-grid-section', `py-16 px-4 bg-white ${className}`, selectedElementId)}
+        className={getElementClassName('blog-grid-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-white ${className}`, selectedElementId)}
         style={getElementStyle('blog-grid-section', customStyles)}
         role="region" 
         aria-label="Blog articles"
       >
-        <div className="max-w-6xl mx-auto">
+        <div className={`${responsiveContainers.wide} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-gray-900"
+            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
             ariaLevel={2}
           >
             {title}
@@ -147,7 +148,7 @@ export function BlogGrid({
           
           <EditableElement
             as="p"
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className={`${responsiveText.lead} text-gray-600 max-w-2xl mx-auto`}
           >
             {subtitle}
           </EditableElement>
@@ -158,7 +159,7 @@ export function BlogGrid({
             {categories.map((category) => (
               <button
                 key={category}
-                className={`px-4 py-2 rounded-full font-medium transition-colors ${
+                className={`${responsiveSpacing.button.px} py-2 rounded-full font-medium transition-colors ${
                   selectedCategory === category
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -172,7 +173,7 @@ export function BlogGrid({
           </div>
         )}
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className={`grid ${responsiveGrids['3-col']} gap-6 sm:gap-8`}>
           {filteredPosts.map((post, index) => (
             <article 
               key={post.id || index}

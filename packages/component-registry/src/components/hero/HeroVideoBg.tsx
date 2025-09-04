@@ -1,6 +1,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, getButtonGroupClasses } from '../../utils/responsive-utils';
 
 /**
  * Props schema for Hero Video Background component
@@ -58,8 +59,8 @@ export function HeroVideoBg({
 }: HeroVideoBgProps) {
   const layouts = {
     'overlay-center': 'absolute inset-0 flex items-center justify-center text-center',
-    'overlay-bottom': 'absolute inset-x-0 bottom-0 p-8 text-center',
-    'side-content': 'absolute inset-y-0 left-0 w-1/2 flex items-center p-8'
+    'overlay-bottom': `absolute inset-x-0 bottom-0 ${responsiveSpacing.container.py} ${responsiveSpacing.container.px} text-center`,
+    'side-content': `absolute inset-y-0 left-0 w-full lg:w-1/2 flex items-center ${responsiveSpacing.container.py} ${responsiveSpacing.container.px}`
   };
 
   const styles = {
@@ -153,7 +154,7 @@ export function HeroVideoBg({
           onClick={handleElementClick('hero-video-content-wrapper', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-4xl mx-auto px-4">
+          <div className={`${responsiveContainers.content} mx-auto ${responsiveSpacing.container.px}`}>
             {subtitle && (
               <EditableElement
                 id="hero-video-subtitle"
@@ -161,7 +162,7 @@ export function HeroVideoBg({
                 data-editable-type="text"
               >
                 <p 
-                  className={getElementClassName('hero-video-subtitle', `text-sm font-medium tracking-wide uppercase mb-4 ${styles[style].subtitle}`, selectedElementId)}
+                  className={getElementClassName('hero-video-subtitle', `${responsiveText.caption} font-medium tracking-wide uppercase mb-3 sm:mb-4 ${styles[style].subtitle}`, selectedElementId)}
                   style={getElementStyle('hero-video-subtitle', customStyles)}
                 >
                   {subtitle}
@@ -175,7 +176,7 @@ export function HeroVideoBg({
               data-editable-type="text"
             >
               <h1 
-                className={getElementClassName('hero-video-title', `text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${styles[style].text}`, selectedElementId)}
+                className={getElementClassName('hero-video-title', `${responsiveText.display} font-bold mb-4 sm:mb-6 leading-tight ${styles[style].text}`, selectedElementId)}
                 style={getElementStyle('hero-video-title', customStyles)}
               >
                 {title}
@@ -189,7 +190,7 @@ export function HeroVideoBg({
                 data-editable-type="text"
               >
                 <p 
-                  className={getElementClassName('hero-video-description', `text-lg md:text-xl mb-8 leading-relaxed ${styles[style].description} max-w-2xl ${
+                  className={getElementClassName('hero-video-description', `${responsiveText.lead} mb-6 sm:mb-8 leading-relaxed ${styles[style].description} ${responsiveContainers.narrow} ${
                     layout === 'overlay-center' ? 'mx-auto' : ''
                   }`, selectedElementId)}
                   style={getElementStyle('hero-video-description', customStyles)}
@@ -204,7 +205,7 @@ export function HeroVideoBg({
               onClick={handleElementClick('hero-video-button-group', 'container')}
               data-editable-type="container"
             >
-              <div className={`flex flex-col sm:flex-row gap-4 ${
+              <div className={`${getButtonGroupClasses('stack')} ${
                 layout === 'overlay-center' ? 'justify-center' : ''
               }`}>
                 <EditableElement
@@ -214,7 +215,7 @@ export function HeroVideoBg({
                 >
                   <a
                     href={ctaHref}
-                    className={getElementClassName('hero-video-primary-button', 'px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-center', selectedElementId)}
+                    className={getElementClassName('hero-video-primary-button', `${responsiveSpacing.button.px} ${responsiveSpacing.button.py} bg-white text-gray-900 rounded-lg font-semibold ${responsiveText.body} hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-center w-full sm:w-auto`, selectedElementId)}
                     style={getElementStyle('hero-video-primary-button', customStyles)}
                   >
                     {ctaText}
@@ -229,7 +230,7 @@ export function HeroVideoBg({
                   >
                     <a
                       href={secondaryCtaHref}
-                      className={getElementClassName('hero-video-secondary-button', 'px-8 py-4 border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300 text-center', selectedElementId)}
+                      className={getElementClassName('hero-video-secondary-button', `${responsiveSpacing.button.px} ${responsiveSpacing.button.py} border-2 border-white text-white rounded-lg font-semibold ${responsiveText.body} hover:bg-white hover:text-gray-900 transition-all duration-300 text-center w-full sm:w-auto`, selectedElementId)}
                       style={getElementStyle('hero-video-secondary-button', customStyles)}
                     >
                       {secondaryCtaText}
@@ -249,10 +250,10 @@ export function HeroVideoBg({
             data-editable-type="icon"
           >
             <div 
-              className={getElementClassName('hero-video-scroll-indicator', 'absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce', selectedElementId)}
+              className={getElementClassName('hero-video-scroll-indicator', 'absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce', selectedElementId)}
               style={getElementStyle('hero-video-scroll-indicator', customStyles)}
             >
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </div>

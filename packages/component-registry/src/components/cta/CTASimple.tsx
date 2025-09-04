@@ -1,6 +1,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, getButtonGroupClasses } from '../../utils/responsive-utils';
 
 export const CTASimplePropsSchema = z.object({
   title: z.string(),
@@ -56,7 +57,7 @@ export function CTASimple({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('cta-simple-section', `py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 ${className}`, selectedElementId)}
+        className={getElementClassName('cta-simple-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
         style={getElementStyle('cta-simple-section', customStyles)}
       >
         <EditableElement
@@ -64,7 +65,7 @@ export function CTASimple({
           onClick={handleElementClick('cta-simple-container', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-4xl mx-auto">
+          <div className={`${responsiveContainers.content} mx-auto`}>
             <EditableElement
               id="cta-simple-content"
               onClick={handleElementClick('cta-simple-content', 'container')}
@@ -77,7 +78,7 @@ export function CTASimple({
                   data-editable-type="text"
                 >
                   <h2 
-                    className={getElementClassName('cta-simple-title', 'text-3xl md:text-4xl font-bold text-gray-900 mb-4', selectedElementId)}
+                    className={getElementClassName('cta-simple-title', `${responsiveText.h2} font-bold text-gray-900 mb-4`, selectedElementId)}
                     style={getElementStyle('cta-simple-title', customStyles)}
                   >
                     {title}
@@ -91,7 +92,7 @@ export function CTASimple({
                     data-editable-type="text"
                   >
                     <p 
-                      className={getElementClassName('cta-simple-description', 'text-lg text-gray-600 mb-8', selectedElementId)}
+                      className={getElementClassName('cta-simple-description', `${responsiveText.lead} text-gray-600 mb-8`, selectedElementId)}
                       style={getElementStyle('cta-simple-description', customStyles)}
                     >
                       {description}
@@ -106,7 +107,7 @@ export function CTASimple({
                 >
                   <a
                     href={ctaHref}
-                    className={getElementClassName('cta-simple-button', `inline-block px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 ${styles[style]} ${
+                    className={getElementClassName('cta-simple-button', `inline-block ${responsiveSpacing.button.px} ${responsiveSpacing.button.py} rounded-lg font-semibold ${responsiveText.lead} transition-all duration-300 transform hover:scale-105 ${styles[style]} ${
                       layout === 'full-width' ? 'w-full sm:w-auto' : ''
                     }`, selectedElementId)}
                     style={getElementStyle('cta-simple-button', customStyles)}

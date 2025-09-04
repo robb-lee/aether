@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 interface TimelineItem {
   title: string;
@@ -133,13 +134,13 @@ export const Timeline: React.FC<TimelinePropsInternal> = ({
 
   if (orientation === 'horizontal') {
     return (
-      <section className="py-16 px-4 bg-white" role="region" aria-label="Timeline">
-        <div className="max-w-6xl mx-auto">
+      <section className={`${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-white`} role="region" aria-label="Timeline">
+        <div className={`${responsiveContainers.wide} mx-auto`}>
           <div className="text-center mb-12">
-            <EditableElement as="h2" className="text-3xl font-bold mb-4 text-gray-900" ariaLevel={2}>
+            <EditableElement as="h2" className={`${responsiveText.h2} font-bold mb-4 text-gray-900`} ariaLevel={2}>
               {title}
             </EditableElement>
-            <EditableElement as="p" className="text-xl text-gray-600">
+            <EditableElement as="p" className={`${responsiveText.lead} text-gray-600`}>
               {subtitle}
             </EditableElement>
           </div>
@@ -164,12 +165,12 @@ export const Timeline: React.FC<TimelinePropsInternal> = ({
   }
 
   return (
-    <section className="py-16 px-4 bg-gray-50" role="region" aria-label="Timeline">
-      <div className="max-w-4xl mx-auto">
+    <section className={`${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50`} role="region" aria-label="Timeline">
+      <div className={`${responsiveContainers.content} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-gray-900"
+            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
             ariaLevel={2}
           >
             {title}
@@ -177,7 +178,7 @@ export const Timeline: React.FC<TimelinePropsInternal> = ({
           
           <EditableElement
             as="p"
-            className="text-xl text-gray-600"
+            className={`${responsiveText.lead} text-gray-600`}
           >
             {subtitle}
           </EditableElement>
@@ -204,7 +205,7 @@ export const Timeline: React.FC<TimelinePropsInternal> = ({
                 )}
                 
                 {/* Content */}
-                <div className="ml-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200 flex-1">
+                <div className={`ml-8 bg-white rounded-lg ${responsiveSpacing.card.p} shadow-sm border border-gray-200 flex-1`}>
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-lg font-semibold text-gray-900">
                       {item.title}

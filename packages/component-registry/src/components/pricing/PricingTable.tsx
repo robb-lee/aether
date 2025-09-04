@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 interface PricingPlan {
   name: string;
@@ -96,12 +97,12 @@ export const PricingTable: React.FC<PricingTablePropsInternal> = ({
   ]
 }) => {
   return (
-    <section className="py-16 px-4 bg-white" role="region" aria-label="Pricing plans">
-      <div className="max-w-6xl mx-auto">
+    <section className={`${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-white`} role="region" aria-label="Pricing plans">
+      <div className={`${responsiveContainers.wide} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-gray-900"
+            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
             ariaLevel={2}
           >
             {title}
@@ -109,17 +110,17 @@ export const PricingTable: React.FC<PricingTablePropsInternal> = ({
           
           <EditableElement
             as="p"
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className={`${responsiveText.lead} text-gray-600 max-w-2xl mx-auto`}
           >
             {subtitle}
           </EditableElement>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-4">
+        <div className={`grid ${responsiveGrids['3-col']} gap-6 sm:gap-8 lg:gap-4`}>
           {plans.map((plan, index) => (
             <div 
               key={index}
-              className={`relative bg-white rounded-lg border-2 p-8 ${
+              className={`relative bg-white rounded-lg border-2 ${responsiveSpacing.card.p} ${
                 plan.highlighted 
                   ? 'border-blue-500 shadow-xl scale-105' 
                   : 'border-gray-200 hover:border-gray-300'

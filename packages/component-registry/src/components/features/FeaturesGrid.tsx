@@ -1,6 +1,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids, responsiveGaps } from '../../utils/responsive-utils';
 
 const FeatureItemSchema = z.object({
   title: z.string(),
@@ -42,16 +43,16 @@ export function FeaturesGrid({
   isEditor = false
 }: FeaturesGridProps) {
   const layouts = {
-    '2-col': 'grid-cols-1 md:grid-cols-2',
-    '3-col': 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-    '4-col': 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
-    'masonry': 'columns-1 md:columns-2 lg:columns-3'
+    '2-col': responsiveGrids['2-col'],
+    '3-col': responsiveGrids['3-col'],
+    '4-col': responsiveGrids['4-col'],
+    'masonry': 'columns-1 sm:columns-2 lg:columns-3'
   };
 
   const styles = {
-    cards: 'bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow',
-    minimal: 'p-4',
-    'icons-prominent': 'text-center p-6'
+    cards: `bg-white ${responsiveSpacing.card.p} rounded-xl shadow-lg hover:shadow-xl transition-shadow`,
+    minimal: responsiveSpacing.component.py,
+    'icons-prominent': `text-center ${responsiveSpacing.card.p}`
   };
 
   const animations = {
@@ -70,7 +71,7 @@ export function FeaturesGrid({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('features-grid-section', `py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 ${className}`, selectedElementId)}
+        className={getElementClassName('features-grid-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
         style={getElementStyle('features-grid-section', customStyles)}
       >
         <EditableElement
@@ -78,14 +79,14 @@ export function FeaturesGrid({
           onClick={handleElementClick('features-grid-container', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className={`${responsiveContainers.wide} mx-auto`}>
             {/* Header */}
             <EditableElement
               id="features-grid-header"
               onClick={handleElementClick('features-grid-header', 'container')}
               data-editable-type="container"
             >
-              <div className="text-center mb-16">
+              <div className="text-center mb-12 sm:mb-16">
                 {subtitle && (
                   <EditableElement
                     id="features-grid-subtitle"
@@ -93,7 +94,7 @@ export function FeaturesGrid({
                     data-editable-type="text"
                   >
                     <p 
-                      className={getElementClassName('features-grid-subtitle', 'text-sm font-medium tracking-wide uppercase mb-4 text-blue-600', selectedElementId)}
+                      className={getElementClassName('features-grid-subtitle', `${responsiveText.caption} font-medium tracking-wide uppercase mb-3 sm:mb-4 text-blue-600`, selectedElementId)}
                       style={getElementStyle('features-grid-subtitle', customStyles)}
                     >
                       {subtitle}
@@ -107,7 +108,7 @@ export function FeaturesGrid({
                   data-editable-type="text"
                 >
                   <h2 
-                    className={getElementClassName('features-grid-title', 'text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gray-900', selectedElementId)}
+                    className={getElementClassName('features-grid-title', `${responsiveText.h1} font-bold mb-4 sm:mb-6 text-gray-900`, selectedElementId)}
                     style={getElementStyle('features-grid-title', customStyles)}
                   >
                     {title}
@@ -121,7 +122,7 @@ export function FeaturesGrid({
                     data-editable-type="text"
                   >
                     <p 
-                      className={getElementClassName('features-grid-description', 'text-lg md:text-xl text-gray-600 max-w-3xl mx-auto', selectedElementId)}
+                      className={getElementClassName('features-grid-description', `${responsiveText.lead} text-gray-600 ${responsiveContainers.content} mx-auto`, selectedElementId)}
                       style={getElementStyle('features-grid-description', customStyles)}
                     >
                       {description}
@@ -137,7 +138,7 @@ export function FeaturesGrid({
               onClick={handleElementClick('features-grid-wrapper', 'container')}
               data-editable-type="container"
             >
-              <div className={`grid gap-8 ${layouts[layout]} ${layout !== 'masonry' ? animations[animation] : ''}`}>
+              <div className={`grid ${responsiveGaps.normal} ${layouts[layout]} ${layout !== 'masonry' ? animations[animation] : ''}`}>
                 {features.map((feature, index) => (
                   <EditableElement
                     key={index}
@@ -158,11 +159,11 @@ export function FeaturesGrid({
                           onClick={handleElementClick(`features-grid-icon-${index}`, 'icon')}
                           data-editable-type="icon"
                         >
-                          <div className={`mb-4 ${
-                            style === 'icons-prominent' ? 'mx-auto w-16 h-16' : 'w-12 h-12'
+                          <div className={`mb-3 sm:mb-4 ${
+                            style === 'icons-prominent' ? 'mx-auto w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16' : 'w-10 h-10 sm:w-12 sm:h-12'
                           } flex items-center justify-center`}>
                             <div 
-                              className={getElementClassName(`features-grid-icon-${index}`, `w-full h-full rounded-lg flex items-center justify-center text-2xl ${
+                              className={getElementClassName(`features-grid-icon-${index}`, `w-full h-full rounded-lg flex items-center justify-center text-lg sm:text-xl lg:text-2xl ${
                                 feature.iconColor || 'bg-blue-100 text-blue-600'
                               }`, selectedElementId)}
                               style={getElementStyle(`features-grid-icon-${index}`, customStyles)}
@@ -179,7 +180,7 @@ export function FeaturesGrid({
                         data-editable-type="text"
                       >
                         <h3 
-                          className={getElementClassName(`features-grid-title-${index}`, `text-xl font-semibold mb-3 text-gray-900 ${
+                          className={getElementClassName(`features-grid-title-${index}`, `${responsiveText.h3} font-semibold mb-2 sm:mb-3 text-gray-900 ${
                             style === 'icons-prominent' ? 'text-center' : ''
                           }`, selectedElementId)}
                           style={getElementStyle(`features-grid-title-${index}`, customStyles)}
@@ -194,7 +195,7 @@ export function FeaturesGrid({
                         data-editable-type="text"
                       >
                         <p 
-                          className={getElementClassName(`features-grid-description-${index}`, `text-gray-600 leading-relaxed ${
+                          className={getElementClassName(`features-grid-description-${index}`, `${responsiveText.body} text-gray-600 leading-relaxed ${
                             style === 'icons-prominent' ? 'text-center' : ''
                           }`, selectedElementId)}
                           style={getElementStyle(`features-grid-description-${index}`, customStyles)}

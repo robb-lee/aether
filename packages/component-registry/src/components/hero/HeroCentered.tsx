@@ -1,6 +1,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, getButtonGroupClasses } from '../../utils/responsive-utils';
 
 /**
  * Props schema for Hero Centered component
@@ -77,7 +78,7 @@ export function HeroCentered({
     >
       <section 
         className={getElementClassName('hero-centered-section', `
-          relative py-20 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center
+          relative ${responsiveSpacing.section.py} ${responsiveSpacing.section.px} min-h-screen flex items-center
           ${styles[style]}
           ${className}
         `, selectedElementId)}
@@ -95,7 +96,7 @@ export function HeroCentered({
           onClick={handleElementClick('hero-centered-container', 'container')}
           data-editable-type="container"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className={`${responsiveContainers.wide} mx-auto w-full`}>
             <EditableElement
               id="hero-centered-content"
               onClick={handleElementClick('hero-centered-content', 'container')}
@@ -110,7 +111,7 @@ export function HeroCentered({
                 >
                   <p 
                     className={getElementClassName('hero-centered-subtitle', `
-                      text-sm font-medium tracking-wide uppercase mb-4
+                      ${responsiveText.caption} font-medium tracking-wide uppercase mb-3 sm:mb-4
                       ${style === 'gradient' ? 'text-blue-200' : 'text-blue-600'}
                     `, selectedElementId)}
                     style={getElementStyle('hero-centered-subtitle', customStyles)}
@@ -127,7 +128,7 @@ export function HeroCentered({
               >
                 <h1 
                   className={getElementClassName('hero-centered-title', `
-                    text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight
+                    ${responsiveText.display} font-bold mb-4 sm:mb-6 leading-tight
                     ${style === 'gradient' ? 'text-white' : 'text-gray-900'}
                   `, selectedElementId)}
                   style={getElementStyle('hero-centered-title', customStyles)}
@@ -144,7 +145,7 @@ export function HeroCentered({
                 >
                   <p 
                     className={getElementClassName('hero-centered-description', `
-                      text-lg md:text-xl mb-8 max-w-3xl mx-auto leading-relaxed
+                      ${responsiveText.lead} mb-6 sm:mb-8 ${responsiveContainers.content} mx-auto leading-relaxed
                       ${style === 'gradient' ? 'text-gray-200' : 'text-gray-600'}
                     `, selectedElementId)}
                     style={getElementStyle('hero-centered-description', customStyles)}
@@ -159,7 +160,7 @@ export function HeroCentered({
                 onClick={handleElementClick('hero-centered-button-group', 'container')}
                 data-editable-type="container"
               >
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <div className={getButtonGroupClasses('center')}>
                   <EditableElement
                     id="hero-centered-primary-button"
                     onClick={handleElementClick('hero-centered-primary-button', 'button')}
@@ -168,8 +169,8 @@ export function HeroCentered({
                     <a
                       href={ctaHref}
                       className={getElementClassName('hero-centered-primary-button', `
-                        px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300
-                        transform hover:scale-105 hover:shadow-lg
+                        ${responsiveSpacing.button.px} ${responsiveSpacing.button.py} rounded-lg font-semibold ${responsiveText.body} transition-all duration-300
+                        transform hover:scale-105 hover:shadow-lg w-full sm:w-auto
                         ${style === 'gradient' 
                           ? 'bg-white text-blue-600 hover:bg-gray-100' 
                           : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -190,8 +191,8 @@ export function HeroCentered({
                       <a
                         href={secondaryCtaHref}
                         className={getElementClassName('hero-centered-secondary-button', `
-                          px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300
-                          border-2 hover:bg-opacity-10
+                          ${responsiveSpacing.button.px} ${responsiveSpacing.button.py} rounded-lg font-semibold ${responsiveText.body} transition-all duration-300
+                          border-2 hover:bg-opacity-10 w-full sm:w-auto
                           ${style === 'gradient'
                             ? 'border-white text-white hover:bg-white'
                             : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'

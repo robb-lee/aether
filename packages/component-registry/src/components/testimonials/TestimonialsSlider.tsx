@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers } from '../../utils/responsive-utils';
 
 export const TestimonialsSliderPropsSchema = z.object({
   title: z.string().default("What Our Customers Say"),
@@ -81,11 +82,11 @@ export const TestimonialsSlider: React.FC<TestimonialsSliderPropsInternal> = ({
   };
 
   return (
-    <section className="py-16 px-4 bg-gray-50" role="region" aria-label="Customer testimonials">
-      <div className="max-w-6xl mx-auto">
+    <section className={`${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50`} role="region" aria-label="Customer testimonials">
+      <div className={`${responsiveContainers.wide} mx-auto`}>
         <EditableElement
           as="h2"
-          className="text-3xl font-bold text-center mb-12 text-gray-900"
+          className={`${responsiveText.h2} font-bold text-center mb-12 text-gray-900`}
           ariaLevel={2}
         >
           {title}
@@ -105,14 +106,14 @@ export const TestimonialsSlider: React.FC<TestimonialsSliderPropsInternal> = ({
               {testimonials.map((testimonial, index) => (
                 <div 
                   key={index}
-                  className="w-full flex-shrink-0 bg-white p-8 text-center shadow-lg"
+                  className={`w-full flex-shrink-0 bg-white ${responsiveSpacing.card.p} text-center shadow-lg`}
                   aria-hidden={index !== currentSlide}
                 >
                   <div className="flex justify-center mb-4" aria-label={`Rating: ${testimonial.rating} out of 5 stars`}>
                     {renderStars(testimonial.rating)}
                   </div>
                   
-                  <blockquote className="text-lg text-gray-700 mb-6 italic">
+                  <blockquote className={`${responsiveText.lead} text-gray-700 mb-6 italic`}>
                     "{testimonial.content}"
                   </blockquote>
                   

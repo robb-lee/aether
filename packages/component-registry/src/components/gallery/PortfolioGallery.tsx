@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 interface GalleryItem {
   id?: string;
@@ -115,16 +116,16 @@ export function PortfolioGallery({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('portfolio-gallery-section', `py-16 px-4 bg-gray-50 ${className}`, selectedElementId)}
+        className={getElementClassName('portfolio-gallery-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
         style={getElementStyle('portfolio-gallery-section', customStyles)}
         role="region" 
         aria-label="Portfolio gallery"
       >
-        <div className="max-w-7xl mx-auto">
+        <div className={`${responsiveContainers.wide} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-gray-900"
+            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
             ariaLevel={2}
           >
             {title}
@@ -132,7 +133,7 @@ export function PortfolioGallery({
           
           <EditableElement
             as="p"
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className={`${responsiveText.lead} text-gray-600 max-w-2xl mx-auto`}
           >
             {subtitle}
           </EditableElement>
@@ -143,7 +144,7 @@ export function PortfolioGallery({
             {categories.map((category) => (
               <button
                 key={category}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                className={`${responsiveSpacing.button.px} py-2 rounded-full font-medium transition-colors ${
                   selectedCategory === category
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100'
@@ -157,7 +158,7 @@ export function PortfolioGallery({
           </div>
         )}
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={`grid ${responsiveGrids['3-col']} gap-4 sm:gap-6`}>
           {filteredItems.map((item, index) => (
             <div 
               key={item.id || index}
@@ -183,7 +184,7 @@ export function PortfolioGallery({
                 )}
               </div>
               
-              <div className="p-6">
+              <div className={`${responsiveSpacing.card.p}`}>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {item.title}
                 </h3>

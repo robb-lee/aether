@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids } from '../../utils/responsive-utils';
 
 /**
  * Props schema for Contact Form component
@@ -120,18 +121,18 @@ export function ContactForm({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('contact-form-section', `py-16 px-4 bg-white ${className}`, selectedElementId)}
+        className={getElementClassName('contact-form-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-white ${className}`, selectedElementId)}
         style={getElementStyle('contact-form-section', customStyles)}
         role="region" 
         aria-label="Contact form"
       >
-        <div className="max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className={`${responsiveContainers.wide} mx-auto`}>
+        <div className={`grid ${responsiveGrids['2-col']} gap-8 sm:gap-12`}>
           {/* Contact Information */}
           <div>
             <EditableElement
               as="h2"
-              className="text-3xl font-bold mb-4 text-gray-900"
+              className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
               ariaLevel={2}
             >
               {title}
@@ -139,7 +140,7 @@ export function ContactForm({
             
             <EditableElement
               as="p"
-              className="text-lg text-gray-600 mb-8 leading-relaxed"
+              className={`${responsiveText.lead} text-gray-600 mb-8 leading-relaxed`}
             >
               {subtitle}
             </EditableElement>
@@ -195,9 +196,9 @@ export function ContactForm({
           </div>
           
           {/* Contact Form */}
-          <div className="bg-gray-50 rounded-lg p-8">
+          <div className={`bg-gray-50 rounded-lg ${responsiveSpacing.card.p}`}>
             <form onSubmit={handleSubmit} noValidate>
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className={`grid ${responsiveGrids['2-col']} gap-4 sm:gap-6 mb-6`}>
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
                     Name *
@@ -245,7 +246,7 @@ export function ContactForm({
                 </div>
               </div>
               
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className={`grid ${responsiveGrids['2-col']} gap-4 sm:gap-6 mb-6`}>
                 {includePhone && (
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-2">

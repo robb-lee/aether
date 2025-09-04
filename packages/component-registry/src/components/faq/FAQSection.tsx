@@ -7,6 +7,7 @@
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers } from '../../utils/responsive-utils';
 
 interface FAQItem {
   question: string;
@@ -118,16 +119,16 @@ export function FAQSection({
       data-editable-type="section"
     >
       <section 
-        className={getElementClassName('faq-section', `py-16 px-4 bg-gray-50 ${className}`, selectedElementId)}
+        className={getElementClassName('faq-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
         style={getElementStyle('faq-section', customStyles)}
         role="region" 
         aria-label="Frequently asked questions"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className={`${responsiveContainers.content} mx-auto`}>
         <div className="text-center mb-12">
           <EditableElement
             as="h2"
-            className="text-3xl font-bold mb-4 text-gray-900"
+            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
             ariaLevel={2}
           >
             {title}
@@ -135,7 +136,7 @@ export function FAQSection({
           
           <EditableElement
             as="p"
-            className="text-xl text-gray-600"
+            className={`${responsiveText.lead} text-gray-600`}
           >
             {subtitle}
           </EditableElement>
@@ -151,7 +152,7 @@ export function FAQSection({
                   placeholder="Search FAQs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full ${responsiveSpacing.button.px} ${responsiveSpacing.button.py} pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                   aria-label="Search frequently asked questions"
                 />
                 <svg 
@@ -171,7 +172,7 @@ export function FAQSection({
                 {categories.map((category) => (
                   <button
                     key={category}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    className={`${responsiveSpacing.button.px} py-2 rounded-full ${responsiveText.caption} font-medium transition-colors ${
                       selectedCategory === category
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-100'

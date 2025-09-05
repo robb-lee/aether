@@ -10,8 +10,7 @@ function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ');
 }
 import { ComponentDefinition } from '../types/component';
-import { DesignKitConfig, designKits, getDesignKit } from '../design-kits';
-import { designTokens, getSpacing, getBorderRadius, getShadow } from '../design-tokens';
+import { DesignKitConfig, designKits, getDesignKit, designTokens, getSpacing, getBorderRadius, getShadow } from '../design-system';
 
 export interface AppliedComponent extends ComponentDefinition {
   appliedKit: string;

@@ -3,7 +3,7 @@
  * Simple script to measure the performance improvements
  */
 
-import { designKits, getDesignKit } from './src/design-kits';
+import { designKits, getDesignKit } from './src/design-system';
 import { createKitOptimizedPrompt, createMinimalPrompt } from '../ai-engine/prompts/selection-prompts';
 
 // Test prompt generation performance

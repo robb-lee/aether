@@ -6,7 +6,7 @@
  */
 
 import { SelectionContext } from '../selectors/component-selector';
-import { getDesignKit, designKits } from '../../component-registry/src/design-kits';
+import { getDesignKit, designKits, selectKitByIndustry } from '../../component-registry/src/design-system';
 
 /**
  * Enhanced system prompt for component selection and tree building

@@ -6,8 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { designKits, getDesignKit, selectKitByIndustry } from '../src/design-kits';
-import { designTokens, getToken, getSpacing, getBorderRadius } from '../src/design-tokens';
+import { designKits, getDesignKit, selectKitByIndustry, designTokens, getToken, getSpacing, getBorderRadius } from '../src/design-system';
 import { applyDesignKit, getBestKitForIndustry, validateKitCompatibility } from '../src/utils/apply-kit';
 import { createKitOptimizedPrompt, createMinimalPrompt } from '../../ai-engine/prompts/selection-prompts';
 import { ComponentDefinition } from '../src/types/component';
@@ -101,7 +100,7 @@ describe('Design Token System', () => {
   });
 
   it('should provide token utility functions', () => {
-    expect(getSpacing(4)).toBe('32px'); // 4 * 8px = 32px
+    expect(getSpacing(4)).toBe('48px'); // scale[4] = 6, 6 * 8px = 48px
     expect(getBorderRadius('md')).toBe('0.375rem');
     expect(getToken('colors.semantic.primary')).toBe('var(--primary)');
   });

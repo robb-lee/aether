@@ -38,9 +38,13 @@
       "types": "./dist/components/index.d.ts",
       "default": "./dist/components/index.js"
     },
+    "./design-system": {
+      "types": "./dist/design-system.d.ts",
+      "default": "./dist/design-system.js"
+    },
     "./design-kits": {
-      "types": "./dist/design-kits.d.ts",
-      "default": "./dist/design-kits.js"
+      "types": "./dist/design-system.d.ts",
+      "default": "./dist/design-system.js"
     }
   },
   "files": [

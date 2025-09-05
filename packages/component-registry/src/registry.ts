@@ -44,18 +44,14 @@ export class ComponentRegistry {
   }
 
   /**
-   * Initialize registry with default or custom metadata
+   * Initialize registry with unified component set
    */
   async initialize(metadataPath?: string): Promise<void> {
     try {
-      // Load default components first to ensure we have basic components
-      try {
-        const { defaultComponents } = await import('./data/default-components');
-        this.registerBatch(defaultComponents);
-        console.log(`📦 Loaded ${defaultComponents.length} default components`);
-      } catch (defaultError) {
-        console.warn('⚠️ Could not load default components:', defaultError);
-      }
+      // Load unified components (single source of truth for all components)
+      const { UNIFIED_COMPONENTS } = await import('./unified-components');
+      this.registerBatch(UNIFIED_COMPONENTS);
+      console.log(`📦 Loaded ${UNIFIED_COMPONENTS.length} unified components`);
       
       // Load external metadata if path provided
       if (metadataPath) {

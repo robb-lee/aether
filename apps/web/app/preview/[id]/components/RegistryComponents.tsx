@@ -4,6 +4,7 @@ import React from 'react'
 
 // Import the enhanced components from component registry
 export { HeroSplit } from '@aether/component-registry/components/hero/HeroSplit'
+export { HeroVideoBg } from '@aether/component-registry/components/hero/HeroVideoBg'
 export { CTASimple } from '@aether/component-registry/components/cta/CTASimple'
 
 // Import all the newly created components

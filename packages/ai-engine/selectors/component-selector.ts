@@ -39,6 +39,17 @@ export interface SelectionContext {
  */
 export class ComponentSelector {
   private registry = getRegistry();
+  private initialized = false;
+
+  /**
+   * Ensure registry is initialized before use
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initialized) {
+      await this.registry.initialize();
+      this.initialized = true;
+    }
+  }
 
   /**
    * Parse AI response to extract component selections
@@ -61,7 +72,9 @@ export class ComponentSelector {
   /**
    * Select optimal components based on context
    */
-  selectComponentsForContext(context: SelectionContext): ComponentDefinition[] {
+  async selectComponentsForContext(context: SelectionContext): Promise<ComponentDefinition[]> {
+    await this.ensureInitialized();
+    
     // Auto-select design kit if not specified
     if (!context.designKit && context.industry) {
       context.designKit = this.selectOptimalDesignKit(context);
@@ -88,7 +101,8 @@ export class ComponentSelector {
   /**
    * Get components optimized for a specific design kit
    */
-  selectComponentsForKit(kitId: string, context?: Partial<SelectionContext>): ComponentDefinition[] {
+  async selectComponentsForKit(kitId: string, context?: Partial<SelectionContext>): Promise<ComponentDefinition[]> {
+    await this.ensureInitialized();
     return this.registry.getComponentsByDesignKit(kitId);
   }
 
@@ -117,7 +131,8 @@ export class ComponentSelector {
   /**
    * Get available component IDs for AI prompt
    */
-  getAvailableComponents(): string[] {
+  async getAvailableComponents(): Promise<string[]> {
+    await this.ensureInitialized();
     return this.registry.getAllComponents().map(comp => comp.id);
   }
 
@@ -138,12 +153,13 @@ export class ComponentSelector {
   /**
    * Validate selected component combination
    */
-  validateSelection(componentIds: string[]): {
+  async validateSelection(componentIds: string[]): Promise<{
     valid: boolean;
     issues: string[];
     suggestions: string[];
     estimatedTokenSavings: number;
-  } {
+  }> {
+    await this.ensureInitialized();
     const validation = this.registry.validateCombination(componentIds);
     
     // Calculate token savings (compared to direct generation)
@@ -162,7 +178,9 @@ export class ComponentSelector {
   /**
    * Get component selection prompt for AI (optimized for minimal tokens)
    */
-  generateSelectionPrompt(context: SelectionContext): string {
+  async generateSelectionPrompt(context: SelectionContext): Promise<string> {
+    await this.ensureInitialized();
+    
     // Auto-select design kit
     const designKit = context.designKit || this.selectOptimalDesignKit(context);
     

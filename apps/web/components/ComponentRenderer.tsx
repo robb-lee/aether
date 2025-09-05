@@ -2,7 +2,8 @@ import React from 'react'
 // Import all available components from preview components
 import { 
   HeroSplit, 
-  HeroCentered, 
+  HeroCentered,
+  HeroVideoBg,
   FeaturesGrid, 
   HeaderNav, 
   FooterSimple,
@@ -29,12 +30,11 @@ interface ComponentRendererProps {
 
 // Map componentId to actual imported components
 const componentMap = {
+  'header-simple': HeaderNav, // Map to existing HeaderNav component for now
   'hero-split': HeroSplit,
   'hero-centered': HeroCentered, 
+  'hero-video-bg': HeroVideoBg,
   'features-grid': FeaturesGrid,
-  'header-nav': HeaderNav,
-  'footer-simple': FooterSimple,
-  'cta-simple': CTASimple,
   'testimonials-slider': TestimonialsSlider,
   'pricing-table': PricingTable,
   'stats-section': StatsSection,
@@ -43,7 +43,9 @@ const componentMap = {
   'team-grid': TeamGrid,
   'portfolio-gallery': PortfolioGallery,
   'blog-grid': BlogGrid,
-  'timeline': Timeline
+  'timeline': Timeline,
+  'footer-simple': FooterSimple,
+  'cta-simple': CTASimple
 }
 
 export function ComponentRenderer({ 
@@ -103,19 +105,45 @@ export function ComponentRenderer({
 
   // For production mode, show error if component not found
   if (!Component) {
+    // Log error for debugging
+    console.error(`Component "${componentKey}" not found in componentMap`, {
+      componentKey,
+      availableComponents: Object.keys(componentMap),
+      props,
+      suggestedAlternatives: Object.keys(componentMap).filter(k => 
+        k.includes(componentKey?.split('-')[0] || '') || 
+        componentKey?.includes(k.split('-')[0] || '')
+      )
+    });
+
     return (
       <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
         <h3 className="text-yellow-800 font-semibold mb-2">Component Unavailable</h3>
-        <p className="text-yellow-700 mb-4">Component "{componentKey}" not found</p>
+        <p className="text-yellow-700 mb-4">Component "{componentKey}" not found in registry</p>
         <div className="bg-white p-4 rounded border">
           <p className="text-sm text-gray-600 mb-2">
-            <strong>Component ID:</strong> {componentKey || 'Unknown'}
+            <strong>Requested Component ID:</strong> {componentKey || 'Unknown'}
           </p>
+          <p className="text-sm text-gray-600 mb-2">
+            <strong>Available Components:</strong> {Object.keys(componentMap).length} registered
+          </p>
+          <details className="mt-2">
+            <summary className="text-sm font-medium text-gray-700 cursor-pointer">
+              Show Available Components
+            </summary>
+            <div className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-32">
+              {Object.keys(componentMap).map(key => (
+                <div key={key} className="py-1 border-b border-gray-200 last:border-b-0">
+                  {key}
+                </div>
+              ))}
+            </div>
+          </details>
           <details className="mt-2">
             <summary className="text-sm font-medium text-gray-700 cursor-pointer">
               Show Props
             </summary>
-            <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto">
+            <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-32">
               {JSON.stringify(props, null, 2)}
             </pre>
           </details>

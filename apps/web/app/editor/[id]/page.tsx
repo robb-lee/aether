@@ -200,7 +200,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       let updatedTree = { ...componentTree }
       
       // Special positioning logic for navigation components
-      if (updates.type === 'header-nav') {
+      if (updates.type === 'header-simple' || updates.type === 'nav-mega-menu') {
         // Always add nav at the top
         updatedTree.children = [newComponent, ...(componentTree.children || [])]
       } else if (updates.type === 'footer-simple') {

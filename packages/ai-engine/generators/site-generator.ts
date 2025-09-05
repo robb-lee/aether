@@ -48,10 +48,11 @@ export async function generateSiteWithRegistry(
   
   try {
     // Generate selection prompt with context
+    const availableComponents = await selector.getAvailableComponents();
     const { prompt: selectionPrompt, estimatedTokens } = generateContextualPrompt(
       prompt, 
       context, 
-      selector.getAvailableComponents()
+      availableComponents
     );
 
     console.log(`🎯 Token estimate: ${estimatedTokens} (vs ~20,000 for direct generation)`);
@@ -113,7 +114,8 @@ export async function generateSiteWithTreeBuilder(
       selectionPrompt = createPerformanceOptimizedPrompt(prompt, context, performanceTarget);
       estimatedTokens = Math.ceil(selectionPrompt.length / 4);
     } else {
-      const promptResult = generateContextualPrompt(prompt, context, selector.getAvailableComponents());
+      const availableComponents = await selector.getAvailableComponents();
+      const promptResult = generateContextualPrompt(prompt, context, availableComponents);
       selectionPrompt = promptResult.prompt;
       estimatedTokens = promptResult.estimatedTokens;
     }
@@ -392,7 +394,7 @@ async function generateSelectionWithParsing(
   
   // Validate selection
   const componentIds = selection.selections.map(s => s.componentId);
-  const validation = selector!.validateSelection(componentIds);
+  const validation = await selector!.validateSelection(componentIds);
   
   if (!validation.valid) {
     console.warn('⚠️ Component selection issues:', validation.issues);

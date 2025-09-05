@@ -18,7 +18,7 @@ const COMPONENT_LIBRARY: ComponentItem[] = [
   { id: 'hero-split', name: 'Hero Split', category: 'Layout', icon: <Layout className="w-4 h-4" />, description: 'Hero section with content and image' },
   { id: 'hero-centered', name: 'Hero Centered', category: 'Layout', icon: <Layout className="w-4 h-4" />, description: 'Centered hero section' },
   { id: 'features-grid', name: 'Features Grid', category: 'Layout', icon: <Grid className="w-4 h-4" />, description: 'Grid of feature cards' },
-  { id: 'header-nav', name: 'Navigation Header', category: 'Layout', icon: <Layout className="w-4 h-4" />, description: 'Header with navigation' },
+  { id: 'header-simple', name: 'Simple Header', category: 'Layout', icon: <Layout className="w-4 h-4" />, description: 'Header with navigation' },
   { id: 'footer-simple', name: 'Simple Footer', category: 'Layout', icon: <Layout className="w-4 h-4" />, description: 'Basic footer' },
   
   // Content

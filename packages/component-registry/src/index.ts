@@ -38,32 +38,65 @@ export type {
 // Metadata loader
 export { MetadataLoader, DEFAULT_METADATA_PATHS } from './loaders/json-loader';
 
-// Components
+// Unified Components (replaces both CORE_COMPONENTS and defaultComponents)
 export { 
-  CORE_COMPONENTS, 
-  COMPONENT_MAP,
+  UNIFIED_COMPONENTS,
+  UNIFIED_COMPONENT_MAP,
+  loadUnifiedComponents,
+  getUnifiedComponent,
+  getUnifiedComponentsByCategory,
+  getAllUnifiedComponentIds,
+  // Individual component exports
+  HeaderSimple,
   HeroCentered,
   HeroSplit,
   HeroVideoBg,
-  FeaturesGrid
-} from './components';
+  HeroEnterprise,
+  FeaturesGrid,
+  TestimonialsSlider,
+  PricingTable,
+  TeamGrid,
+  PortfolioGallery,
+  ContactForm,
+  FAQSection,
+  StatsSection,
+  BlogGrid,
+  Timeline,
+  NavMegaMenu,
+  FooterEnterprise,
+  LogoCarousel,
+  LogoGrid,
+  CTASimple
+} from './unified-components';
 
 // Schemas
 export {
+  HeaderSimplePropsSchema,
   HeroCenteredPropsSchema,
   HeroSplitPropsSchema,
   HeroVideoBgPropsSchema,
-  FeaturesGridPropsSchema
-} from './components';
+  FeaturesGridPropsSchema,
+  TestimonialsSliderPropsSchema,
+  PricingTablePropsSchema,
+  TeamGridPropsSchema,
+  PortfolioGalleryPropsSchema,
+  ContactFormPropsSchema,
+  FAQSectionPropsSchema,
+  StatsSectionPropsSchema,
+  BlogGridPropsSchema,
+  TimelinePropsSchema,
+  FooterEnterprisePropsSchema,
+  CTASimplePropsSchema
+} from './unified-components';
 
 // Initialize default registry
 import { ComponentRegistry } from './registry';
-import { CORE_COMPONENTS } from './components';
+import { UNIFIED_COMPONENTS } from './unified-components';
 
 let defaultRegistry: ComponentRegistry | null = null;
 
 /**
- * Get initialized default registry with core components
+ * Get initialized default registry with unified components
  */
 export async function getDefaultRegistry(): Promise<ComponentRegistry> {
   if (!defaultRegistry) {
@@ -72,8 +105,8 @@ export async function getDefaultRegistry(): Promise<ComponentRegistry> {
       cacheTTL: 30 // 30 minutes
     });
     
-    // Register core components
-    defaultRegistry.registerBatch(CORE_COMPONENTS);
+    // Register unified components
+    defaultRegistry.registerBatch(UNIFIED_COMPONENTS);
     
     // Try to load external metadata if available
     try {
@@ -83,7 +116,7 @@ export async function getDefaultRegistry(): Promise<ComponentRegistry> {
       console.log('ℹ️ No external metadata found, using default component metadata');
     }
     
-    console.log(`🎯 Component Registry initialized with ${CORE_COMPONENTS.length} core components`);
+    console.log(`🎯 Component Registry initialized with ${UNIFIED_COMPONENTS.length} unified components`);
   }
   
   return defaultRegistry;
@@ -153,6 +186,20 @@ export async function selectComponentsForPrompt(prompt: string): Promise<{
   
   const matches = [];
   
+  // Header section (optional but recommended)
+  if (keywords.some(k => ['navigation', 'menu', 'header', 'nav'].includes(k))) {
+    matches.push({
+      componentId: 'header-simple',
+      category: 'header',
+      suggestedProps: {
+        logoText: 'Company',
+        style: 'minimal',
+        transparent: false
+      },
+      confidence: 0.85
+    });
+  }
+  
   // Hero section (always needed)
   if (keywords.some(k => ['saas', 'software', 'platform', 'tech'].includes(k))) {
     matches.push({
@@ -197,6 +244,34 @@ export async function selectComponentsForPrompt(prompt: string): Promise<{
         style: 'cards'
       },
       confidence: 0.8
+    });
+  }
+  
+  // CTA section
+  if (keywords.some(k => ['signup', 'register', 'join', 'start', 'action', 'cta'].includes(k))) {
+    matches.push({
+      componentId: 'cta-simple',
+      category: 'cta',
+      suggestedProps: {
+        title: 'Ready to Get Started?',
+        ctaText: 'Get Started',
+        layout: 'center',
+        style: 'solid'
+      },
+      confidence: 0.75
+    });
+  }
+  
+  // Footer section (optional but common)
+  if (keywords.some(k => ['footer', 'contact', 'company', 'links'].includes(k))) {
+    matches.push({
+      componentId: 'footer-simple',
+      category: 'footer',
+      suggestedProps: {
+        companyName: 'Company',
+        showSocialSection: true
+      },
+      confidence: 0.7
     });
   }
   

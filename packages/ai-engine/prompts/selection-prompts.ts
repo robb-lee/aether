@@ -21,9 +21,11 @@ YOUR ROLE:
 - Focus on optimal component combinations, compelling content, and user experience flow
 
 AVAILABLE COMPONENTS:
+- header-simple: Clean navigation header with logo and menu (Lighthouse: 98)
 - hero-centered: Perfect for product showcases, portfolios, creative agencies (Lighthouse: 95)
 - hero-split: Ideal for SaaS, tech products, feature explanations (Lighthouse: 92)
 - hero-video-bg: Best for entertainment, lifestyle, immersive experiences (Lighthouse: 75)
+- hero-enterprise: Enterprise-grade hero with trust badges (Lighthouse: 93)
 - features-grid: Showcase multiple features with equal importance (Lighthouse: 88)
 - testimonials-slider: Customer reviews and testimonials carousel (Lighthouse: 90)
 - pricing-table: Professional 3-tier pricing plans (Lighthouse: 94)
@@ -34,13 +36,13 @@ AVAILABLE COMPONENTS:
 - stats-section: Key metrics and achievements display (Lighthouse: 89)
 - blog-grid: Blog posts display with categories (Lighthouse: 87)
 - timeline: Company milestones and processes (Lighthouse: 90)
-- header-nav: Navigation with logo and menu items (Lighthouse: 98)
-- footer-simple: Basic footer with links and contact info (Lighthouse: 95)
-- cta-banner: Call-to-action section for conversions (Lighthouse: 92)
+- cta-simple: Simple call-to-action section (Lighthouse: 95)
+- footer-simple: Clean footer with essential links (Lighthouse: 96)
+- footer-enterprise: Enterprise footer with social links (Lighthouse: 96)
 
 COMPONENT FLOW GUIDELINES:
-1. Start with header-nav for navigation (optional)
-2. Choose ONE hero component (hero-centered, hero-split, or hero-video-bg) 
+1. Optional HEADER: header-simple for site navigation (recommended for multi-page sites)
+2. Choose ONE hero component (hero-centered, hero-split, hero-video-bg, or hero-enterprise) 
 3. Add 2-6 supporting sections based on user needs:
    - features-grid: Product/service capabilities
    - testimonials-slider: Social proof and credibility
@@ -52,7 +54,8 @@ COMPONENT FLOW GUIDELINES:
    - timeline: Company history or processes
    - faq-section: Common questions and support
    - contact-form: Lead generation and inquiries
-4. Optionally end with footer-simple for completeness
+   - cta-simple: Call-to-action sections
+4. Optional FOOTER: footer-simple or footer-enterprise for site closure
 5. Choose components that create a complete user journey for the specific business type
 
 SELECTION CRITERIA:
@@ -71,18 +74,6 @@ COMPONENT ORDERING:
 OUTPUT FORMAT (JSON ONLY):
 {
   "selections": [
-    {
-      "componentId": "header-nav",
-      "props": {
-        "logo": "Brand Name",
-        "menuItems": [
-          {"label": "Features", "href": "#features"},
-          {"label": "Pricing", "href": "#pricing"},
-          {"label": "Contact", "href": "#contact"}
-        ],
-        "ctaText": "Get Started"
-      }
-    },
     {
       "componentId": "hero-split",
       "props": {
@@ -105,14 +96,12 @@ OUTPUT FORMAT (JSON ONLY):
       }
     },
     {
-      "componentId": "footer-simple",
+      "componentId": "contact-form",
       "props": {
-        "companyName": "Company Name",
-        "links": [
-          {"label": "Privacy", "href": "/privacy"},
-          {"label": "Terms", "href": "/terms"}
-        ],
-        "contact": "contact@example.com"
+        "title": "Get In Touch",
+        "subtitle": "We'd love to hear from you",
+        "includePhone": true,
+        "includeCompany": true
       }
     }
   ]
@@ -269,7 +258,7 @@ BASIC REQUIREMENTS:
 export function generateContextualPrompt(
   userInput: string,
   context: SelectionContext,
-  availableComponents: string[]
+  _availableComponents?: string[]
 ): {
   prompt: string;
   estimatedTokens: number;
@@ -335,10 +324,10 @@ export function createHierarchicalSelectionPrompt(
   const hierarchicalGuidance = `
 
 HIERARCHICAL STRUCTURE GUIDELINES:
-1. HEADER (if needed): header-nav for site navigation
+1. HEADER (if needed): header-simple for site navigation
 2. HERO: One primary hero component (hero-centered, hero-split, or hero-video-bg)
-3. CONTENT: Supporting sections (features-grid, cta-banner)
-4. FOOTER (if needed): footer-simple for site closure
+3. CONTENT: Supporting sections (features-grid, cta-simple)
+4. FOOTER (if needed): footer-enterprise for site closure
 
 COMPONENT RELATIONSHIPS:
 - Each component should serve a specific purpose in the user journey
@@ -394,7 +383,7 @@ function getLayoutGuidance(layout: string): string {
   const guidance = {
     stacked: 'Focus on vertical flow, full-width components, clear section breaks',
     grid: 'Emphasize features-grid, balanced content distribution, visual harmony',
-    sidebar: 'Consider header-nav with side navigation, asymmetrical layouts',
+    sidebar: 'Consider header-simple with side navigation, asymmetrical layouts',
     centered: 'Prioritize hero-centered, center-aligned content, focused messaging'
   };
   
@@ -428,18 +417,18 @@ PERFORMANCE TARGET: Lighthouse 90+
 - Avoid hero-video-bg (performance impact)
 - Prefer hero-centered (95) or hero-split (92)
 - Limit to 4 components maximum
-- Include header-nav (98) and footer-simple (95) for high scores`,
+- Include header-simple (98) and footer-enterprise (95) for high scores`,
 
     lighthouse95: `
 PERFORMANCE TARGET: Lighthouse 95+
-- Use ONLY hero-centered (95), header-nav (98), footer-simple (95)
+- Use ONLY hero-centered (95), header-simple (98), footer-enterprise (95)
 - Avoid video backgrounds and heavy animations
 - Minimal component count (3 components max)
 - Focus on speed over visual complexity`,
 
     fastest: `
 PERFORMANCE TARGET: Maximum Speed
-- Use header-nav + hero-centered + footer-simple only
+- Use header-simple + hero-centered + footer-enterprise only
 - Minimal props and content
 - No image generation requests
 - Optimize for sub-10 second generation`

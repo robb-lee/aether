@@ -1,7 +1,36 @@
 'use client'
 
 import React from 'react'
+import { z } from 'zod'
 import { cn } from '@aether/ui/utils/cn'
+
+const SocialLinkSchema = z.object({
+  platform: z.string(),
+  href: z.string(),
+  ariaLabel: z.string()
+});
+
+const LegalLinkSchema = z.object({
+  label: z.string(),
+  href: z.string()
+});
+
+const OfficeLocationSchema = z.object({
+  name: z.string(),
+  address: z.string()
+});
+
+export const FooterEnterprisePropsSchema = z.object({
+  logo: z.string().optional(),
+  logoText: z.string().default('Company'),
+  companyName: z.string().default('Company'),
+  copyrightText: z.string().optional(),
+  socialLinks: z.array(SocialLinkSchema).optional(),
+  legalLinks: z.array(LegalLinkSchema).optional(),
+  offices: z.array(OfficeLocationSchema).optional(),
+  showSocialSection: z.boolean().default(true),
+  className: z.string().optional()
+});
 
 interface SocialLink {
   platform: string

@@ -77,7 +77,10 @@ export class IdGenerator {
       ? `_${name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 20)}`
       : '';
     
-    return `tree${sanitizedName}${timestamp}_${nanoid(6)}`;
+    // Generate nanoid with only alphanumeric and underscore characters
+    const id = nanoid(6).replace(/-/g, '_');
+    
+    return `tree${sanitizedName}${timestamp}_${id}`;
   }
 
   /**

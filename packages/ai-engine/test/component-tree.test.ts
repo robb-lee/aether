@@ -13,6 +13,33 @@ import { ComponentTree, ComponentNode, TreeBuildOptions } from '../types/compone
 // Mock the registry to avoid dependency issues
 vi.mock('../../component-registry/src/registry', () => ({
   getRegistry: () => ({
+    getById: vi.fn().mockImplementation((id: string) => {
+      const mockComponents = {
+        'hero-split': {
+          id: 'hero-split',
+          name: 'Hero Split',
+          reactComponent: 'HeroSplit',
+          metadata: {
+            category: 'hero',
+            allowsChildren: false,
+            tags: ['hero', 'split'],
+            description: 'Split layout hero component'
+          }
+        },
+        'features-grid': {
+          id: 'features-grid',
+          name: 'Features Grid',
+          reactComponent: 'FeaturesGrid',
+          metadata: {
+            category: 'features',
+            allowsChildren: false,
+            tags: ['features', 'grid'],
+            description: 'Grid layout for features'
+          }
+        }
+      };
+      return mockComponents[id as keyof typeof mockComponents] || null;
+    }),
     getComponent: vi.fn().mockImplementation(async (id: string) => {
       const mockComponents = {
         'hero-split': {

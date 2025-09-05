@@ -8,6 +8,37 @@
     --foreground: 222.2 84% 4.9%;
     --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
+    
+    /* QueryPie Enterprise Theme Variables */
+    --enterprise-blue: 239 84% 67%;        /* #4F46E5 - Primary Blue */
+    --enterprise-purple: 250 84% 54%;      /* #8B5CF6 - Purple Accent */
+    --trust-gray: 215 28% 17%;             /* #2D3748 - Dark Gray */
+    --success-green: 142 76% 36%;          /* #059669 - Success */
+    --warning-amber: 38 92% 50%;           /* #D97706 - Warning */
+    
+    /* Semantic Colors */
+    --nav-bg: 0 0% 100%;                   /* White navigation background */
+    --nav-border: 220 13% 91%;             /* Light border */
+    --nav-text: 215 28% 17%;               /* Dark text */
+    --nav-hover: 220 14% 96%;              /* Hover background */
+    
+    --footer-bg: 222 84% 5%;               /* Dark footer background */
+    --footer-text: 210 40% 98%;            /* Light footer text */
+    --footer-muted: 215 20% 65%;           /* Muted footer text */
+    
+    /* Badge Colors */
+    --badge-blue: 213 94% 68%;             /* Announcement badges */
+    --badge-purple: 262 83% 58%;           /* Feature badges */
+    --badge-green: 142 76% 36%;            /* Success badges */
+    
+    /* Card & Surface */
+    --card-bg: 0 0% 100%;                  /* Card background */
+    --card-border: 220 13% 91%;            /* Card border */
+    --card-shadow: 220 43% 11% / 0.1;      /* Card shadow */
+    
+    /* Interactive States */
+    --hover-bg: 220 14% 96%;               /* General hover background */
+    --focus-ring: 239 84% 67% / 0.2;       /* Focus ring color */
   }
 
   .dark {
@@ -15,6 +46,18 @@
     --foreground: 210 40% 98%;
     --primary: 217 91% 60%;
     --primary-foreground: 222.2 47.4% 11.2%;
+    
+    /* Dark Mode Overrides */
+    --nav-bg: 222 84% 5%;
+    --nav-border: 215 28% 17%;
+    --nav-text: 210 40% 98%;
+    --nav-hover: 215 28% 17%;
+    
+    --card-bg: 222 84% 5%;
+    --card-border: 215 28% 17%;
+    --card-shadow: 220 43% 11% / 0.3;
+    
+    --hover-bg: 215 28% 17%;
   }
   
   body {
@@ -38,5 +81,187 @@
   
   .glass-dark {
     @apply bg-black/10 backdrop-blur-md border border-black/20;
+  }
+  
+  /* Responsive utilities for better mobile experience */
+  .touch-smooth {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+  
+  /* Prevent layout shift on mobile */
+  .stable-scrollbar {
+    scrollbar-gutter: stable;
+  }
+  
+  /* Better text rendering on mobile */
+  .text-optimized {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Device Frame Viewport Simulation */
+  .viewport-simulator {
+    container-type: inline-size;
+  }
+  
+  /* Force mobile styles when viewport is mobile size */
+  .viewport-mobile .responsive-container {
+    /* Override Tailwind responsive classes for mobile viewport */
+  }
+  
+  @container (max-width: 640px) {
+    .viewport-simulator .responsive-container {
+      /* Force mobile-first styles */
+      padding: 0 1rem;
+    }
+    
+    /* Mobile text sizes - much smaller */
+    .viewport-simulator .text-3xl,
+    .viewport-simulator .sm\:text-4xl,
+    .viewport-simulator .md\:text-5xl, 
+    .viewport-simulator .lg\:text-6xl,
+    .viewport-simulator .xl\:text-7xl { 
+      font-size: 1.5rem !important; 
+      line-height: 1.2 !important;
+    }
+    
+    .viewport-simulator .text-lg,
+    .viewport-simulator .sm\:text-xl,
+    .viewport-simulator .md\:text-2xl { 
+      font-size: 1rem !important; 
+    }
+    
+    .viewport-simulator .text-sm,
+    .viewport-simulator .sm\:text-base,
+    .viewport-simulator .md\:text-lg { 
+      font-size: 0.875rem !important; 
+    }
+    
+    /* Mobile padding - smaller */
+    .viewport-simulator .py-12,
+    .viewport-simulator .sm\:py-16,
+    .viewport-simulator .md\:py-20,
+    .viewport-simulator .lg\:py-24 { 
+      padding-top: 2rem !important; 
+      padding-bottom: 2rem !important; 
+    }
+    
+    .viewport-simulator .px-4,
+    .viewport-simulator .sm\:px-6,
+    .viewport-simulator .lg\:px-8,
+    .viewport-simulator .xl\:px-12 { 
+      padding-left: 1rem !important; 
+      padding-right: 1rem !important; 
+    }
+    
+    /* Mobile margins */
+    .viewport-simulator .mb-6,
+    .viewport-simulator .sm\:mb-8,
+    .viewport-simulator .mb-8 { 
+      margin-bottom: 1rem !important; 
+    }
+    
+    .viewport-simulator .mb-4,
+    .viewport-simulator .sm\:mb-6 { 
+      margin-bottom: 0.5rem !important; 
+    }
+    
+    /* Mobile flex direction */
+    .viewport-simulator .lg\:flex-row,
+    .viewport-simulator .sm\:flex-row { 
+      flex-direction: column !important; 
+    }
+    
+    /* Mobile text alignment */
+    .viewport-simulator .lg\:text-left { 
+      text-align: center !important; 
+    }
+    
+    /* Mobile gaps */
+    .viewport-simulator .gap-8,
+    .viewport-simulator .lg\:gap-12,
+    .viewport-simulator .gap-6,
+    .viewport-simulator .sm\:gap-8 { 
+      gap: 1rem !important; 
+    }
+    
+    /* Mobile containers */
+    .viewport-simulator .max-w-7xl,
+    .viewport-simulator .max-w-6xl,
+    .viewport-simulator .max-w-4xl,
+    .viewport-simulator .max-w-2xl { 
+      max-width: 100% !important; 
+    }
+    
+    /* Mobile buttons */
+    .viewport-simulator .px-6,
+    .viewport-simulator .sm\:px-8 { 
+      padding-left: 1rem !important; 
+      padding-right: 1rem !important; 
+    }
+    
+    .viewport-simulator .py-3,
+    .viewport-simulator .sm\:py-4 { 
+      padding-top: 0.75rem !important; 
+      padding-bottom: 0.75rem !important; 
+    }
+    
+    /* Force full width for mobile */
+    .viewport-simulator .w-full,
+    .viewport-simulator .sm\:w-auto { 
+      width: 100% !important; 
+    }
+    
+    /* Mobile grid layouts - force single column */
+    .viewport-simulator .grid-cols-1,
+    .viewport-simulator .sm\:grid-cols-2,
+    .viewport-simulator .lg\:grid-cols-3,
+    .viewport-simulator .lg\:grid-cols-4,
+    .viewport-simulator .grid-cols-2,
+    .viewport-simulator .grid-cols-3 { 
+      grid-template-columns: repeat(1, minmax(0, 1fr)) !important; 
+    }
+    
+    /* Mobile pricing table specific fixes */
+    .viewport-simulator .pricing-table,
+    .viewport-simulator [class*="pricing"] { 
+      display: flex !important; 
+      flex-direction: column !important; 
+      gap: 1rem !important; 
+    }
+    
+    /* Mobile cards - full width with proper spacing */
+    .viewport-simulator .bg-white {
+      margin: 0 !important;
+      border-radius: 0.5rem !important;
+    }
+    
+    /* Mobile text overflow fixes */
+    .viewport-simulator * {
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      hyphens: auto !important;
+    }
+    
+    /* Hide overflow content */
+    .viewport-simulator .overflow-hidden { 
+      overflow: hidden !important; 
+    }
+  }
+  
+  @container (min-width: 641px) and (max-width: 1023px) {
+    /* Tablet overrides */
+    .viewport-simulator .text-3xl { font-size: 2.25rem; }
+    .viewport-simulator .sm\:text-4xl { font-size: 2.25rem !important; }
+    .viewport-simulator .md\:text-5xl { font-size: 2.25rem !important; }
   }
 }

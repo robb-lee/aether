@@ -18,14 +18,19 @@ interface SiteData {
 
 interface PageProps {
   params: { id: string }
+  searchParams?: { iframe?: string; device?: string }
 }
 
-export default function PreviewPage({ params }: PageProps) {
+export default function PreviewPage({ params, searchParams }: PageProps) {
   const [siteData, setSiteData] = useState<SiteData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDevice, setSelectedDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [zoomLevel, setZoomLevel] = useState<50 | 75 | 100 | 125>(100)
+  
+  // Check if this is iframe mode
+  const isIframeMode = searchParams?.iframe === 'true'
+  const deviceFromParams = searchParams?.device as 'desktop' | 'tablet' | 'mobile' | undefined
 
   useEffect(() => {
     async function fetchSiteData() {
@@ -93,6 +98,23 @@ export default function PreviewPage({ params }: PageProps) {
   const components = siteStructure?.pages?.[0]?.components || siteStructure
   const designKit = siteData.designKit || 'modern-saas'  // Default kit
 
+  // If iframe mode, render directly without frame wrapper
+  if (isIframeMode) {
+    return (
+      <div className="w-full min-h-screen">
+        <DesignKitProvider kitId={designKit}>
+          {components ? (
+            <SiteRenderer components={components} designKit={designKit} isIframe={true} device={deviceFromParams} />
+          ) : (
+            <div className="w-full p-4 text-center">
+              <p className="text-gray-600">No components to render</p>
+            </div>
+          )}
+        </DesignKitProvider>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Enhanced Preview Header */}
@@ -136,19 +158,44 @@ export default function PreviewPage({ params }: PageProps) {
 }
 
 // Site renderer for Component Registry components with Design Kit support
-function SiteRenderer({ components, designKit }: { components: any; designKit: string }) {
+function SiteRenderer({ 
+  components, 
+  designKit, 
+  isIframe = false, 
+  device 
+}: { 
+  components: any; 
+  designKit: string; 
+  isIframe?: boolean; 
+  device?: string 
+}) {
   if (!components || !components.root) {
     return (
-      <div className="max-w-4xl mx-auto p-8 text-center">
+      <div className="w-full p-4 sm:p-8 text-center">
         <p className="text-gray-600">No components to render</p>
       </div>
     )
   }
 
+  // Add device-specific viewport simulation for iframe mode
+  const deviceClasses = device ? {
+    mobile: 'max-w-sm mx-auto',
+    tablet: 'max-w-3xl mx-auto', 
+    desktop: 'w-full'
+  }[device] || 'w-full' : 'w-full';
+
   // If root component has children, render them directly
   if (components.root.children && Array.isArray(components.root.children)) {
     return (
-      <div className={`min-h-screen kit-${designKit}`} data-design-kit={designKit}>
+      <div 
+        className={`${deviceClasses} min-h-screen kit-${designKit}`} 
+        data-design-kit={designKit}
+        data-device={device}
+        style={isIframe ? { 
+          fontSize: device === 'mobile' ? '14px' : '16px',
+          width: device === 'mobile' ? '375px' : device === 'tablet' ? '768px' : '100%'
+        } : {}}
+      >
         {components.root.children.map((child: any, index: number) => (
           <ComponentRenderer 
             key={child.id || index} 
@@ -162,7 +209,15 @@ function SiteRenderer({ components, designKit }: { components: any; designKit: s
 
   // Otherwise render the root component itself
   return (
-    <div className={`min-h-screen kit-${designKit}`} data-design-kit={designKit}>
+    <div 
+      className={`${deviceClasses} min-h-screen kit-${designKit}`} 
+      data-design-kit={designKit}
+      data-device={device}
+      style={isIframe ? { 
+        fontSize: device === 'mobile' ? '14px' : '16px',
+        width: device === 'mobile' ? '375px' : device === 'tablet' ? '768px' : '100%'
+      } : {}}
+    >
       <ComponentRenderer 
         component={components.root} 
         designKit={designKit}

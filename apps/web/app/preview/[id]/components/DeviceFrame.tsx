@@ -58,41 +58,52 @@ export function DeviceFrame({ device, zoom, children, className = '' }: DeviceFr
     }
   }
 
+  // Create iframe URL for proper viewport simulation
+  const getIframeUrl = () => {
+    if (typeof window !== 'undefined') {
+      const currentUrl = new URL(window.location.href);
+      // Create a clean iframe URL without device frame wrapper
+      return `${currentUrl.origin}${currentUrl.pathname}?iframe=true&device=${device}`;
+    }
+    return '';
+  }
+
   const getContentStyles = () => {
+    const baseStyles = {
+      width: '100%',
+      background: '#fff',
+      position: 'relative' as const,
+      overflow: 'hidden'
+    }
+
     switch (device) {
       case 'mobile':
         return {
-          width: '100%',
+          ...baseStyles,
           minHeight: '651px', // 667 - 16px padding
           borderRadius: '16px',
-          overflow: 'hidden',
-          background: '#fff'
+          // Mobile viewport simulation
+          fontSize: '16px', // Prevent zoom on input focus
         }
       
       case 'tablet':
         return {
-          width: '100%',
+          ...baseStyles,
           minHeight: '1000px', // 1024 - 24px padding
           borderRadius: '8px',
-          overflow: 'hidden',
-          background: '#fff'
         }
       
       case 'desktop':
         return {
-          width: '100%',
+          ...baseStyles,
           minHeight: '596px', // 600 - 4px padding
           borderRadius: '6px',
-          overflow: 'hidden',
-          background: '#fff'
         }
       
       default:
         return {
-          width: '100%',
+          ...baseStyles,
           minHeight: '600px',
-          overflow: 'hidden',
-          background: '#fff'
         }
     }
   }
@@ -117,9 +128,30 @@ export function DeviceFrame({ device, zoom, children, className = '' }: DeviceFr
           </>
         )}
 
-        {/* Content area */}
-        <div style={getContentStyles()}>
-          {children}
+        {/* Content area with simulated viewport */}
+        <div 
+          style={getContentStyles()}
+          className={`viewport-simulator viewport-${device}`}
+          data-device={device}
+        >
+          <div 
+            className="w-full h-full overflow-auto" 
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              // Force media query evaluation based on container width
+              containerType: 'inline-size'
+            }}
+          >
+            <div 
+              className="responsive-container"
+              style={{
+                width: '100%',
+                minHeight: '100%'
+              }}
+            >
+              {children}
+            </div>
+          </div>
         </div>
         
         {/* Device info overlay */}

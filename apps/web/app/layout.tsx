@@ -5,6 +5,13 @@ import { ErrorBoundary } from '../components/error-boundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'Aether - AI Website Builder',

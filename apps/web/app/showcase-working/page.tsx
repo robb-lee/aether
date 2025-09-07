@@ -141,12 +141,20 @@ function NavMegaMenuDemo() {
 function HeroVideoBgDemo() {
   return (
     <section className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 to-purple-900/80"></div>
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to right, color-mix(in oklab, var(--primary) 80%, black), color-mix(in oklab, var(--secondary) 80%, black))'
+        }}
+      ></div>
       <div className="absolute inset-0 bg-black/40"></div>
       
       <div className="relative flex items-center justify-center min-h-screen px-4 text-center text-white">
         <div className="max-w-4xl mx-auto">
-          <div className="text-blue-300 font-medium text-sm uppercase tracking-wide mb-4">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'color-mix(in oklab, var(--primary) 70%, white)' }}
+          >
             Revolutionary Platform
           </div>
           <h1 className="text-6xl font-bold mb-6 leading-tight">
@@ -156,10 +164,37 @@ function HeroVideoBgDemo() {
             Immerse yourself in next-generation technology that transforms the way you work and connect.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <button className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <button 
+              className="px-8 py-4 font-semibold transition-colors"
+              style={{
+                backgroundColor: 'var(--background)',
+                color: 'var(--foreground)',
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--muted)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--background)';
+              }}
+            >
               Explore Now
             </button>
-            <button className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-gray-900 transition-colors">
+            <button 
+              className="border-2 text-white px-8 py-4 font-semibold transition-colors"
+              style={{
+                borderColor: 'white',
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = 'var(--foreground)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'white';
+              }}
+            >
               Learn More
             </button>
           </div>
@@ -256,7 +291,12 @@ function HeroEnterpriseDemo() {
 
 function HeroCenteredDemo() {
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+    <section 
+      className="relative min-h-screen text-white"
+      style={{
+        background: 'linear-gradient(135deg, var(--primary), var(--secondary))'
+      }}
+    >
       <div className="absolute inset-0 bg-black/20"></div>
       <div className="relative flex items-center justify-center min-h-screen px-4">
         <div className="text-center max-w-4xl mx-auto">
@@ -267,10 +307,36 @@ function HeroCenteredDemo() {
             Create professional websites instantly with AI. No coding required - just describe your vision.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-gray-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors">
+            <button 
+              className="px-8 py-4 font-semibold text-lg transition-colors"
+              style={{
+                backgroundColor: 'var(--background)',
+                color: 'var(--foreground)',
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--muted)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--background)';
+              }}
+            >
               Start Building
             </button>
-            <button className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-colors">
+            <button 
+              className="border-2 border-white text-white px-8 py-4 font-semibold text-lg transition-colors"
+              style={{
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = 'var(--foreground)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'white';
+              }}
+            >
               View Demo
             </button>
           </div>
@@ -282,31 +348,81 @@ function HeroCenteredDemo() {
 
 function HeroSplitDemo() {
   return (
-    <section className="min-h-screen bg-gray-50">
+    <section 
+      className="min-h-screen"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
           <div className="space-y-6">
-            <div className="text-blue-600 font-medium text-sm uppercase tracking-wide">
+            <div 
+              className="font-medium text-sm uppercase tracking-wide"
+              style={{ color: 'var(--primary)' }}
+            >
               Next-Generation Solutions
             </div>
-            <h1 className="text-5xl font-bold text-gray-900 leading-tight">
+            <h1 
+              className="text-5xl font-bold leading-tight"
+              style={{ color: 'var(--foreground)' }}
+            >
               Transform Your Business with AI
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p 
+              className="text-xl leading-relaxed"
+              style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+            >
               Leverage cutting-edge AI technology to streamline operations, boost productivity, and drive unprecedented growth.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+              <button 
+                className="text-white px-8 py-4 font-semibold transition-colors"
+                style={{
+                  backgroundColor: 'var(--primary)',
+                  borderRadius: 'var(--radius)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--brand-700, color-mix(in oklab, var(--primary) 85%, black))';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--primary)';
+                }}
+              >
                 Get Started Free
               </button>
-              <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+              <button 
+                className="px-8 py-4 font-semibold transition-colors"
+                style={{
+                  border: '1px solid var(--border)',
+                  color: 'var(--foreground)',
+                  backgroundColor: 'transparent',
+                  borderRadius: 'var(--radius)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--muted)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
                 Watch Demo
               </button>
             </div>
           </div>
           <div className="relative">
-            <div className="bg-white rounded-lg shadow-2xl p-6">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg h-64 flex items-center justify-center">
+            <div 
+              className="p-6 shadow-2xl"
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
+              <div 
+                className="h-64 flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(to right, var(--primary), var(--secondary))',
+                  borderRadius: 'var(--radius)'
+                }}
+              >
                 <div className="text-white text-center">
                   <div className="text-6xl mb-4">📊</div>
                   <p className="text-lg">Modern Dashboard Interface</p>
@@ -345,23 +461,48 @@ function FeaturesGridDemo() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <div className="text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'var(--primary)' }}
+          >
             Everything You Need
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Powerful Features</h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Powerful Features</h2>
+          <p 
+            className="text-xl max-w-2xl mx-auto"
+            style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+          >
             Comprehensive tools and capabilities to help you succeed.
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div 
+              key={index} 
+              className="p-8 shadow-lg hover:shadow-xl transition-shadow"
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
               <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              <h3 
+                className="text-xl font-semibold mb-3"
+                style={{ color: 'var(--foreground)' }}
+              >{feature.title}</h3>
+              <p 
+                className="leading-relaxed"
+                style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+              >{feature.description}</p>
             </div>
           ))}
         </div>
@@ -378,62 +519,132 @@ function ContactFormDemo() {
   });
 
   return (
-    <section className="py-20 bg-white">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--background)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12">
-            <div className="text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
+            <div 
+              className="font-medium text-sm uppercase tracking-wide mb-4"
+              style={{ color: 'var(--primary)' }}
+            >
               We'd Love to Hear From You
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Get In Touch</h2>
-            <p className="text-xl text-gray-600">
+            <h2 
+              className="text-4xl font-bold mb-6"
+              style={{ color: 'var(--foreground)' }}
+            >Get In Touch</h2>
+            <p 
+              className="text-xl"
+              style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+            >
               Have questions? We're here to help. Send us a message and we'll respond within 24 hours.
             </p>
           </div>
           
           <form className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label 
+                className="block text-sm font-medium mb-2"
+                style={{ color: 'var(--foreground)' }}
+              >
                 Full Name
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 focus:ring-2 focus:border-transparent"
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.outline = '2px solid var(--primary)';
+                  e.currentTarget.style.outlineOffset = '2px';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.outline = 'none';
+                }}
                 placeholder="Your name"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label 
+                className="block text-sm font-medium mb-2"
+                style={{ color: 'var(--foreground)' }}
+              >
                 Email Address
               </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 focus:ring-2 focus:border-transparent"
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.outline = '2px solid var(--primary)';
+                  e.currentTarget.style.outlineOffset = '2px';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.outline = 'none';
+                }}
                 placeholder="your@email.com"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label 
+                className="block text-sm font-medium mb-2"
+                style={{ color: 'var(--foreground)' }}
+              >
                 Message
               </label>
               <textarea
                 value={formData.message}
                 onChange={(e) => setFormData({...formData, message: e.target.value})}
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 focus:ring-2 focus:border-transparent"
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.outline = '2px solid var(--primary)';
+                  e.currentTarget.style.outlineOffset = '2px';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.outline = 'none';
+                }}
                 placeholder="Tell us about your project..."
               />
             </div>
             
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full text-white px-8 py-4 font-semibold transition-colors"
+              style={{
+                backgroundColor: 'var(--primary)',
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--brand-700, color-mix(in oklab, var(--primary) 85%, black))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--primary)';
+              }}
             >
               Send Message
             </button>
@@ -463,31 +674,65 @@ function FAQDemo() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <div className="text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
+            <div 
+              className="font-medium text-sm uppercase tracking-wide mb-4"
+              style={{ color: 'var(--primary)' }}
+            >
               Everything You Need to Know
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <h2 
+              className="text-4xl font-bold mb-6"
+              style={{ color: 'var(--foreground)' }}
+            >Frequently Asked Questions</h2>
           </div>
           
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-white border border-gray-200 rounded-lg">
+              <div 
+                key={index} 
+                className="border"
+                style={{
+                  backgroundColor: 'var(--background)',
+                  borderColor: 'var(--border)',
+                  borderRadius: 'var(--radius)'
+                }}
+              >
                 <button
-                  className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50"
+                  className="w-full px-6 py-4 text-left flex justify-between items-center transition-colors"
+                  style={{ 
+                    backgroundColor: 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--muted)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                   onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 >
-                  <span className="font-semibold text-gray-900">{faq.question}</span>
-                  <span className="text-2xl text-gray-400">
+                  <span 
+                    className="font-semibold"
+                    style={{ color: 'var(--foreground)' }}
+                  >{faq.question}</span>
+                  <span 
+                    className="text-2xl"
+                    style={{ color: 'color-mix(in oklab, var(--foreground) 50%, transparent)' }}
+                  >
                     {openIndex === index ? '−' : '+'}
                   </span>
                 </button>
                 {openIndex === index && (
                   <div className="px-6 pb-4">
-                    <p className="text-gray-600">{faq.answer}</p>
+                    <p 
+                      style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                    >{faq.answer}</p>
                   </div>
                 )}
               </div>
@@ -508,10 +753,16 @@ function StatsDemo() {
   ];
 
   return (
-    <section className="py-20 bg-blue-600 text-white">
+    <section 
+      className="py-20 text-white"
+      style={{ backgroundColor: 'var(--primary)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <div className="text-blue-200 font-medium text-sm uppercase tracking-wide mb-4">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'color-mix(in oklab, var(--primary) 30%, white)' }}
+          >
             Our Impact
           </div>
           <h2 className="text-4xl font-bold mb-6">Trusted by Thousands</h2>
@@ -521,7 +772,9 @@ function StatsDemo() {
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
               <div className="text-4xl md:text-5xl font-bold mb-2">{stat.value}</div>
-              <div className="text-blue-200">{stat.label}</div>
+              <div 
+              style={{ color: 'color-mix(in oklab, var(--primary) 30%, white)' }}
+            >{stat.label}</div>
             </div>
           ))}
         </div>
@@ -532,7 +785,12 @@ function StatsDemo() {
 
 function CTADemo() {
   return (
-    <section className="py-20 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+    <section 
+      className="py-20 text-white"
+      style={{
+        background: 'linear-gradient(to right, var(--secondary), var(--primary))'
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -542,10 +800,36 @@ function CTADemo() {
             Join thousands of users who've already transformed their web presence with AI.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors">
+            <button 
+              className="px-8 py-4 font-semibold text-lg transition-colors"
+              style={{
+                backgroundColor: 'var(--background)',
+                color: 'var(--primary)',
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--muted)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--background)';
+              }}
+            >
               Start Building Free
             </button>
-            <button className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-purple-600 transition-colors">
+            <button 
+              className="border-2 border-white text-white px-8 py-4 font-semibold text-lg transition-colors"
+              style={{
+                borderRadius: 'var(--radius)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.color = 'var(--primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'white';
+              }}
+            >
               View Pricing
             </button>
           </div>
@@ -584,21 +868,39 @@ function TestimonialsSliderDemo() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <div className="text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'var(--primary)' }}
+          >
             Success Stories
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">What Our Customers Say</h2>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >What Our Customers Say</h2>
         </div>
         
         <div className="max-w-4xl mx-auto">
-          <div className="relative bg-white rounded-2xl shadow-xl p-8 md:p-12">
+          <div 
+            className="relative shadow-xl p-8 md:p-12"
+            style={{
+              backgroundColor: 'var(--background)',
+              borderRadius: 'var(--radius)'
+            }}
+          >
             <div className="text-center">
               <div className="text-6xl mb-6">💬</div>
               
-              <blockquote className="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed">
+              <blockquote 
+                className="text-xl md:text-2xl mb-8 leading-relaxed"
+                style={{ color: 'color-mix(in oklab, var(--foreground) 80%, transparent)' }}
+              >
                 "{testimonials[currentSlide].content}"
               </blockquote>
               
@@ -613,8 +915,13 @@ function TestimonialsSliderDemo() {
               <div className="flex items-center justify-center space-x-4">
                 <div className="text-4xl">{testimonials[currentSlide].avatar}</div>
                 <div className="text-left">
-                  <div className="font-semibold text-gray-900">{testimonials[currentSlide].name}</div>
-                  <div className="text-gray-600">{testimonials[currentSlide].company}</div>
+                  <div 
+                    className="font-semibold"
+                    style={{ color: 'var(--foreground)' }}
+                  >{testimonials[currentSlide].name}</div>
+                  <div 
+                    style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                  >{testimonials[currentSlide].company}</div>
                 </div>
               </div>
             </div>
@@ -625,9 +932,10 @@ function TestimonialsSliderDemo() {
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index === currentSlide ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
+                className={`w-3 h-3 rounded-full transition-colors`}
+                style={{
+                  backgroundColor: index === currentSlide ? 'var(--primary)' : 'var(--border)'
+                }}
               />
             ))}
           </div>
@@ -686,18 +994,36 @@ function LogoGridDemo() {
   ];
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section 
+      className="py-16"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Trusted Partners</h2>
-          <p className="text-gray-600">Companies that power their websites with our platform</p>
+          <h2 
+            className="text-2xl font-bold mb-4"
+            style={{ color: 'var(--foreground)' }}
+          >Trusted Partners</h2>
+          <p 
+            style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+          >Companies that power their websites with our platform</p>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-8">
           {logos.map((logo, index) => (
-            <div key={index} className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow text-center">
+            <div 
+              key={index} 
+              className="p-6 shadow-sm hover:shadow-md transition-shadow text-center"
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
               <div className="text-3xl mb-2">{logo.icon}</div>
-              <div className="text-sm font-medium text-gray-700">{logo.name}</div>
+              <div 
+                className="text-sm font-medium"
+                style={{ color: 'color-mix(in oklab, var(--foreground) 80%, transparent)' }}
+              >{logo.name}</div>
             </div>
           ))}
         </div>
@@ -739,35 +1065,69 @@ function PricingTableDemo() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <div className="text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'var(--primary)' }}
+          >
             Pricing That Scales
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Choose Your Plan</h2>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Choose Your Plan</h2>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
-            <div key={index} className={`bg-white rounded-2xl shadow-lg p-8 relative ${
-              plan.highlighted ? 'ring-2 ring-blue-500 scale-105' : ''
-            }`}>
+            <div 
+              key={index} 
+              className={`shadow-lg p-8 relative ${
+                plan.highlighted ? 'scale-105' : ''
+              }`}
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: 'var(--radius)',
+                border: plan.highlighted ? '2px solid var(--primary)' : '1px solid var(--border)'
+              }}
+            >
               {plan.highlighted && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-blue-600 text-white text-sm font-medium px-4 py-1 rounded-full">
+                  <div 
+                    className="text-white text-sm font-medium px-4 py-1"
+                    style={{
+                      backgroundColor: 'var(--primary)',
+                      borderRadius: 'var(--radius-pill)'
+                    }}
+                  >
                     Most Popular
                   </div>
                 </div>
               )}
               
               <div className="text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                <p className="text-gray-600 text-sm mb-6">{plan.description}</p>
+                <h3 
+                  className="text-xl font-bold mb-2"
+                  style={{ color: 'var(--foreground)' }}
+                >{plan.name}</h3>
+                <p 
+                  className="text-sm mb-6"
+                  style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                >{plan.description}</p>
                 
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                  {plan.period && <span className="text-gray-600">/{plan.period}</span>}
+                  <span 
+                    className="text-4xl font-bold"
+                    style={{ color: 'var(--foreground)' }}
+                  >{plan.price}</span>
+                  {plan.period && <span 
+                    style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                  >/{plan.period}</span>}
                 </div>
                 
                 <ul className="space-y-3 mb-8 text-left">
@@ -776,16 +1136,31 @@ function PricingTableDemo() {
                       <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-gray-600">{feature}</span>
+                      <span 
+                        style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                      >{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
-                <button className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-                  plan.highlighted 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                }`}>
+                <button 
+                  className="w-full py-3 px-6 font-semibold transition-colors"
+                  style={{
+                    backgroundColor: plan.highlighted ? 'var(--primary)' : 'var(--muted)',
+                    color: plan.highlighted ? 'white' : 'var(--foreground)',
+                    borderRadius: 'var(--radius)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (plan.highlighted) {
+                      e.currentTarget.style.backgroundColor = 'var(--brand-700, color-mix(in oklab, var(--primary) 85%, black))';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'var(--border)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = plan.highlighted ? 'var(--primary)' : 'var(--muted)';
+                  }}
+                >
                   {plan.ctaText}
                 </button>
               </div>
@@ -823,22 +1198,47 @@ function TeamGridDemo() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--background)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <div className="text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'var(--primary)' }}
+          >
             The People Behind Aether
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Meet Our Team</h2>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Meet Our Team</h2>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {members.map((member, index) => (
-            <div key={index} className="text-center bg-gray-50 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+            <div 
+              key={index} 
+              className="text-center p-6 hover:shadow-lg transition-shadow"
+              style={{
+                backgroundColor: 'var(--muted)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
               <div className="text-6xl mb-4">{member.image}</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>
-              <div className="text-blue-600 font-medium mb-4">{member.role}</div>
-              <p className="text-gray-600 text-sm mb-6">{member.bio}</p>
+              <h3 
+                className="text-xl font-bold mb-2"
+                style={{ color: 'var(--foreground)' }}
+              >{member.name}</h3>
+              <div 
+                className="font-medium mb-4"
+                style={{ color: 'var(--primary)' }}
+              >{member.role}</div>
+              <p 
+                className="text-sm mb-6"
+                style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+              >{member.bio}</p>
               
               <div className="flex justify-center space-x-4">
                 {Object.entries(member.social).map(([platform, url]) => (
@@ -868,28 +1268,68 @@ function PortfolioGalleryDemo() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Portfolio</h2>
-          <p className="text-xl text-gray-600">Stunning projects created with our platform</p>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Our Portfolio</h2>
+          <p 
+            className="text-xl"
+            style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+          >Stunning projects created with our platform</p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {portfolioItems.map((item, index) => (
-            <div key={index} className="group relative bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
-              <div className="aspect-w-16 aspect-h-12 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+            <div 
+              key={index} 
+              className="group relative overflow-hidden shadow-md hover:shadow-xl transition-shadow"
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
+              <div 
+                className="aspect-w-16 aspect-h-12 flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 20%, transparent), color-mix(in oklab, var(--secondary) 20%, transparent))'
+                }}
+              >
                 <div className="text-6xl">{item.image}</div>
               </div>
               
               <div className="p-6">
-                <div className="text-sm text-blue-600 font-medium mb-2">{item.category}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600 text-sm">Beautiful design crafted with attention to detail</p>
+                <div 
+                  className="text-sm font-medium mb-2"
+                  style={{ color: 'var(--primary)' }}
+                >{item.category}</div>
+                <h3 
+                  className="text-xl font-semibold mb-2"
+                  style={{ color: 'var(--foreground)' }}
+                >{item.title}</h3>
+                <p 
+                  className="text-sm"
+                  style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                >Beautiful design crafted with attention to detail</p>
               </div>
               
-              <div className="absolute inset-0 bg-blue-600/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold">
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                style={{ backgroundColor: 'color-mix(in oklab, var(--primary) 80%, transparent)' }}
+              >
+                <button 
+                  className="px-6 py-2 font-semibold"
+                  style={{
+                    backgroundColor: 'var(--background)',
+                    color: 'var(--primary)',
+                    borderRadius: 'var(--radius)'
+                  }}
+                >
                   View Project
                 </button>
               </div>
@@ -939,38 +1379,88 @@ function BlogGridDemo() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--background)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Latest from Our Blog</h2>
-          <p className="text-xl text-gray-600">Insights, tutorials, and industry trends</p>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Latest from Our Blog</h2>
+          <p 
+            className="text-xl"
+            style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+          >Insights, tutorials, and industry trends</p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {blogPosts.map((post, index) => (
-            <article key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+            <article 
+              key={index} 
+              className="shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
+              <div 
+                className="aspect-w-16 aspect-h-9 flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 20%, transparent), color-mix(in oklab, var(--secondary) 20%, transparent))'
+                }}
+              >
                 <div className="text-4xl">{post.image}</div>
               </div>
               
               <div className="p-6">
                 <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                  <span 
+                    className="px-2 py-1 text-xs font-medium"
+                    style={{
+                      backgroundColor: 'color-mix(in oklab, var(--primary) 20%, transparent)',
+                      color: 'var(--primary)',
+                      borderRadius: 'var(--radius)'
+                    }}
+                  >
                     {post.category}
                   </span>
                   <span>{post.date}</span>
                   <span>{post.readTime}</span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 cursor-pointer">
+                <h3 
+                  className="text-xl font-bold mb-3 cursor-pointer transition-colors"
+                  style={{ color: 'var(--foreground)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--foreground)';
+                  }}
+                >
                   {post.title}
                 </h3>
                 
-                <p className="text-gray-600 mb-4 leading-relaxed">
+                <p 
+                  className="mb-4 leading-relaxed"
+                  style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                >
                   {post.excerpt}
                 </p>
                 
-                <a href="#" className="text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1">
+                <a 
+                  href="#" 
+                  className="font-medium flex items-center space-x-1 transition-colors"
+                  style={{ color: 'var(--primary)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--brand-700, color-mix(in oklab, var(--primary) 85%, black))';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--primary)';
+                  }}
+                >
                   <span>Read More</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -1014,35 +1504,67 @@ function TimelineDemo() {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--muted)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Journey</h2>
-          <p className="text-xl text-gray-600">Milestones in our mission to revolutionize web creation</p>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Our Journey</h2>
+          <p 
+            className="text-xl"
+            style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+          >Milestones in our mission to revolutionize web creation</p>
         </div>
         
         <div className="max-w-4xl mx-auto">
           <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-blue-200"></div>
+            <div 
+              className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full"
+              style={{ backgroundColor: 'color-mix(in oklab, var(--primary) 30%, transparent)' }}
+            ></div>
             
             {timelineEvents.map((event, index) => (
               <div key={index} className={`relative flex items-center mb-12 ${
                 index % 2 === 0 ? 'justify-start' : 'justify-end'
               }`}>
                 <div className={`w-full max-w-md ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
-                  <div className="bg-white rounded-lg shadow-md p-6 relative">
+                  <div 
+                    className="shadow-md p-6 relative"
+                    style={{
+                      backgroundColor: 'var(--background)',
+                      borderRadius: 'var(--radius)'
+                    }}
+                  >
                     <div className="flex items-center space-x-4 mb-4">
                       <div className="text-3xl">{event.icon}</div>
                       <div>
-                        <div className="text-2xl font-bold text-blue-600">{event.year}</div>
-                        <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
+                        <div 
+                          className="text-2xl font-bold"
+                          style={{ color: 'var(--primary)' }}
+                        >{event.year}</div>
+                        <h3 
+                          className="text-lg font-semibold"
+                          style={{ color: 'var(--foreground)' }}
+                        >{event.title}</h3>
                       </div>
                     </div>
-                    <p className="text-gray-600">{event.description}</p>
+                    <p 
+                      style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                    >{event.description}</p>
                   </div>
                 </div>
                 
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-md"></div>
+                <div 
+                  className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-4 shadow-md"
+                  style={{
+                    backgroundColor: 'var(--primary)',
+                    borderColor: 'var(--background)'
+                  }}
+                ></div>
               </div>
             ))}
           </div>
@@ -1055,25 +1577,83 @@ function TimelineDemo() {
 // 6. Footer Component
 function FooterEnterpriseDemo() {
   return (
-    <footer className="bg-gray-900 text-white py-16">
+    <footer 
+      className="text-white py-16"
+      style={{ backgroundColor: 'color-mix(in oklab, var(--foreground) 95%, transparent)' }}
+    >
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="text-2xl font-bold mb-6">Aether</div>
-            <p className="text-gray-300 mb-6 leading-relaxed">
+            <p 
+              className="mb-6 leading-relaxed"
+              style={{ color: 'color-mix(in oklab, white 80%, transparent)' }}
+            >
               The world's most advanced AI website builder. Create professional websites in 30 seconds.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700">
+              <a 
+                href="#" 
+                className="w-10 h-10 flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, var(--foreground) 85%, transparent)',
+                  borderRadius: 'var(--radius)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 75%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 85%, transparent)';
+                }}
+              >
                 📘
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700">
+              <a 
+                href="#" 
+                className="w-10 h-10 flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, var(--foreground) 85%, transparent)',
+                  borderRadius: 'var(--radius)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 75%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 85%, transparent)';
+                }}
+              >
                 🐦
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700">
+              <a 
+                href="#" 
+                className="w-10 h-10 flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, var(--foreground) 85%, transparent)',
+                  borderRadius: 'var(--radius)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 75%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 85%, transparent)';
+                }}
+              >
                 💼
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700">
+              <a 
+                href="#" 
+                className="w-10 h-10 flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: 'color-mix(in oklab, var(--foreground) 85%, transparent)',
+                  borderRadius: 'var(--radius)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 75%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--foreground) 85%, transparent)';
+                }}
+              >
                 📷
               </a>
             </div>
@@ -1081,46 +1661,223 @@ function FooterEnterpriseDemo() {
           
           <div>
             <h4 className="font-semibold mb-6">Product</h4>
-            <ul className="space-y-3 text-gray-300">
-              <li><a href="#" className="hover:text-white transition-colors">Website Builder</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Templates</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Hosting</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Domains</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Analytics</a></li>
+            <ul 
+              className="space-y-3"
+              style={{ color: 'color-mix(in oklab, white 80%, transparent)' }}
+            >
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Website Builder</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Templates</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Hosting</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Domains</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Analytics</a></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-6">Company</h4>
-            <ul className="space-y-3 text-gray-300">
-              <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Partners</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+            <ul 
+              className="space-y-3"
+              style={{ color: 'color-mix(in oklab, white 80%, transparent)' }}
+            >
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >About Us</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Careers</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Press</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Partners</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Contact</a></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-6">Support</h4>
-            <ul className="space-y-3 text-gray-300">
-              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">System Status</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+            <ul 
+              className="space-y-3"
+              style={{ color: 'color-mix(in oklab, white 80%, transparent)' }}
+            >
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Help Center</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Documentation</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >API Reference</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >System Status</a></li>
+              <li><a 
+                href="#" 
+                className="transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+                }}
+              >Community</a></li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="text-gray-300 mb-4 md:mb-0">
+          <div 
+            className="mb-4 md:mb-0"
+            style={{ color: 'color-mix(in oklab, white 80%, transparent)' }}
+          >
             © 2024 Aether. All rights reserved.
           </div>
-          <div className="flex space-x-6 text-gray-300 text-sm">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
+          <div 
+            className="flex space-x-6 text-sm"
+            style={{ color: 'color-mix(in oklab, white 80%, transparent)' }}
+          >
+            <a 
+              href="#" 
+              className="transition-colors"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+              }}
+            >Privacy Policy</a>
+            <a 
+              href="#" 
+              className="transition-colors"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+              }}
+            >Terms of Service</a>
+            <a 
+              href="#" 
+              className="transition-colors"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'color-mix(in oklab, white 80%, transparent)';
+              }}
+            >Cookie Policy</a>
           </div>
         </div>
       </div>

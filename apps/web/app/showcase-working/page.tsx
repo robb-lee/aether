@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { designKits, getKitCSSVariables } from '@aether/component-registry/design-system';
 
 // Simple inline components for visual showcase
 
@@ -24,7 +25,21 @@ function HeaderSimpleDemo() {
           
           <div className="flex items-center space-x-4">
             <button className="text-gray-700 hover:text-blue-600 font-medium">Sign In</button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Get Started</button>
+            <button 
+              className="text-white px-4 py-2 rounded-lg transition-all duration-300"
+              style={{ 
+                backgroundColor: 'var(--primary, #6366f1)',
+                borderRadius: 'var(--radius, 0.5rem)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--brand-700, #4f46e5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--primary, #6366f1)';
+              }}
+            >
+              Get Started
+            </button>
           </div>
           
           <button 
@@ -106,7 +121,15 @@ function NavMegaMenuDemo() {
           <div className="flex items-center space-x-4">
             <button className="text-gray-700 hover:text-blue-600">🔍</button>
             <button className="text-gray-700 hover:text-blue-600">🌐 EN</button>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Contact Sales</button>
+            <button 
+              className="text-white px-6 py-2 rounded-lg transition-all duration-300"
+              style={{ 
+                backgroundColor: 'var(--primary, #6366f1)',
+                borderRadius: 'var(--radius, 0.5rem)'
+              }}
+            >
+              Contact Sales
+            </button>
           </div>
         </div>
       </div>
@@ -176,9 +199,15 @@ function HeroEnterpriseDemo() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <button className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                Contact Sales
-              </button>
+              <button 
+              className="text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300"
+              style={{ 
+                backgroundColor: 'var(--primary, #6366f1)',
+                borderRadius: 'var(--radius, 0.5rem)'
+              }}
+            >
+              Contact Sales
+            </button>
               <button className="border border-white/30 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
                 View Pricing
               </button>
@@ -1099,16 +1128,153 @@ function FooterEnterpriseDemo() {
   );
 }
 
-export default function WorkingShowcasePage() {
+// Theme Selector Component
+function ThemeSelector({ 
+  currentTheme, 
+  onThemeChange 
+}: { 
+  currentTheme: string;
+  onThemeChange: (theme: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const themeDisplayNames = {
+    'modern-saas': 'Modern SaaS',
+    'corporate': 'Corporate',  
+    'creative-agency': 'Creative Agency',
+    'e-commerce': 'E-commerce',
+    'startup': 'Startup'
+  };
+
+  const themeColors = {
+    'modern-saas': { primary: '#6366f1', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+    'corporate': { primary: '#1e3a8a', bg: '#ffffff' },
+    'creative-agency': { primary: '#ff006e', bg: 'linear-gradient(45deg, #ff006e 0%, #8338ec 50%, #ffbe0b 100%)' },
+    'e-commerce': { primary: '#dc2626', bg: '#ffffff' },
+    'startup': { primary: '#3b82f6', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="fixed top-6 right-6 z-50">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
+          <h3 className="font-semibold text-sm text-gray-800 mb-2">🎨 테마 선택</h3>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                style={{ backgroundColor: themeColors[currentTheme as keyof typeof themeColors]?.primary }}
+              />
+              <span className="text-sm font-medium">
+                {themeDisplayNames[currentTheme as keyof typeof themeDisplayNames]}
+              </span>
+            </div>
+            <svg 
+              className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+        
+        {isOpen && (
+          <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
+            {Object.entries(designKits).map(([kitId, kit]) => (
+              <button
+                key={kitId}
+                onClick={() => {
+                  onThemeChange(kitId);
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left hover:bg-gray-50 transition-colors ${
+                  currentTheme === kitId ? 'bg-blue-50 border border-blue-200' : ''
+                }`}
+              >
+                <div 
+                  className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                  style={{ backgroundColor: themeColors[kitId as keyof typeof themeColors]?.primary }}
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">
+                    {themeDisplayNames[kitId as keyof typeof themeDisplayNames]}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {kit.targetIndustry.join(', ')}
+                  </div>
+                </div>
+                {currentTheme === kitId && (
+                  <div className="text-blue-600">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        <div className="p-3 bg-gray-50 text-xs text-gray-600 border-t border-gray-100">
+          테마를 선택하면 모든 컴포넌트에 즉시 적용됩니다
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function WorkingShowcasePage() {
+  const [currentTheme, setCurrentTheme] = useState('modern-saas');
+  
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('aether-theme');
+    if (savedTheme && designKits[savedTheme]) {
+      setCurrentTheme(savedTheme);
+    }
+  }, []);
+  
+  // Apply theme CSS variables when theme changes
+  useEffect(() => {
+    const cssVariables = getKitCSSVariables(currentTheme);
+    const root = document.documentElement;
+    
+    // Apply all CSS variables to the root element
+    Object.entries(cssVariables).forEach(([property, value]) => {
+      root.style.setProperty(property, value);
+    });
+    
+    // Save theme to localStorage
+    localStorage.setItem('aether-theme', currentTheme);
+  }, [currentTheme]);
+
+  return (
+    <div className="min-h-screen bg-background" style={{ transition: 'all 0.3s ease-in-out' }}>
+      {/* Theme Selector */}
+      <ThemeSelector 
+        currentTheme={currentTheme}
+        onThemeChange={setCurrentTheme}
+      />
+      
       {/* Page Header */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-16">
+      <div className="py-16" style={{ 
+        background: 'var(--primary, #6366f1)',
+        color: 'white',
+        transition: 'all 0.3s ease-in-out'
+      }}>
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl font-bold mb-4">Aether Component Visual Showcase</h1>
-          <p className="text-xl opacity-90">
+          <p className="text-xl opacity-90 mb-4">
             실제 컴포넌트들을 눈으로 확인할 수 있는 페이지 - Working demo components
           </p>
+          <div className="text-sm opacity-75 bg-white/10 backdrop-blur-sm inline-block px-4 py-2 rounded-lg">
+            🎨 우측 상단에서 테마를 변경해보세요! · Change themes from top-right selector!
+          </div>
         </div>
       </div>
 

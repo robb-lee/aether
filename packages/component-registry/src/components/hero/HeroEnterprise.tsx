@@ -1,7 +1,10 @@
 'use client'
 
 import React from 'react'
-import { cn } from '@aether/ui/utils/cn'
+// Temporary cn utility - replace with @aether/ui when available
+function cn(...classes: (string | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 interface TrustBadge {
   text: string
@@ -78,7 +81,7 @@ export function HeroEnterprise({
         )}>
           
           {/* Content */}
-          <div className={cn('space-y-8', isCentered && 'max-w-4xl mx-auto')}>
+          <div className={cn('space-y-8', isCentered ? 'max-w-4xl mx-auto' : '')}>
             
             {/* Trust Badge */}
             {trustBadge && (
@@ -111,7 +114,7 @@ export function HeroEnterprise({
               <h1 className={cn(
                 'text-4xl md:text-5xl lg:text-6xl font-bold leading-tight',
                 backgroundVariant === 'dark' ? 'text-white' : 'text-gray-900',
-                isCentered && 'max-w-4xl mx-auto'
+                isCentered ? 'max-w-4xl mx-auto' : ''
               )}>
                 {title.split('\n').map((line, index) => (
                   <React.Fragment key={index}>
@@ -126,7 +129,7 @@ export function HeroEnterprise({
                 <h2 className={cn(
                   'text-xl md:text-2xl font-medium',
                   backgroundVariant === 'dark' ? 'text-gray-200' : 'text-gray-700',
-                  isCentered && 'max-w-3xl mx-auto'
+                  isCentered ? 'max-w-3xl mx-auto' : ''
                 )}>
                   {subtitle}
                 </h2>
@@ -136,7 +139,7 @@ export function HeroEnterprise({
               <div className={cn(
                 'text-lg md:text-xl leading-relaxed space-y-4',
                 backgroundVariant === 'dark' ? 'text-gray-300' : 'text-gray-600',
-                isCentered && 'max-w-3xl mx-auto'
+                isCentered ? 'max-w-3xl mx-auto' : ''
               )}>
                 {description.split('\n').map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>

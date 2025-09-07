@@ -13,25 +13,34 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@supabase/supabase-js": "^2.45.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zod": "^3.23.8",
-    "@supabase/supabase-js": "^2.45.0"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.0",
-    "eslint": "^8.57.0"
+    "vitest": "^2.0.0"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    },
+    "./client-registry": {
+      "types": "./dist/client-registry.d.ts",
+      "default": "./dist/client-registry.js"
+    },
     "./metadata": {
-      "types": "./dist/metadata/index.d.ts", 
+      "types": "./dist/metadata/index.d.ts",
       "default": "./dist/metadata/index.js"
     },
     "./components": {

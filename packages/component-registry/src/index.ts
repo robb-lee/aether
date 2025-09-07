@@ -35,7 +35,7 @@ export type {
   AIHints
 } from './types/metadata';
 
-// Metadata loader
+// Metadata loader (server-side only)
 export { MetadataLoader, DEFAULT_METADATA_PATHS } from './loaders/json-loader';
 
 // Unified Components (replaces both CORE_COMPONENTS and defaultComponents)

@@ -1,8 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { cn } from '@aether/ui/utils/cn'
-import { ChevronDownIcon, SearchIcon, GlobeIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
+// Temporary cn utility - replace with @aether/ui when available
+function cn(...classes: (string | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
+}
+import { ChevronDownIcon, MagnifyingGlassIcon, GlobeAltIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
 
 interface MenuItem {
   id: string
@@ -333,7 +336,7 @@ export function NavMegaMenu({
               {/* Language Selector */}
               {showLanguageSelector && (
                 <div className="hidden md:flex items-center">
-                  <GlobeIcon className="h-4 w-4 text-gray-400 mr-1" />
+                  <GlobeAltIcon className="h-4 w-4 text-gray-400 mr-1" />
                   <select className="text-sm text-gray-700 bg-transparent border-none focus:outline-none">
                     <option value="en">English</option>
                     <option value="ko">한국어</option>
@@ -345,7 +348,7 @@ export function NavMegaMenu({
               {/* Search */}
               {showSearch && (
                 <button className="text-gray-400 hover:text-gray-600 p-2">
-                  <SearchIcon className="h-5 w-5" />
+                  <MagnifyingGlassIcon className="h-5 w-5" />
                 </button>
               )}
 

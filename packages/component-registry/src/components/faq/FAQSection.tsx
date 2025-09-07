@@ -1,13 +1,25 @@
 /**
  * FAQ Section Component
- * 
- * Expandable FAQ section with search and categories
+ * - QueryPie 스타일 변환: 디자인킷 CSS 변수 사용
+ * - 구조: "FAQ" 타이틀 + "Popular Questions" 서브타이틀 + 심플 아코디언 리스트
+ * - A11y: 버튼/aria-expanded/aria-controls 키보드 접근성
+ * - 반응형: 모바일/태블릿/데스크탑 여백 스케일
  */
 
 import React from 'react';
 import { z } from 'zod';
-import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
-import { responsiveSpacing, responsiveText, responsiveContainers } from '../../utils/responsive-utils';
+import {
+  EditableElement,
+  createElementClickHandler,
+  getElementClassName,
+  getElementStyle,
+} from '../shared/EditableElement';
+import {
+  responsiveSpacing,
+  responsiveText,
+  responsiveContainers,
+} from '../../utils/responsive-utils';
+import { focusRing } from '../../ui';
 
 interface FAQItem {
   question: string;
@@ -15,20 +27,22 @@ interface FAQItem {
   category?: string;
 }
 
-/**
- * Props schema for FAQ Section component
- */
+/** Props schema */
 export const FAQSectionPropsSchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
-  faqs: z.array(z.object({
-    question: z.string(),
-    answer: z.string(),
-    category: z.string().optional()
-  })).optional(),
+  faqs: z
+    .array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+        category: z.string().optional(),
+      }),
+    )
+    .optional(),
   showSearch: z.boolean().optional(),
   showCategories: z.boolean().optional(),
-  className: z.string().optional()
+  className: z.string().optional(),
 });
 
 export type FAQSectionProps = z.infer<typeof FAQSectionPropsSchema> & {
@@ -39,77 +53,53 @@ export type FAQSectionProps = z.infer<typeof FAQSectionPropsSchema> & {
 };
 
 export function FAQSection({
-  title = "Frequently Asked Questions",
-  subtitle = "Find answers to common questions about our services",
-  showSearch = true,
+  title = 'FAQ',
+  subtitle = 'Popular Questions',
+  // 스크린샷 구조에 맞춰 기본 비활성화
+  showSearch = false,
   showCategories = false,
   faqs = [
-    {
-      question: "How does your service work?",
-      answer: "Our platform uses advanced AI technology to analyze your requirements and deliver customized solutions within 30 seconds.",
-      category: "General"
-    },
-    {
-      question: "What's included in the free trial?",
-      answer: "The free trial includes full access to all features for 14 days, with no credit card required.",
-      category: "Pricing"
-    },
-    {
-      question: "Can I cancel my subscription anytime?",
-      answer: "Yes, you can cancel your subscription at any time. No long-term contracts or cancellation fees.",
-      category: "Pricing"
-    },
-    {
-      question: "Do you offer customer support?",
-      answer: "We provide 24/7 customer support through chat, email, and phone for all paid plans.",
-      category: "Support"
-    },
-    {
-      question: "Is my data secure?",
-      answer: "Absolutely. We use enterprise-grade security with end-to-end encryption and SOC 2 Type II compliance.",
-      category: "Security"
-    },
-    {
-      question: "Can I integrate with other tools?",
-      answer: "Yes, we offer integrations with 100+ popular tools including Slack, Zoom, Google Workspace, and more.",
-      category: "Integrations"
-    }
+    { question: 'Is Huel a weight loss product?', answer: 'Huel is a nutritionally complete meal that can support weight management depending on your goals and usage.', category: 'General' },
+    { question: 'Can I try a sample?', answer: 'We occasionally offer sample packs. Keep an eye on our newsletter and social channels for announcements.', category: 'Orders' },
+    { question: 'How do I amend my subscription?', answer: 'You can amend your subscription in the account portal: change frequency, flavors, or pause anytime.', category: 'Subscription' },
+    { question: 'How can I track my delivery?', answer: 'Tracking details are emailed once your order ships. You can also find them in your order history.', category: 'Orders' },
+    { question: 'What should I do if I have any issues with my order?', answer: 'Contact support with your order number. We’ll investigate and resolve it as quickly as possible.', category: 'Support' },
+    { question: 'Can I amend or cancel my order?', answer: 'Orders can be amended or canceled before fulfillment. Visit your order page or contact support.', category: 'Orders' },
+    { question: 'Can I return my order?', answer: 'Returns are accepted within 30 days for unopened items. See our returns policy for details.', category: 'Returns' },
   ],
   className = '',
   onElementClick,
   selectedElementId,
   customStyles = {},
-  isEditor = false
 }: FAQSectionProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState('All');
   const [openItems, setOpenItems] = React.useState<Set<number>>(new Set());
 
-  const categories = ['All', ...Array.from(new Set(faqs.map(faq => faq.category).filter(Boolean)))];
+  const categories = [
+    'All',
+    ...Array.from(new Set(faqs.map((f) => f.category).filter(Boolean))),
+  ];
 
-  const filteredFAQs = faqs.filter(faq => {
-    const matchesSearch = searchTerm === '' || 
+  const filteredFAQs = faqs.filter((faq) => {
+    const matchesSearch =
+      searchTerm === '' ||
       faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'All' || faq.category === selectedCategory;
-    
+    const matchesCategory =
+      selectedCategory === 'All' || faq.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const toggleItem = (index: number) => {
-    setOpenItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return newSet;
+    setOpenItems((prev) => {
+      const next = new Set(prev);
+      next.has(index) ? next.delete(index) : next.add(index);
+      return next;
     });
   };
 
-  const handleElementClick = (elementId: string, elementType: string) => 
+  const handleElementClick = (elementId: string, elementType: string) =>
     createElementClickHandler(elementId, elementType, onElementClick);
 
   return (
@@ -118,143 +108,184 @@ export function FAQSection({
       onClick={handleElementClick('faq-section', 'section')}
       data-editable-type="section"
     >
-      <section 
-        className={getElementClassName('faq-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
+      <section
+        className={getElementClassName(
+          'faq-section',
+          `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-[var(--background)] ${className}`,
+          selectedElementId,
+        )}
         style={getElementStyle('faq-section', customStyles)}
-        role="region" 
+        role="region"
         aria-label="Frequently asked questions"
       >
         <div className={`${responsiveContainers.content} mx-auto`}>
-        <div className="text-center mb-12">
-          <EditableElement
-            as="h2"
-            className={`${responsiveText.h2} font-bold mb-4 text-gray-900`}
-            ariaLevel={2}
-          >
-            {title}
-          </EditableElement>
-          
-          <EditableElement
-            as="p"
-            className={`${responsiveText.lead} text-gray-600`}
-          >
-            {subtitle}
-          </EditableElement>
-        </div>
-        
-        {/* Search and Filters */}
-        {(showSearch || showCategories) && (
-          <div className="mb-8 space-y-4">
-            {showSearch && (
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search FAQs..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full ${responsiveSpacing.button.px} ${responsiveSpacing.button.py} pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                  aria-label="Search frequently asked questions"
-                />
-                <svg 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            )}
-            
-            {showCategories && categories.length > 1 && (
-              <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    className={`${responsiveSpacing.button.px} py-2 rounded-full ${responsiveText.caption} font-medium transition-colors ${
-                      selectedCategory === category
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                    }`}
-                    onClick={() => setSelectedCategory(category as string)}
-                    aria-pressed={selectedCategory === category}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* 헤더: FAQ / Popular Questions */}
+          <div className="text-center mb-8 sm:mb-12">
+            <EditableElement as="h2" ariaLevel={2}>
+              <h2 className={`${responsiveText.h2} font-bold text-[var(--foreground)]`}>
+                {title}
+              </h2>
+            </EditableElement>
+            <EditableElement as="p">
+              <p className="mt-2 text-2xl sm:text-3xl font-semibold text-[var(--foreground)]">
+                {subtitle}
+              </p>
+            </EditableElement>
           </div>
-        )}
-        
-        {/* FAQ Items */}
-        <div className="space-y-4">
-          {filteredFAQs.map((faq, index) => {
-            const isOpen = openItems.has(index);
-            
-            return (
-              <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <button
-                  className="w-full px-6 py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-                  onClick={() => toggleItem(index)}
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-answer-${index}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 pr-4">
+
+          {/* (옵션) 검색/카테고리 - 기본 비활성화 */}
+          {(showSearch || showCategories) && (
+            <div className="mb-8 space-y-4">
+              {showSearch && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search FAQs..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={[
+                      'w-full px-4 py-3 rounded-[var(--radius)] border',
+                      'border-[var(--border)] bg-white text-[var(--foreground)] placeholder-gray-400',
+                      'transition-colors',
+                      focusRing,
+                    ].join(' ')}
+                    aria-label="Search frequently asked questions"
+                  />
+                  <svg
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[color-mix(in oklab,var(--foreground) 50%,white)]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              )}
+
+              {showCategories && categories.length > 1 && (
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((cat) => {
+                    const active = selectedCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        className={[
+                          'px-4 py-2 rounded-[var(--radius-pill)] text-sm font-medium transition-colors',
+                          active
+                            ? 'bg-[var(--brand-600)] text-white'
+                            : 'bg-[var(--muted)] text-[var(--foreground)] hover:bg-[color-mix(in oklab,var(--muted) 85%,transparent)]',
+                          focusRing,
+                        ].join(' ')}
+                        onClick={() => setSelectedCategory(cat || 'All')}
+                        aria-pressed={active}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* FAQ 리스트 (심플 라인, 플러스/마이너스 아이콘) */}
+          <div className="divide-y divide-[var(--border)] border-t border-b border-[var(--border)]">
+            {filteredFAQs.map((faq, idx) => {
+              const isOpen = openItems.has(idx);
+              return (
+                <div key={idx}>
+                  <button
+                    className={[
+                      'w-full flex items-center justify-between gap-4 py-4 sm:py-5 text-left',
+                      'transition-colors',
+                      'hover:bg-[color-mix(in oklab,var(--muted) 80%,transparent)]',
+                      focusRing,
+                      'px-1 sm:px-2',
+                    ].join(' ')}
+                    onClick={() => toggleItem(idx)}
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-answer-${idx}`}
+                  >
+                    <span className="text-base sm:text-lg font-medium text-[var(--foreground)]">
                       {faq.question}
-                    </h3>
-                    <svg
-                      className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    </span>
+
+                    {/* + / – 아이콘 */}
+                    <span
+                      className={[
+                        'flex-none inline-grid place-items-center w-6 h-6 rounded-full',
+                        'border border-[var(--border)] text-[var(--foreground)]',
+                        'transition-transform',
+                        isOpen ? 'rotate-45' : '',
+                      ].join(' ')}
                       aria-hidden="true"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </button>
-                
-                <div 
-                  id={`faq-answer-${index}`}
-                  className={`overflow-hidden transition-all duration-200 ${
-                    isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                  }`}
-                  aria-hidden={!isOpen}
-                >
-                  <div className="px-6 pb-4">
-                    <p className="text-gray-700 leading-relaxed">
+                      {/* plus (rotate 45deg -> becomes × / minus-like) */}
+                      <svg
+                        className="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      >
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                    </span>
+                  </button>
+
+                  {/* 답변 영역 (슬라이드/페이드) */}
+                  <div
+                    id={`faq-answer-${idx}`}
+                    className={[
+                      'overflow-hidden transition-[max-height,opacity] duration-300 ease-out',
+                      isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
+                    ].join(' ')}
+                    aria-hidden={!isOpen}
+                  >
+                    <div className="pb-5 pr-1 sm:pr-2 text-[color-mix(in oklab,var(--foreground) 70%,white)]">
                       {faq.answer}
-                    </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-        
-        {filteredFAQs.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No FAQs found matching your search.</p>
+              );
+            })}
           </div>
-        )}
-        
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            Didn't find what you're looking for?
-          </p>
-          <button className="text-blue-600 hover:text-blue-800 font-medium">
-            Contact Support
-          </button>
+
+          {/* 빈 상태 */}
+          {filteredFAQs.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-[color-mix(in oklab,var(--foreground) 60%,white)]">
+                No FAQs found matching your search.
+              </p>
+            </div>
+          )}
+
+          {/* 하단 안내 / 컨택트 링크 */}
+          <div className="text-center mt-10 sm:mt-12">
+            <p className="text-[color-mix(in oklab,var(--foreground) 65%,white)] mb-3">
+              Didn’t find what you’re looking for?
+            </p>
+            <a
+              href="/contact"
+              className={[
+                'inline-flex items-center font-medium',
+                'text-[var(--brand-600)] hover:text-[var(--brand-700)]',
+              ].join(' ')}
+            >
+              Contact Support
+            </a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
     </EditableElement>
   );
-};
+}
 
 export default FAQSection;

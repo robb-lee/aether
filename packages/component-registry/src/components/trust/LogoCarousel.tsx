@@ -1,7 +1,10 @@
 'use client'
 
 import React from 'react'
-import { cn } from '@aether/ui/utils/cn'
+// Temporary cn utility - replace with @aether/ui when available
+function cn(...classes: (string | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 interface Logo {
   name: string
@@ -95,7 +98,7 @@ export function LogoCarousel({
               'flex items-center',
               spacingClasses[spacing],
               animationDirection,
-              pauseOnHover && 'hover:[animation-play-state:paused]'
+              pauseOnHover ? 'hover:[animation-play-state:paused]' : ''
             )}
             style={{
               width: `${duplicatedLogos.length * 200}px`, // Approximate width for smooth scroll
@@ -154,7 +157,8 @@ export function LogoCarousel({
       </div>
 
       {/* Custom Animations */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes marquee {
           from {
             transform: translateX(0);
@@ -188,7 +192,7 @@ export function LogoCarousel({
         .animate-marquee-reverse {
           animation: marquee-reverse 30s linear infinite;
         }
-      `}</style>
+      `}} />
     </section>
   )
 }

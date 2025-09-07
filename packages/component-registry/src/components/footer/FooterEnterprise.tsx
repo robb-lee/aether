@@ -2,7 +2,10 @@
 
 import React from 'react'
 import { z } from 'zod'
-import { cn } from '@aether/ui/utils/cn'
+// Temporary cn utility - replace with @aether/ui when available
+function cn(...classes: (string | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 const SocialLinkSchema = z.object({
   platform: z.string(),

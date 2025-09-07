@@ -1,16 +1,35 @@
 import React from 'react';
 import { z } from 'zod';
-import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
-import { responsiveSpacing, responsiveText, responsiveContainers, getButtonGroupClasses } from '../../utils/responsive-utils';
+import {
+  EditableElement,
+  createElementClickHandler,
+  getElementClassName,
+  getElementStyle,
+} from '../shared/EditableElement';
+import {
+  responsiveSpacing,
+  responsiveText,
+  responsiveContainers,
+} from '../../utils/responsive-utils';
+import { cta } from '../../ui';
 
 export const CTASimplePropsSchema = z.object({
   title: z.string(),
-  description: z.string().optional(),
+  description: z.string().optional(), // 이미지 구조에서는 보통 생략하지만 옵션으로 유지
+  eyebrow: z.string().optional(),     // 작은 상단 라벨 (OUR SERVICES & EXPERTISE)
   ctaText: z.string(),
   ctaHref: z.string().optional(),
-  layout: z.enum(['center', 'left', 'right', 'full-width']).default('center'),
-  style: z.enum(['solid', 'outline', 'gradient', 'text']).default('solid'),
-  className: z.string().optional()
+  // 배경 이미지 & 오버레이
+  backgroundImage: z.string().optional(), // 배너 배경 이미지 URL
+  overlayOpacity: z.number().min(0).max(1).optional().default(0.6),
+  overlayColor: z.string().optional(),    // CSS color (기본은 var(--brand-600))
+  // 배치 옵션
+  layout: z.enum(['center']).default('center'), // 이번 구조는 center 고정
+  rounded: z.boolean().optional().default(true),
+  bleed: z.boolean().optional().default(false), // full-bleed 섹션 여부
+  // 버튼 스타일: 배너 위에선 invert(흰색) 기본
+  style: z.enum(['invert', 'solid', 'outline', 'gradient', 'text']).default('invert'),
+  className: z.string().optional(),
 });
 
 export type CTASimpleProps = z.infer<typeof CTASimplePropsSchema> & {
@@ -23,32 +42,60 @@ export type CTASimpleProps = z.infer<typeof CTASimplePropsSchema> & {
 export function CTASimple({
   title,
   description,
+  eyebrow = 'OUR SERVICES & EXPERTISE',
   ctaText,
   ctaHref = '#',
+  backgroundImage,
+  overlayOpacity = 0.6,
+  overlayColor, // e.g. 'rgba(99,102,241,1)' or 'var(--brand-600)'
   layout = 'center',
-  style = 'solid',
+  rounded = true,
+  bleed = false,
+  style = 'invert',
   className = '',
   onElementClick,
   selectedElementId,
   customStyles = {},
-  isEditor = false
 }: CTASimpleProps) {
-  const layouts = {
-    center: 'text-center',
-    left: 'text-left',
-    right: 'text-right',
-    'full-width': 'text-center'
-  };
-
-  const styles = {
-    solid: 'bg-blue-600 text-white hover:bg-blue-700',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white',
-    gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700',
-    text: 'text-blue-600 hover:text-blue-700 underline'
-  };
-
-  const handleElementClick = (elementId: string, elementType: string) => 
+  const handleElementClick = (elementId: string, elementType: string) =>
     createElementClickHandler(elementId, elementType, onElementClick);
+
+  // 버튼 매핑
+  const buttonClass =
+    style === 'invert'
+      ? cta.invert
+      : style === 'solid'
+      ? cta.primary
+      : style === 'outline'
+      ? cta.outline
+      : style === 'gradient'
+      ? cta.gradient
+      : cta.text;
+
+  // 배경 스타일
+  const bgImageStyle: React.CSSProperties | undefined = backgroundImage
+    ? {
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : undefined;
+
+  // 오버레이 색상 (기본 = var(--brand-600))
+  const overlayBg =
+    overlayColor || 'var(--brand-600)';
+
+  // 배너 패딩: 모바일/태블릿/데스크탑 스케일
+  const sectionPadding = `${responsiveSpacing.section.py} ${responsiveSpacing.section.px}`;
+
+  // 배너 컨테이너 클래스
+  const bannerClasses = [
+    'relative overflow-hidden shadow-[var(--card-shadow)]',
+    rounded ? 'rounded-[var(--radius)]' : '',
+    'isolate', // overlay layering
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <EditableElement
@@ -56,69 +103,74 @@ export function CTASimple({
       onClick={handleElementClick('cta-simple-section', 'section')}
       data-editable-type="section"
     >
-      <section 
-        className={getElementClassName('cta-simple-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
+      <section
+        className={getElementClassName(
+          'cta-simple-section',
+          // bleed가 아니면 섹션 바깥에 기본 배경과 패딩 적용
+          `${bleed ? '' : `${sectionPadding} bg-[var(--muted)]`} ${className}`,
+          selectedElementId,
+        )}
         style={getElementStyle('cta-simple-section', customStyles)}
+        role="region"
+        aria-label="Call to action banner"
       >
-        <EditableElement
-          id="cta-simple-container"
-          onClick={handleElementClick('cta-simple-container', 'container')}
-          data-editable-type="container"
-        >
-          <div className={`${responsiveContainers.content} mx-auto`}>
-            <EditableElement
-              id="cta-simple-content"
-              onClick={handleElementClick('cta-simple-content', 'container')}
-              data-editable-type="container"
-            >
-              <div className={layouts[layout]}>
-                <EditableElement
-                  id="cta-simple-title"
-                  onClick={handleElementClick('cta-simple-title', 'text')}
-                  data-editable-type="text"
-                >
-                  <h2 
-                    className={getElementClassName('cta-simple-title', `${responsiveText.h2} font-bold text-gray-900 mb-4`, selectedElementId)}
-                    style={getElementStyle('cta-simple-title', customStyles)}
-                  >
-                    {title}
-                  </h2>
-                </EditableElement>
-                
-                {description && (
-                  <EditableElement
-                    id="cta-simple-description"
-                    onClick={handleElementClick('cta-simple-description', 'text')}
-                    data-editable-type="text"
-                  >
-                    <p 
-                      className={getElementClassName('cta-simple-description', `${responsiveText.lead} text-gray-600 mb-8`, selectedElementId)}
-                      style={getElementStyle('cta-simple-description', customStyles)}
-                    >
-                      {description}
-                    </p>
-                  </EditableElement>
-                )}
-                
-                <EditableElement
-                  id="cta-simple-button"
-                  onClick={handleElementClick('cta-simple-button', 'button')}
-                  data-editable-type="button"
-                >
-                  <a
-                    href={ctaHref}
-                    className={getElementClassName('cta-simple-button', `inline-block ${responsiveSpacing.button.px} ${responsiveSpacing.button.py} rounded-lg font-semibold ${responsiveText.lead} transition-all duration-300 transform hover:scale-105 ${styles[style]} ${
-                      layout === 'full-width' ? 'w-full sm:w-auto' : ''
-                    }`, selectedElementId)}
-                    style={getElementStyle('cta-simple-button', customStyles)}
-                  >
-                    {ctaText}
-                  </a>
-                </EditableElement>
-              </div>
-            </EditableElement>
+        <div className={`${responsiveContainers.content} mx-auto`}>
+          {/* 배너 카드 (배경 이미지 + 오버레이 + 컨텐트) */}
+          <div
+            className={bannerClasses}
+            style={bgImageStyle}
+          >
+            {/* Overlay */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{
+                backgroundColor: overlayBg,
+                opacity: overlayOpacity,
+                mixBlendMode: 'multiply',
+              }}
+            />
+
+            {/* Content */}
+            <div className="relative z-10 text-center px-6 sm:px-10 py-12 sm:py-16 lg:py-24">
+              {/* Eyebrow */}
+              {eyebrow && (
+                <p className="text-sm font-semibold tracking-wider uppercase text-white/80 mb-4">
+                  {eyebrow}
+                </p>
+              )}
+
+              {/* Title */}
+              <h2
+                className={[
+                  responsiveText.h2,
+                  'font-bold text-white',
+                  'max-w-4xl mx-auto',
+                  'mb-6',
+                ].join(' ')}
+              >
+                {title}
+              </h2>
+
+              {/* (옵션) Description */}
+              {description && (
+                <p className="max-w-3xl mx-auto mb-8 text-white/90">
+                  {description}
+                </p>
+              )}
+
+              {/* CTA Button */}
+              <a
+                href={ctaHref}
+                role="button"
+                className={[buttonClass, 'h-11'].join(' ')}
+                aria-label={ctaText}
+              >
+                {ctaText}
+              </a>
+            </div>
           </div>
-        </EditableElement>
+        </div>
       </section>
     </EditableElement>
   );

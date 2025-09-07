@@ -511,6 +511,104 @@ function FeaturesGridDemo() {
   );
 }
 
+function FeaturesCardsDemo() {
+  const features = [
+    {
+      title: "AI-Powered Generation",
+      description: "Create stunning websites with advanced AI that understands your vision and transforms ideas into reality.",
+      icon: "🤖",
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&h=300&fit=crop&crop=center"
+    },
+    {
+      title: "Lightning Fast Performance", 
+      description: "Optimized for speed with 90+ Lighthouse scores and blazing-fast loading times across all devices.",
+      icon: "⚡",
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop&crop=center"
+    },
+    {
+      title: "Visual Drag & Drop Editor",
+      description: "Intuitive visual editor that lets you customize every detail without writing a single line of code.",
+      icon: "🎨",
+      image: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=500&h=300&fit=crop&crop=center"
+    }
+  ];
+
+  return (
+    <section 
+      className="py-20"
+      style={{ backgroundColor: 'var(--background)' }}
+    >
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <div 
+            className="font-medium text-sm uppercase tracking-wide mb-4"
+            style={{ color: 'var(--primary)' }}
+          >
+            Modern Solutions
+          </div>
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--foreground)' }}
+          >Advanced Features</h2>
+          <p 
+            className="text-xl max-w-2xl mx-auto"
+            style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+          >
+            Professional-grade tools designed for modern web development.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <div 
+              key={index} 
+              className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+              style={{
+                backgroundColor: 'var(--card-bg, var(--background))',
+                borderRadius: 'var(--radius)'
+              }}
+            >
+              {/* Feature Image with Overlay */}
+              <div className="relative">
+                <div className="aspect-video relative overflow-hidden">
+                  <img
+                    src={feature.image}
+                    alt={feature.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.35) 100%), var(--primary)`,
+                      mixBlendMode: 'multiply',
+                      opacity: 0.55,
+                    }}
+                  />
+                  {/* Title over image */}
+                  <h3 className="absolute inset-x-0 bottom-0 px-6 pb-6 text-white text-xl sm:text-2xl font-semibold">
+                    {feature.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <p 
+                  className="leading-relaxed"
+                  style={{ color: 'color-mix(in oklab, var(--foreground) 70%, transparent)' }}
+                >
+                  {feature.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ContactFormDemo() {
   const [formData, setFormData] = useState({
     name: '',
@@ -1259,12 +1357,12 @@ function TeamGridDemo() {
 
 function PortfolioGalleryDemo() {
   const portfolioItems = [
-    { title: "E-commerce Store", category: "Web Design", image: "🛍️" },
-    { title: "SaaS Dashboard", category: "UI/UX", image: "📊" },
-    { title: "Mobile App", category: "App Design", image: "📱" },
-    { title: "Brand Identity", category: "Branding", image: "🎨" },
-    { title: "Landing Page", category: "Web Design", image: "🖥️" },
-    { title: "Blog Platform", category: "Content", image: "📝" }
+    { title: "E-commerce Store", category: "Web Design", image: "https://picsum.photos/600/400?random=10" },
+    { title: "SaaS Dashboard", category: "UI/UX", image: "https://picsum.photos/600/400?random=11" },
+    { title: "Mobile App", category: "App Design", image: "https://picsum.photos/600/400?random=12" },
+    { title: "Brand Identity", category: "Branding", image: "https://picsum.photos/600/400?random=13" },
+    { title: "Landing Page", category: "Web Design", image: "https://picsum.photos/600/400?random=14" },
+    { title: "Blog Platform", category: "Content", image: "https://picsum.photos/600/400?random=15" }
   ];
 
   return (
@@ -1300,7 +1398,11 @@ function PortfolioGalleryDemo() {
                   background: 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 20%, transparent), color-mix(in oklab, var(--secondary) 20%, transparent))'
                 }}
               >
-                <div className="text-6xl">{item.image}</div>
+                <img 
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
               
               <div className="p-6">
@@ -1350,7 +1452,7 @@ function BlogGridDemo() {
       date: "Dec 15, 2024",
       readTime: "5 min read",
       category: "AI & Design",
-      image: "🤖"
+      image: "https://picsum.photos/800/450?random=1"
     },
     {
       title: "10 Essential UX Principles for Modern Websites", 
@@ -1358,7 +1460,7 @@ function BlogGridDemo() {
       date: "Dec 12, 2024", 
       readTime: "8 min read",
       category: "UX Design",
-      image: "🎨"
+      image: "https://picsum.photos/800/450?random=2"
     },
     {
       title: "Building High-Performance Websites",
@@ -1366,7 +1468,7 @@ function BlogGridDemo() {
       date: "Dec 10, 2024",
       readTime: "6 min read", 
       category: "Performance",
-      image: "⚡"
+      image: "https://picsum.photos/800/450?random=3"
     },
     {
       title: "SEO Guide for Modern Web Development",
@@ -1374,7 +1476,7 @@ function BlogGridDemo() {
       date: "Dec 8, 2024",
       readTime: "10 min read",
       category: "SEO",
-      image: "🔍"
+      image: "https://picsum.photos/800/450?random=4"
     }
   ];
 
@@ -1411,7 +1513,11 @@ function BlogGridDemo() {
                   background: 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 20%, transparent), color-mix(in oklab, var(--secondary) 20%, transparent))'
                 }}
               >
-                <div className="text-4xl">{post.image}</div>
+                <img 
+                  src={post.image} 
+                  alt={post.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
               
               <div className="p-6">
@@ -2083,9 +2189,15 @@ export default function WorkingShowcasePage() {
           title="Feature Components" 
           description="Showcase product features - 기능 소개 섹션들"
         >
-          <ComponentDemo title="Features Grid" componentId="features-grid">
-            <FeaturesGridDemo />
-          </ComponentDemo>
+          <div className="space-y-8">
+            <ComponentDemo title="Features Grid" componentId="features-grid">
+              <FeaturesGridDemo />
+            </ComponentDemo>
+            
+            <ComponentDemo title="Features Cards" componentId="features-cards">
+              <FeaturesCardsDemo />
+            </ComponentDemo>
+          </div>
         </ComponentSection>
 
         {/* Social Proof Components */}
@@ -2188,12 +2300,12 @@ export default function WorkingShowcasePage() {
       <div className="bg-gray-100 py-8 mt-16">
         <div className="container mx-auto px-6 text-center text-gray-600">
           <p>
-            ✅ <strong>전체 20개 컴포넌트 완성!</strong> 이제 모든 컴포넌트의 시각적 모습과 상호작용을 확인할 수 있습니다.
+            ✅ <strong>전체 21개 컴포넌트 완성!</strong> 이제 모든 컴포넌트의 시각적 모습과 상호작용을 확인할 수 있습니다.
             <br />
-            <strong>Complete 20 Components Showcase!</strong> All components with visual preview and interactions.
+            <strong>Complete 21 Components Showcase!</strong> All components with visual preview and interactions.
           </p>
           <div className="mt-4 text-sm">
-            <strong>Categories:</strong> Navigation (2) • Hero (4) • Features (1) • Social Proof (3) • Business (3) • Contact (1) • Content (4) • CTA (1) • Footer (1)
+            <strong>Categories:</strong> Navigation (2) • Hero (4) • Features (2) • Social Proof (3) • Business (3) • Contact (1) • Content (4) • CTA (1) • Footer (1)
           </div>
         </div>
       </div>

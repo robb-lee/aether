@@ -291,7 +291,7 @@ export function BlogGrid({
               >
                 {/* 썸네일: 16:9 비율, 모바일에서도 균일 */}
                 {post.image && (
-                  <div className={`relative ${card.media} ${aspect['16/9']}`}>
+                  <div className={`relative ${card.media} h-56 sm:h-64 md:h-72 lg:h-80`}>
                     <img
                       src={post.image}
                       alt={post.title}

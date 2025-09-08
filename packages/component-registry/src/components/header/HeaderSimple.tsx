@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';

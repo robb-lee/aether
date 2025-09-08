@@ -6,6 +6,8 @@
  * - Mobile / Tablet / Desktop 반응형 대응
  */
 
+'use client';
+
 import React from 'react';
 import { z } from 'zod';
 import {

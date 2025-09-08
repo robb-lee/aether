@@ -5,6 +5,8 @@
  * - 반응형: 모바일/태블릿/데스크탑 여백 스케일
  */
 
+'use client';
+
 import React from 'react';
 import { z } from 'zod';
 import {

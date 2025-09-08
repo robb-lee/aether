@@ -29,7 +29,7 @@ describe('Redis Cache System', () => {
 
   it('should cache and retrieve AI responses', async () => {
     const operation = 'completion';
-    const model = process.env.AI_PRIMARY_MODEL || 'gpt-oss-20b';
+    const model = process.env.AI_PRIMARY_MODEL!;
     const messages = [{ role: 'user', content: 'Hello world' }];
     const mockResponse = { 
       choices: [{ message: { content: 'Hello! How can I help?' } }],
@@ -54,7 +54,7 @@ describe('Redis Cache System', () => {
 
   it('should not cache image generation operations', async () => {
     const operation = 'image';
-    const model = process.env.AI_IMAGE_MODEL || 'gpt-oss-20b';
+    const model = process.env.AI_IMAGE_MODEL!;
     const prompt = 'A beautiful sunset';
     const mockResponse = { data: [{ url: 'https://example.com/image.jpg' }] };
     const cost = 0.04;
@@ -73,7 +73,7 @@ describe('Redis Cache System', () => {
 
   it('should track cache statistics', async () => {
     const operation = 'completion';
-    const model = process.env.AI_PRIMARY_MODEL || 'gpt-oss-20b';
+    const model = process.env.AI_PRIMARY_MODEL!;
     const messages1 = [{ role: 'user', content: 'Test 1' }];
     const messages2 = [{ role: 'user', content: 'Test 2' }];
     const mockResponse = { choices: [{ message: { content: 'Response' } }] };
@@ -110,7 +110,7 @@ describe('Redis Cache System', () => {
 
   it('should handle cache invalidation', async () => {
     const operation = 'completion';
-    const model = process.env.AI_PRIMARY_MODEL || 'gpt-oss-20b';
+    const model = process.env.AI_PRIMARY_MODEL!;
     const messages = [{ role: 'user', content: 'Test invalidation' }];
     const mockResponse = { choices: [{ message: { content: 'Response' } }] };
     const cost = 0.001;
@@ -145,7 +145,7 @@ describe('Redis Cache System', () => {
 
   it('should generate different cache keys for different inputs', async () => {
     const operation = 'completion';
-    const model = process.env.AI_PRIMARY_MODEL || 'gpt-oss-20b';
+    const model = process.env.AI_PRIMARY_MODEL!;
     const messages1 = [{ role: 'user', content: 'Hello' }];
     const messages2 = [{ role: 'user', content: 'Hi' }];
     const mockResponse = { choices: [{ message: { content: 'Response' } }] };

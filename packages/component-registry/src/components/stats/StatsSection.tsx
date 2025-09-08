@@ -4,6 +4,8 @@
  * Display key metrics and numbers with animated counters
  */
 
+'use client';
+
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';

@@ -45,12 +45,10 @@ export const modelRouting = {
     component_selection: config.AI_PRIMARY_MODEL, // Component selection
   },
   
-  // Fallback chain for each primary model - Using only working models
+  // Fallback chain for each primary model - Environment variable based
   fallbackChains: {
-    'claude-4-sonnet': ['gpt-5-mini', 'openai/gpt-oss-20b'],
-    'gpt-5-mini': ['claude-4-sonnet', 'openai/gpt-oss-20b'],
-    'gpt-oss-20b': ['openai/gpt-oss-20b', 'claude-4-sonnet'],
-    'openai/gpt-oss-20b': ['claude-4-sonnet', 'gpt-5-mini'],
+    'claude-4-sonnet': ['gpt-5-mini'],
+    'gpt-5-mini': ['claude-4-sonnet'],
   },
 };
 
@@ -63,16 +61,6 @@ export const modelSettings = {
   'gpt-5-mini': {
     max_completion_tokens: 4096,
     // Only max_completion_tokens supported - all other params use defaults
-  },
-  'openai/gpt-oss-20b': {
-    max_tokens: 4096,
-    temperature: 0.7,
-    top_p: 0.95,
-  },
-  'openai/gpt-oss-120b': {
-    max_tokens: 4096,
-    temperature: 0.6,
-    top_p: 0.95,
   },
   'claude-4-sonnet': {
     // Claude doesn't use max_tokens parameter at all
@@ -99,8 +87,6 @@ export const modelSettings = {
 export const costPerModel = {
   'gpt-5': { input: 0.02, output: 0.04 },
   'gpt-5-mini': { input: 0.005, output: 0.015 },
-  'openai/gpt-oss-20b': { input: 0.01, output: 0.02 },
-  'openai/gpt-oss-120b': { input: 0.03, output: 0.06 },
   'claude-4-sonnet': { input: 0.003, output: 0.015 },
   'gemini-2.0-flash-thinking-exp': { input: 0.001, output: 0.003 },
   'gemini-2.5-flash-preview-04-17': { input: 0.002, output: 0.006 },

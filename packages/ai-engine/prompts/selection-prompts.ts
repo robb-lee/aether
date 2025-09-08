@@ -482,28 +482,6 @@ Kit: ${kit}
 Output: {"selections":[{"componentId":"hero-split","props":{"title":"","subtitle":"","ctaText":""}}]}`;
 }
 
-/**
- * Design kit selection helper
- */
-function selectKitByIndustry(industry: string): string {
-  const mapping: Record<string, string> = {
-    'saas': 'modern-saas',
-    'startup': 'modern-saas',
-    'tech': 'modern-saas',
-    'enterprise': 'corporate',
-    'financial': 'corporate',
-    'consulting': 'corporate',
-    'design': 'creative-agency',
-    'marketing': 'creative-agency',
-    'retail': 'e-commerce',
-    'fashion': 'e-commerce',
-    'ecommerce': 'e-commerce',
-    'app': 'startup',
-    'mobile': 'startup',
-  };
-  
-  return mapping[industry.toLowerCase()] || 'modern-saas';
-}
 
 /**
  * Token usage comparison prompts

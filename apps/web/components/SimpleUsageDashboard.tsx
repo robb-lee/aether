@@ -198,7 +198,6 @@ export default function SimpleUsageDashboard() {
                 <option value="claude-4-sonnet">Claude 4 Sonnet ($0.003/$0.015)</option>
                 <option value="gpt-5-mini">GPT-5 Mini ($0.001/$0.002)</option>
                 <option value="gpt-5">GPT-5 ($0.02/$0.04)</option>
-                <option value="openai/gpt-oss-20b">GPT OSS 20B ($0.001/$0.002)</option>
               </select>
             </div>
             <div>

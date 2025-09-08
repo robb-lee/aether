@@ -4,6 +4,8 @@
  * Masonry-style gallery for showcasing work/projects
  */
 
+'use client';
+
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';

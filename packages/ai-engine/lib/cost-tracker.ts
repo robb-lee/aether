@@ -13,7 +13,6 @@ const costPerModel: Record<string, { input: number; output: number }> = {
   'gpt-5': { input: 0.02, output: 0.04 },
   'gpt-5-mini': { input: 0.001, output: 0.002 },
   'claude-4-sonnet': { input: 0.003, output: 0.015 },
-  'openai/gpt-oss-20b': { input: 0.001, output: 0.002 },
   'gemini-2.0-flash-thinking-exp': { input: 0.001, output: 0.002 },
 };
 

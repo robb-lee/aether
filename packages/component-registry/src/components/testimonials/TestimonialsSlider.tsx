@@ -4,6 +4,8 @@
  * Customer testimonials in a sliding carousel format
  */
 
+'use client';
+
 import React from 'react';
 import { z } from 'zod';
 import { EditableElement } from '../shared/EditableElement';

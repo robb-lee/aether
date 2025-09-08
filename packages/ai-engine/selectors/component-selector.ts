@@ -368,11 +368,28 @@ export async function generateWebsite(
     
     const selectionPrompt = createPromptTemplate(userInput, context);
     
-    // Mock AI response for testing (temporary implementation)
+    console.log('🤖 Using AI to select components...');
+    
+    // Use actual AI to select components
+    const { generateCompletion } = await import('../lib/litellm-client');
+    
+    const aiSelectionResult = await generateCompletion({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert web designer. Select the most appropriate components for the given business and return only valid JSON with component IDs.'
+        },
+        {
+          role: 'user',
+          content: selectionPrompt
+        }
+      ],
+      task: 'component_selection',
+      maxRetries: 2
+    });
+
     const mockSelectionResult = {
-      text: JSON.stringify({
-        selections: ['hero-split', 'features-grid', 'pricing-table', 'contact-form']
-      })
+      text: aiSelectionResult.response.choices[0].message.content.trim()
     };
 
     // Parse component IDs

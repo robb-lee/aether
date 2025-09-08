@@ -1,8 +1,7 @@
 /**
  * FAQ Section Component
- * - QueryPie 스타일 변환: 디자인킷 CSS 변수 사용
- * - 구조: "FAQ" 타이틀 + "Popular Questions" 서브타이틀 + 심플 아코디언 리스트
- * - A11y: 버튼/aria-expanded/aria-controls 키보드 접근성
+ * - QueryPie 스타일: 카드형 아코디언(각 행이 라운드+보더+섀도우)
+ * - A11y: 버튼/aria-expanded/aria-controls 키보드 접근
  * - 반응형: 모바일/태블릿/데스크탑 여백 스케일
  */
 
@@ -55,7 +54,7 @@ export type FAQSectionProps = z.infer<typeof FAQSectionPropsSchema> & {
 export function FAQSection({
   title = 'FAQ',
   subtitle = 'Popular Questions',
-  // 스크린샷 구조에 맞춰 기본 비활성화
+  // 구조상 기본 비활성화
   showSearch = false,
   showCategories = false,
   faqs = [
@@ -119,7 +118,7 @@ export function FAQSection({
         aria-label="Frequently asked questions"
       >
         <div className={`${responsiveContainers.content} mx-auto`}>
-          {/* 헤더: FAQ / Popular Questions */}
+          {/* 헤더 */}
           <div className="text-center mb-8 sm:mb-12">
             <EditableElement as="h2" ariaLevel={2}>
               <h2 className={`${responsiveText.h2} font-bold text-[var(--foreground)]`}>
@@ -133,7 +132,7 @@ export function FAQSection({
             </EditableElement>
           </div>
 
-          {/* (옵션) 검색/카테고리 - 기본 비활성화 */}
+          {/* (옵션) 검색/카테고리 */}
           {(showSearch || showCategories) && (
             <div className="mb-8 space-y-4">
               {showSearch && (
@@ -158,12 +157,7 @@ export function FAQSection({
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
               )}
@@ -194,19 +188,25 @@ export function FAQSection({
             </div>
           )}
 
-          {/* FAQ 리스트 (심플 라인, 플러스/마이너스 아이콘) */}
-          <div className="divide-y divide-[var(--border)] border-t border-b border-[var(--border)]">
+          {/* FAQ 리스트: 카드형(hover가 모서리까지 적용) */}
+          <div className="space-y-3">
             {filteredFAQs.map((faq, idx) => {
               const isOpen = openItems.has(idx);
               return (
-                <div key={idx}>
+                <div
+                  key={idx}
+                  className={[
+                    'group rounded-[var(--radius)] border border-[var(--border)]',
+                    'bg-white/70 shadow-sm hover:shadow transition-all',
+                    'hover:bg-white',
+                  ].join(' ')}
+                >
                   <button
                     className={[
-                      'w-full flex items-center justify-between gap-4 py-4 sm:py-5 text-left',
+                      'w-full flex items-center justify-between gap-4',
+                      'px-4 sm:px-5 py-4 sm:py-5 text-left',
                       'transition-colors',
-                      'hover:bg-[color-mix(in oklab,var(--muted) 80%,transparent)]',
                       focusRing,
-                      'px-1 sm:px-2',
                     ].join(' ')}
                     onClick={() => toggleItem(idx)}
                     aria-expanded={isOpen}
@@ -216,17 +216,15 @@ export function FAQSection({
                       {faq.question}
                     </span>
 
-                    {/* + / – 아이콘 */}
+                    {/* + / – 아이콘 (열리면 회전) */}
                     <span
                       className={[
                         'flex-none inline-grid place-items-center w-6 h-6 rounded-full',
                         'border border-[var(--border)] text-[var(--foreground)]',
-                        'transition-transform',
-                        isOpen ? 'rotate-45' : '',
+                        'transition-transform', isOpen ? 'rotate-45' : '',
                       ].join(' ')}
                       aria-hidden="true"
                     >
-                      {/* plus (rotate 45deg -> becomes × / minus-like) */}
                       <svg
                         className="w-3.5 h-3.5"
                         viewBox="0 0 24 24"
@@ -240,7 +238,7 @@ export function FAQSection({
                     </span>
                   </button>
 
-                  {/* 답변 영역 (슬라이드/페이드) */}
+                  {/* 답변(슬라이드/페이드) */}
                   <div
                     id={`faq-answer-${idx}`}
                     className={[
@@ -249,7 +247,7 @@ export function FAQSection({
                     ].join(' ')}
                     aria-hidden={!isOpen}
                   >
-                    <div className="pb-5 pr-1 sm:pr-2 text-[color-mix(in oklab,var(--foreground) 70%,white)]">
+                    <div className="px-4 sm:px-5 pb-5 text-[color-mix(in oklab,var(--foreground) 70%,white)]">
                       {faq.answer}
                     </div>
                   </div>
@@ -267,7 +265,7 @@ export function FAQSection({
             </div>
           )}
 
-          {/* 하단 안내 / 컨택트 링크 */}
+          {/* 하단 안내 */}
           <div className="text-center mt-10 sm:mt-12">
             <p className="text-[color-mix(in oklab,var(--foreground) 65%,white)] mb-3">
               Didn’t find what you’re looking for?

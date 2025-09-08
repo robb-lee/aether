@@ -1,13 +1,21 @@
 import React from 'react';
 import { z } from 'zod';
-import { EditableElement, createElementClickHandler, getElementClassName, getElementStyle } from '../shared/EditableElement';
-import { responsiveSpacing, responsiveText, responsiveContainers, responsiveGrids, responsiveGaps } from '../../utils/responsive-utils';
+import {
+  EditableElement,
+  createElementClickHandler,
+  getElementClassName,
+  getElementStyle,
+} from '../shared/EditableElement';
+import { responsiveSpacing, responsiveText, responsiveContainers } from '../../utils/responsive-utils';
+import { focusRing } from '../../ui';
 
+/** ─ Schema (단일 스타일) ─ */
 const FeatureItemSchema = z.object({
   title: z.string(),
   description: z.string(),
-  icon: z.string().optional(),
-  iconColor: z.string().optional()
+  href: z.string().optional(),
+  dotColor: z.string().optional(),      // 타이틀 뒤 점 색
+  decoColor: z.string().optional(),     // 우하단 라디얼 장식색(옵션)
 });
 
 export const FeaturesGridPropsSchema = z.object({
@@ -15,17 +23,14 @@ export const FeaturesGridPropsSchema = z.object({
   subtitle: z.string().optional(),
   description: z.string().optional(),
   features: z.array(FeatureItemSchema),
-  layout: z.enum(['2-col', '3-col', '4-col', 'masonry']).default('3-col'),
-  style: z.enum(['cards', 'minimal', 'icons-prominent']).default('cards'),
-  animation: z.enum(['stagger-up', 'fade-in-sequence', 'hover-lift']).default('stagger-up'),
-  className: z.string().optional()
+  layout: z.enum(['auto','2-col','3-col','4-col']).default('auto'),
+  className: z.string().optional(),
 });
 
 export type FeaturesGridProps = z.infer<typeof FeaturesGridPropsSchema> & {
   onElementClick?: (elementId: string, elementType: string) => void;
   selectedElementId?: string;
   customStyles?: Record<string, React.CSSProperties>;
-  isEditor?: boolean;
 };
 
 export function FeaturesGrid({
@@ -33,183 +38,129 @@ export function FeaturesGrid({
   subtitle,
   description,
   features,
-  layout = '3-col',
-  style = 'cards',
-  animation = 'stagger-up',
+  layout = 'auto',
   className = '',
   onElementClick,
   selectedElementId,
   customStyles = {},
-  isEditor = false
 }: FeaturesGridProps) {
-  const layouts = {
-    '2-col': responsiveGrids['2-col'],
-    '3-col': responsiveGrids['3-col'],
-    '4-col': responsiveGrids['4-col'],
-    'masonry': 'columns-1 sm:columns-2 lg:columns-3'
-  };
+  const handleElementClick = (id: string, type: string) =>
+    createElementClickHandler(id, type, onElementClick);
 
-  const styles = {
-    cards: `bg-white ${responsiveSpacing.card.p} rounded-xl shadow-lg hover:shadow-xl transition-shadow`,
-    minimal: responsiveSpacing.component.py,
-    'icons-prominent': `text-center ${responsiveSpacing.card.p}`
-  };
+  // 1→2→3→(아이템 7개 이상) 4열
+  const gridCols =
+    layout === '2-col'
+      ? 'grid-cols-1 sm:grid-cols-2'
+      : layout === '3-col'
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      : layout === '4-col'
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ' + (features.length >= 7 ? 'xl:grid-cols-4' : '');
 
-  const animations = {
-    'stagger-up': 'animate-stagger-up',
-    'fade-in-sequence': 'animate-fade-sequence',
-    'hover-lift': 'hover:transform hover:-translate-y-2 transition-transform duration-300'
-  };
-
-  const handleElementClick = (elementId: string, elementType: string) => 
-    createElementClickHandler(elementId, elementType, onElementClick);
+  // 공통 카드(모두 동일)
+  const tileShell =
+    'relative rounded-[1.75rem] overflow-hidden bg-[var(--card-bg)] shadow-[var(--card-shadow)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-lg';
+  const tileInner = 'flex min-h-[230px] lg:min-h-[250px] flex-col justify-between p-6 sm:p-7 lg:p-8';
 
   return (
     <EditableElement
       id="features-grid-section"
-      onClick={handleElementClick('features-grid-section', 'section')}
+      onClick={handleElementClick('features-grid-section','section')}
       data-editable-type="section"
     >
-      <section 
-        className={getElementClassName('features-grid-section', `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-gray-50 ${className}`, selectedElementId)}
+      <section
+        className={getElementClassName(
+          'features-grid-section',
+          `${responsiveSpacing.section.py} ${responsiveSpacing.section.px} bg-[var(--background)] ${className}`,
+          selectedElementId
+        )}
         style={getElementStyle('features-grid-section', customStyles)}
+        role="region"
+        aria-label="Product features"
       >
-        <EditableElement
-          id="features-grid-container"
-          onClick={handleElementClick('features-grid-container', 'container')}
-          data-editable-type="container"
-        >
-          <div className={`${responsiveContainers.wide} mx-auto`}>
-            {/* Header */}
-            <EditableElement
-              id="features-grid-header"
-              onClick={handleElementClick('features-grid-header', 'container')}
-              data-editable-type="container"
-            >
-              <div className="text-center mb-12 sm:mb-16">
-                {subtitle && (
-                  <EditableElement
-                    id="features-grid-subtitle"
-                    onClick={handleElementClick('features-grid-subtitle', 'text')}
-                    data-editable-type="text"
-                  >
-                    <p 
-                      className={getElementClassName('features-grid-subtitle', `${responsiveText.caption} font-medium tracking-wide uppercase mb-3 sm:mb-4 text-blue-600`, selectedElementId)}
-                      style={getElementStyle('features-grid-subtitle', customStyles)}
-                    >
-                      {subtitle}
-                    </p>
-                  </EditableElement>
-                )}
-                
-                <EditableElement
-                  id="features-grid-title"
-                  onClick={handleElementClick('features-grid-title', 'text')}
-                  data-editable-type="text"
-                >
-                  <h2 
-                    className={getElementClassName('features-grid-title', `${responsiveText.h1} font-bold mb-4 sm:mb-6 text-gray-900`, selectedElementId)}
-                    style={getElementStyle('features-grid-title', customStyles)}
-                  >
-                    {title}
-                  </h2>
-                </EditableElement>
-                
-                {description && (
-                  <EditableElement
-                    id="features-grid-description"
-                    onClick={handleElementClick('features-grid-description', 'text')}
-                    data-editable-type="text"
-                  >
-                    <p 
-                      className={getElementClassName('features-grid-description', `${responsiveText.lead} text-gray-600 ${responsiveContainers.content} mx-auto`, selectedElementId)}
-                      style={getElementStyle('features-grid-description', customStyles)}
-                    >
-                      {description}
-                    </p>
-                  </EditableElement>
-                )}
-              </div>
-            </EditableElement>
-
-            {/* Features Grid */}
-            <EditableElement
-              id="features-grid-wrapper"
-              onClick={handleElementClick('features-grid-wrapper', 'container')}
-              data-editable-type="container"
-            >
-              <div className={`grid ${responsiveGaps.normal} ${layouts[layout]} ${layout !== 'masonry' ? animations[animation] : ''}`}>
-                {features.map((feature, index) => (
-                  <EditableElement
-                    key={index}
-                    id={`features-grid-item-${index}`}
-                    onClick={handleElementClick(`features-grid-item-${index}`, 'container')}
-                    data-editable-type="container"
-                  >
-                    <div
-                      className={getElementClassName(`features-grid-item-${index}`, `${styles[style]} ${animations['hover-lift']}`, selectedElementId)}
-                      style={{
-                        ...getElementStyle(`features-grid-item-${index}`, customStyles),
-                        animationDelay: `${index * 0.1}s`
-                      }}
-                    >
-                      {feature.icon && (
-                        <EditableElement
-                          id={`features-grid-icon-${index}`}
-                          onClick={handleElementClick(`features-grid-icon-${index}`, 'icon')}
-                          data-editable-type="icon"
-                        >
-                          <div className={`mb-3 sm:mb-4 ${
-                            style === 'icons-prominent' ? 'mx-auto w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16' : 'w-10 h-10 sm:w-12 sm:h-12'
-                          } flex items-center justify-center`}>
-                            <div 
-                              className={getElementClassName(`features-grid-icon-${index}`, `w-full h-full rounded-lg flex items-center justify-center text-lg sm:text-xl lg:text-2xl ${
-                                feature.iconColor || 'bg-blue-100 text-blue-600'
-                              }`, selectedElementId)}
-                              style={getElementStyle(`features-grid-icon-${index}`, customStyles)}
-                            >
-                              {feature.icon}
-                            </div>
-                          </div>
-                        </EditableElement>
-                      )}
-                      
-                      <EditableElement
-                        id={`features-grid-title-${index}`}
-                        onClick={handleElementClick(`features-grid-title-${index}`, 'text')}
-                        data-editable-type="text"
-                      >
-                        <h3 
-                          className={getElementClassName(`features-grid-title-${index}`, `${responsiveText.h3} font-semibold mb-2 sm:mb-3 text-gray-900 ${
-                            style === 'icons-prominent' ? 'text-center' : ''
-                          }`, selectedElementId)}
-                          style={getElementStyle(`features-grid-title-${index}`, customStyles)}
-                        >
-                          {feature.title}
-                        </h3>
-                      </EditableElement>
-                      
-                      <EditableElement
-                        id={`features-grid-description-${index}`}
-                        onClick={handleElementClick(`features-grid-description-${index}`, 'text')}
-                        data-editable-type="text"
-                      >
-                        <p 
-                          className={getElementClassName(`features-grid-description-${index}`, `${responsiveText.body} text-gray-600 leading-relaxed ${
-                            style === 'icons-prominent' ? 'text-center' : ''
-                          }`, selectedElementId)}
-                          style={getElementStyle(`features-grid-description-${index}`, customStyles)}
-                        >
-                          {feature.description}
-                        </p>
-                      </EditableElement>
-                    </div>
-                  </EditableElement>
-                ))}
-              </div>
-            </EditableElement>
+        <div className={`${responsiveContainers.wide} mx-auto`}>
+          {/* Header */}
+          <div className="text-center mb-10 sm:mb-14">
+            {subtitle && (
+              <p className="text-[var(--brand-600)] font-semibold tracking-wide mb-2">{subtitle}</p>
+            )}
+            <h2 className={`${responsiveText.h2} font-bold text-[var(--foreground)]`}>{title}</h2>
+            {description && (
+              <p className="mt-4 max-w-3xl mx-auto text-[color-mix(in oklab,var(--foreground) 70%,white)]">
+                {description}
+              </p>
+            )}
           </div>
-        </EditableElement>
+
+          {/* Grid */}
+          <div className={`grid gap-6 sm:gap-8 ${gridCols}`}>
+            {features.map((f, i) => {
+              const dot = f.dotColor || 'color-mix(in oklab, var(--brand-600) 90%, white)';
+              const deco = f.decoColor || 'rgba(99,102,241,.14)';
+
+              return (
+                <article
+                  key={i}
+                  className={getElementClassName(
+                    `features-grid-item-${i}`,
+                    tileShell,
+                    selectedElementId
+                  )}
+                >
+                  {/* 우하단 라디얼 장식 */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -bottom-16 -right-14 w-[320px] h-[320px] rounded-full blur-3xl"
+                    style={{
+                      background: `radial-gradient(60% 60% at 50% 50%, ${deco} 0%, transparent 70%)`,
+                    }}
+                  />
+
+                  <div className={tileInner}>
+                    {/* 상단: 타이틀 + 점(타이틀 뒤에 붙임) & 설명 */}
+                    <div>
+                      <h3 className="text-[1.6rem] sm:text-[1.7rem] font-semibold tracking-tight text-[var(--foreground)] inline-flex items-center gap-2">
+                        <span className="truncate">{f.title}</span>
+                        <span
+                          aria-hidden
+                          className="inline-block w-2.5 h-2.5 rounded-full flex-none"
+                          style={{ backgroundColor: dot }}
+                        />
+                      </h3>
+                      <p className="mt-2 leading-relaxed text-[color-mix(in oklab,var(--foreground) 70%,white)]">
+                        {f.description}
+                      </p>
+                    </div>
+
+                    {/* 하단: Learn more → */}
+                    {f.href && (
+                      <div className="pt-5">
+                        <a
+                          href={f.href}
+                          className={['inline-flex items-center gap-2 font-medium rounded text-[var(--brand-600)] hover:text-[var(--brand-700)]', focusRing].join(' ')}
+                        >
+                          Learn more
+                          <svg
+                            className="w-[18px] h-[18px]"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M5 12h14M13 5l7 7-7 7" />
+                          </svg>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
       </section>
     </EditableElement>
   );

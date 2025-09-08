@@ -35,8 +35,8 @@ export type {
   AIHints
 } from './types/metadata';
 
-// Metadata loader (server-side only)
-export { MetadataLoader, DEFAULT_METADATA_PATHS } from './loaders/json-loader';
+// Metadata loader (server-side only) - moved to separate export to avoid fs/promises in browser
+// import from '@aether/component-registry/server' instead
 
 // Unified Components (replaces both CORE_COMPONENTS and defaultComponents)
 export { 
@@ -110,13 +110,8 @@ export async function getDefaultRegistry(): Promise<ComponentRegistry> {
     // Register unified components
     defaultRegistry.registerBatch(UNIFIED_COMPONENTS);
     
-    // Try to load external metadata if available
-    try {
-      await defaultRegistry.loadMetadataFromJSON('./metadata/component-meta.json');
-      console.log('✅ Loaded external metadata for component registry');
-    } catch (error) {
-      console.log('ℹ️ No external metadata found, using default component metadata');
-    }
+    // External metadata loading disabled for client-side usage
+    // Use server-side initialization for metadata loading
     
     console.log(`🎯 Component Registry initialized with ${UNIFIED_COMPONENTS.length} unified components`);
   }

@@ -14,7 +14,7 @@ import {
   ComponentMetadataSchema
 } from './types/metadata';
 import { DesignTokens, DesignSystem } from './types/design-tokens';
-import { MetadataLoader, DEFAULT_METADATA_PATHS } from './loaders/json-loader';
+// MetadataLoader moved to server-side only exports
 
 /**
  * Extensible Component Registry with JSON metadata support
@@ -24,7 +24,7 @@ export class ComponentRegistry {
   private components: Map<string, ComponentDefinition> = new Map();
   private industryMappings: Map<string, IndustryMapping> = new Map();
   private designSystem: DesignSystem | null = null;
-  private metadataLoader: MetadataLoader;
+  // metadataLoader removed for client-side compatibility
   private initialized: boolean = false;
 
   constructor(options: {
@@ -33,10 +33,7 @@ export class ComponentRegistry {
     cacheEnabled?: boolean;
     cacheTTL?: number;
   } = {}) {
-    this.metadataLoader = new MetadataLoader({
-      cacheEnabled: options.cacheEnabled,
-      cacheTTL: options.cacheTTL
-    });
+    // MetadataLoader initialization removed for client-side compatibility
 
     if (options.autoLoad) {
       this.initialize(options.metadataPath);
@@ -53,10 +50,8 @@ export class ComponentRegistry {
       this.registerBatch(UNIFIED_COMPONENTS);
       console.log(`📦 Loaded ${UNIFIED_COMPONENTS.length} unified components`);
       
-      // Load external metadata if path provided
-      if (metadataPath) {
-        await this.loadMetadataFromJSON(metadataPath);
-      }
+      // External metadata loading disabled for client-side usage
+      // Use server-side registry for metadata loading
       
       this.initialized = true;
       console.log(`✅ Component Registry initialized with ${this.components.size} total components`);
@@ -349,54 +344,11 @@ export class ComponentRegistry {
   }
 
   /**
-   * Load metadata from JSON file (extensible)
+   * Load metadata from JSON file (disabled for client-side)
+   * Use server-side registry for metadata operations
    */
   async loadMetadataFromJSON(filePath: string): Promise<void> {
-    const externalData = await this.metadataLoader.loadExternalMetadata(filePath);
-    
-    // Update component metadata
-    if (externalData.components) {
-      for (const [componentId, updateData] of Object.entries(externalData.components)) {
-        const existingComponent = this.getById(componentId);
-        if (existingComponent && updateData.metadata) {
-          const mergedMetadata = this.metadataLoader.mergeMetadata(
-            existingComponent.metadata,
-            updateData.metadata
-          );
-          existingComponent.metadata = mergedMetadata;
-        }
-      }
-    }
-    
-    // Update industry mappings
-    if (externalData.industries) {
-      for (const [industry, mapping] of Object.entries(externalData.industries)) {
-        this.industryMappings.set(industry, mapping);
-      }
-    }
-    
-    // Update design system
-    if (externalData.designSystem) {
-      if (!this.designSystem) {
-        this.designSystem = {
-          name: 'Default',
-          version: '1.0.0',
-          description: 'Default design system',
-          tokens: externalData.designSystem,
-          themes: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-      } else {
-        this.designSystem.tokens = {
-          ...this.designSystem.tokens,
-          ...externalData.designSystem
-        };
-        this.designSystem.updatedAt = new Date().toISOString();
-      }
-    }
-    
-    console.log(`✅ Loaded metadata from ${filePath}`);
+    throw new Error('loadMetadataFromJSON is not available in client-side. Use server-side registry instead.');
   }
 
   /**
@@ -408,7 +360,7 @@ export class ComponentRegistry {
       throw new Error(`Component ${componentId} not found`);
     }
     
-    component.metadata = this.metadataLoader.mergeMetadata(component.metadata, metadata);
+    component.metadata = { ...component.metadata, ...metadata };
     console.log(`🔄 Updated metadata for ${componentId}`);
   }
 

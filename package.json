@@ -24,7 +24,10 @@
     "task:status": "node scripts/task-manager.js status",
     "progress:update": "node scripts/update-progress.js",
     "daily:summary": "node scripts/daily-summary.js",
-    "task": "node scripts/task-manager.js"
+    "task": "node scripts/task-manager.js",
+    "cleanup": "node scripts/cleanup.js",
+    "cleanup:turbo": "node scripts/cleanup.js turbo",
+    "cleanup:full": "node scripts/cleanup.js && pnpm install"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.41.0",

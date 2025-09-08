@@ -1,0 +1,29 @@
+{
+  "name": "@aether/database",
+  "version": "0.1.0",
+  "description": "Database schema and TypeScript types for Aether",
+  "main": "./types.ts",
+  "types": "./types.ts",
+  "exports": {
+    ".": {
+      "types": "./types.ts",
+      "default": "./types.ts"
+    }
+  },
+  "files": [
+    "types.ts",
+    "schema.sql"
+  ],
+  "keywords": [
+    "database",
+    "types",
+    "postgresql",
+    "supabase",
+    "schema"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

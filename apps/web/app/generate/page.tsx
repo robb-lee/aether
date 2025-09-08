@@ -48,7 +48,9 @@ export default function GeneratePage() {
     setError(null)
 
     try {
-      console.log('🚀 Starting generation for prompt:', prompt.trim())
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🚀 Starting generation for prompt:', prompt.trim())
+      }
       
       // Start generation
       const response = await fetch('/api/ai/generate', {
@@ -61,23 +63,31 @@ export default function GeneratePage() {
         })
       })
 
-      console.log('📡 API response status:', response.status)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📡 API response status:', response.status)
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('❌ API error:', errorData)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ API error:', errorData)
+        }
         throw new Error(errorData.error || `API request failed: ${response.status}`)
       }
 
       const result = await response.json()
-      console.log('✅ Generation response:', result)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Generation response:', result)
+      }
       
       if (result.error) {
         throw new Error(result.error)
       }
       
       if (result.id) {
-        console.log('🔄 Starting progress polling for site:', result.id)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 Starting progress polling for site:', result.id)
+        }
         // Poll for progress
         const checkProgress = async () => {
           try {
@@ -87,13 +97,17 @@ export default function GeneratePage() {
             }
             
             const status = await statusResponse.json()
-            console.log('📊 Progress update:', status)
+            if (process.env.NODE_ENV === 'development') {
+              console.log('📊 Progress update:', status)
+            }
             
             setProgress(status.progress || 0)
             setStage(status.stage || 'processing')
             
             if (status.status === 'completed') {
-              console.log('🎉 Generation completed! Redirecting to preview...')
+              if (process.env.NODE_ENV === 'development') {
+                console.log('🎉 Generation completed! Redirecting to preview...')
+              }
               router.push(`/preview/${result.id}`)
             } else if (status.status === 'failed') {
               throw new Error('Site generation failed')
@@ -101,7 +115,9 @@ export default function GeneratePage() {
               setTimeout(checkProgress, 1000)
             }
           } catch (statusError) {
-            console.error('❌ Status check error:', statusError)
+            if (process.env.NODE_ENV === 'development') {
+              console.error('❌ Status check error:', statusError)
+            }
             throw statusError
           }
         }
@@ -111,7 +127,9 @@ export default function GeneratePage() {
         throw new Error('No site ID returned from generation')
       }
     } catch (error) {
-      console.error('❌ Generation error:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ Generation error:', error)
+      }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       setError(errorMessage)
       setIsGenerating(false)

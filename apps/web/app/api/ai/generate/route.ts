@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const onProgress = async (progress: any) => {
       generationProgress = Math.min(generationProgress + 10, 90);
       console.log('📊 Generation progress:', progress);
-      // TODO: In production, update database with progress
+      // NOTE: Database progress updates not yet implemented
     };
 
     console.log('🚀 Starting complete AI site generation pipeline for:', prompt);
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
               estimated_cost: siteResult?.metadata?.cost || 0.01,
               result: fullSiteData,
               success: true,
-              duration_ms: 15000, // TODO: Track actual duration
+              duration_ms: 15000, // NOTE: Should track actual generation duration
               metadata: {
                 generationMethod: 'registry',
                 performance: siteResult?.metadata?.performance
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     // Handle timeout specifically
     if (error instanceof Error && error.message.includes('timeout')) {
       console.log('⏰ Generation timed out after 30 seconds');
-      // TODO: In production, update database with failed status
+      // NOTE: Database error status updates not yet implemented
     }
     
     const { handleAPIError } = await import('@aether/ai-engine/lib/error-handler')

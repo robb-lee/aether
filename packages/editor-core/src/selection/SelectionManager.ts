@@ -169,7 +169,7 @@ export class SelectionManager {
       case 'move-right':
         this.moveSelection(this.options.gridSize!, 0);
         break;
-      // TODO: Implement extend selection shortcuts
+      // NOTE: Extend selection shortcuts (Shift+Arrow) not yet implemented
     }
   }
 

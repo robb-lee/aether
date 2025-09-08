@@ -40,11 +40,11 @@ const sampleComponentTree = {
 
 export default function EditorPage() {
   const handleSelectionChange = (selectedIds: string[]) => {
-    console.log('Selected components:', selectedIds);
+    // Selection change handler - could add state management here
   };
 
   const handleComponentUpdate = (componentId: string, updates: any) => {
-    console.log('Component update:', componentId, updates);
+    // Component update handler - could add state management here
   };
 
   return (

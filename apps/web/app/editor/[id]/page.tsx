@@ -61,13 +61,19 @@ export default function EditorPage({ params }: { params: { id: string } }) {
         
         // Transform components to ComponentTreeNode format
         if (data.components && data.components.root) {
-          console.log('Raw site data:', data.components)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Raw site data:', data.components)
+          }
           const transformedTree = transformToComponentTree(data.components.root)
-          console.log('Transformed tree:', transformedTree)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Transformed tree:', transformedTree)
+          }
           setComponentTree(transformedTree)
         }
       } catch (err) {
-        console.error('Error fetching site:', err)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching site:', err)
+        }
         setError(err instanceof Error ? err.message : 'Failed to load site')
       } finally {
         setLoading(false)
@@ -88,12 +94,16 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       children: []
     }
     
-    console.log('Transforming component:', component)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Transforming component:', component)
+    }
     
     // Always process children for all components (including root)
     if (component.children && Array.isArray(component.children)) {
       transformed.children = component.children.map(transformToComponentTree)
-      console.log(`Component ${component.id || 'unknown'} has ${transformed.children?.length || 0} children`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Component ${component.id || 'unknown'} has ${transformed.children?.length || 0} children`)
+      }
     }
     
     return transformed
@@ -101,7 +111,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Handle component selection
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
-    console.log('Selection changed to:', selectedIds)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Selection changed to:', selectedIds)
+    }
     setSelectedElement(selectedIds)
     // Clear element-specific selections when selecting components directly
     setSelectedElementType(null)
@@ -148,14 +160,18 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   }, [])
   
   const handleElementSelect = useCallback((elementId: string, elementType: string) => {
-    console.log('Element selected:', { elementId, elementType })
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Element selected:', { elementId, elementType })
+    }
     setSelectedElement([elementId])
     setSelectedElementType(elementType)
     
     // Find the component containing this element
     if (componentTree) {
       const containingComponent = findComponentContainingElement(elementId, componentTree)
-      console.log('Found containing component:', containingComponent)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Found containing component:', containingComponent)
+      }
       setSelectedElementComponent(containingComponent)
     }
   }, [componentTree, findComponentContainingElement])
@@ -165,7 +181,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     if (selectedElement[0] && selectedElementType && componentTree) {
       const updatedComponent = findComponentContainingElement(selectedElement[0], componentTree)
       if (updatedComponent) {
-        console.log('Syncing selectedElementComponent with updated componentTree:', updatedComponent)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Syncing selectedElementComponent with updated componentTree:', updatedComponent)
+        }
         setSelectedElementComponent(updatedComponent)
       }
     }
@@ -320,9 +338,11 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   
   // Debug selected component
   useEffect(() => {
-    console.log('Selected element IDs:', selectedElement)
-    console.log('Selected component:', selectedComponent)
-    console.log('Component tree structure:', componentTree)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Selected element IDs:', selectedElement)
+      console.log('Selected component:', selectedComponent)
+      console.log('Component tree structure:', componentTree)
+    }
   }, [selectedElement, selectedComponent, componentTree])
   
   // Panel toggle keyboard shortcuts
@@ -447,9 +467,13 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       }
       
       // Show success message or notification
-      console.log('Site saved successfully')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Site saved successfully')
+      }
     } catch (err) {
-      console.error('Error saving site:', err)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error saving site:', err)
+      }
       // Show error message
     } finally {
       setIsSaving(false)

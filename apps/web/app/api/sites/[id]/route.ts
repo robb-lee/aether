@@ -107,7 +107,8 @@ export async function DELETE(
   try {
     const { id } = params
 
-    // TODO: Delete site from database
+    // NOTE: Site deletion from database not yet implemented
+    // This endpoint currently returns success but doesn't delete from DB
     return NextResponse.json(
       { message: `Site ${id} deleted successfully` },
       { status: 200 }

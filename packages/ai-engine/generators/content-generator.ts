@@ -1,309 +1,415 @@
 /**
- * Content Generation Pipeline
+ * Content Generator for Stage 2: Component-specific content generation
  * 
- * Generates business-specific content using AI models
- * Supports multiple languages and industry optimization
+ * Takes selected component IDs and generates accurate props based on Zod schemas
  */
 
-import { generateCompletion } from '../lib/litellm-client';
-import { config } from '../config';
+import { z } from 'zod';
+import { SelectionContext } from '../selectors/component-selector';
 
-export interface ContentRequest {
-  businessType: string;
-  industry: string;
-  targetAudience: string;
-  tone?: 'professional' | 'casual' | 'technical' | 'friendly';
-  language?: string;
-  sectionType: 'hero' | 'features' | 'pricing' | 'testimonials' | 'faq' | 'contact';
-  context?: {
-    companyName?: string;
-    productName?: string;
-    keyFeatures?: string[];
-    valueProposition?: string;
-  };
+// Import isolated schemas to avoid pulling in client components
+import { COMPONENT_SCHEMAS } from '../schemas/component-schemas';
+
+/**
+ * Components that need complex content generation
+ */
+const COMPLEX_COMPONENTS = new Set([
+  'pricing-table',
+  'testimonials-slider', 
+  'stats-section',
+  'team-grid',
+  'portfolio-gallery',
+  'blog-grid',
+  'faq-section',
+  'timeline'
+]);
+
+/**
+ * Simple components with basic props
+ */
+const SIMPLE_COMPONENT_PROPS = {
+  'hero-split': {
+    title: '',
+    subtitle: '',
+    description: '',
+    ctaText: 'Get Started',
+    ctaHref: '#',
+    imagePrompt: ''
+  },
+  'hero-centered': {
+    title: '',
+    subtitle: '',
+    description: '',
+    ctaText: 'Get Started',
+    ctaHref: '#',
+    imagePrompt: ''
+  },
+  'hero-video-bg': {
+    title: '',
+    subtitle: '',
+    description: '',
+    ctaText: 'Get Started',
+    ctaHref: '#',
+    videoUrl: ''
+  },
+  'features-grid': {
+    title: 'Key Features',
+    description: 'Everything you need to succeed',
+    features: []
+  },
+  'cta-simple': {
+    title: 'Ready to Get Started?',
+    subtitle: 'Join thousands of satisfied customers',
+    ctaText: 'Get Started',
+    ctaHref: '#'
+  },
+  'footer-simple': {
+    companyName: '',
+    description: '',
+    links: []
+  },
+  'contact-form': {
+    title: 'Get In Touch',
+    subtitle: 'We\'d love to hear from you',
+    submitText: 'Send Message',
+    successMessage: 'Thank you! We\'ll get back to you soon.'
+  }
+} as const;
+
+export interface ComponentContent {
+  componentId: string;
+  props: Record<string, any>;
 }
 
-export interface GeneratedContent {
-  headline: string;
-  subheadline?: string;
-  body: string;
-  cta: string;
-  keywords: string[];
-  seoTitle: string;
-  seoDescription: string;
+export interface ContentGenerationResult {
+  components: ComponentContent[];
+  errors: Array<{ componentId: string; error: string }>;
 }
 
-export class ContentGenerator {
+/**
+ * Generate content for selected components
+ */
+export async function generateComponentContent(
+  componentIds: string[],
+  userInput: string,
+  context: SelectionContext
+): Promise<ContentGenerationResult> {
+  const components: ComponentContent[] = [];
+  const errors: Array<{ componentId: string; error: string }> = [];
+
+  console.log('🔄 Stage 2: Generating content for components:', componentIds);
+
+  for (const componentId of componentIds) {
+    try {
+      console.log(`📝 Generating content for: ${componentId}`);
+      
+      if (COMPLEX_COMPONENTS.has(componentId)) {
+        // Complex component - use AI generation
+        const content = await generateComplexComponentContent(componentId, userInput, context);
+        components.push({ componentId, props: content });
+      } else {
+        // Simple component - use template + basic AI
+        const content = await generateSimpleComponentContent(componentId, userInput, context);
+        components.push({ componentId, props: content });
+      }
+    } catch (error) {
+      console.error(`❌ Failed to generate content for ${componentId}:`, error);
+      errors.push({ 
+        componentId, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  }
+
+  console.log('✅ Stage 2 complete:', { 
+    successful: components.length, 
+    errors: errors.length 
+  });
+
+  return { components, errors };
+}
+
+/**
+ * Generate content for complex components using AI
+ */
+async function generateComplexComponentContent(
+  componentId: string,
+  userInput: string,
+  context: SelectionContext
+): Promise<Record<string, any>> {
+  const schema = COMPONENT_SCHEMAS[componentId as keyof typeof COMPONENT_SCHEMAS];
   
-  /**
-   * Generate business-specific content for a section
-   */
-  async generateSectionContent(request: ContentRequest): Promise<GeneratedContent> {
-    const prompt = this.buildContentPrompt(request);
-    
-    try {
-      const response = await generateCompletion({
-        model: config.AI_PRIMARY_MODEL,
-        messages: [
-          {
-            role: 'system',
-            content: this.getSystemPrompt(request)
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      });
-
-      const content = this.parseContentResponse(response.choices[0].message.content);
-      return this.enhanceContent(content, request);
-    } catch (error) {
-      throw new Error(`Content generation failed: ${error.message}`);
-    }
+  if (!schema) {
+    throw new Error(`No schema found for component: ${componentId}`);
   }
 
-  /**
-   * Generate headlines optimized for the specific business
-   */
-  async generateHeadlines(businessType: string, context: ContentRequest['context']): Promise<string[]> {
-    const prompt = `Generate 5 compelling headlines for a ${businessType} business.
-    
-Context:
-- Company: ${context?.companyName || 'Business'}
-- Product: ${context?.productName || 'Service'}
-- Value Proposition: ${context?.valueProposition || 'Solve customer problems'}
+  // Get component-specific prompt template
+  const promptTemplate = getComponentPromptTemplate(componentId);
+  const prompt = promptTemplate
+    .replace('{userInput}', userInput)
+    .replace('{industry}', context.industry || 'general')
+    .replace('{businessType}', context.businessType || 'company')
+    .replace('{schema}', generateSchemaDocumentation(schema));
 
-Return as JSON array of strings.`;
+  // Generate content with AI (temporary mock implementation)
+  // TODO: Replace with actual AI generation once LiteLLM is properly configured
+  const result = { text: generateMockContent(componentId, userInput, context) };
 
-    try {
-      const response = await generateCompletion({
-        model: config.AI_FALLBACK_MODEL, // Use fast model for quick generation
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert copywriter. Generate compelling, conversion-focused headlines.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.8,
-        max_tokens: 300
-      });
-
-      return JSON.parse(response.choices[0].message.content);
-    } catch (error) {
-      // Fallback headlines
-      return [
-        `Transform Your Business with ${context?.productName || 'Our Solution'}`,
-        `${context?.companyName || 'We'} Help You Succeed`,
-        'Get Results Fast with Our Platform',
-        'Join Thousands of Satisfied Customers',
-        'Start Your Journey Today'
-      ];
-    }
+  // Parse and validate JSON response
+  let parsedContent;
+  try {
+    parsedContent = JSON.parse(result.text.trim());
+  } catch (parseError) {
+    throw new Error(`Failed to parse JSON response for ${componentId}: ${parseError}`);
   }
 
-  /**
-   * Generate compelling CTAs for different contexts
-   */
-  async generateCTAs(context: { 
-    action: string; 
-    urgency?: 'low' | 'medium' | 'high';
-    industry: string;
-  }): Promise<string[]> {
-    const urgencyPrompts = {
-      low: 'casual, informative CTAs',
-      medium: 'encouraging but not pushy CTAs', 
-      high: 'urgent, action-oriented CTAs'
-    };
-
-    const prompt = `Generate 3 ${urgencyPrompts[context.urgency || 'medium']} for ${context.industry}.
-    Action: ${context.action}
-    
-    Return as JSON array of strings.`;
-
-    try {
-      const response = await generateCompletion({
-        model: config.AI_FALLBACK_MODEL,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a conversion optimization expert. Create compelling call-to-action buttons.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.6,
-        max_tokens: 200
-      });
-
-      return JSON.parse(response.choices[0].message.content);
-    } catch (error) {
-      // Industry-specific fallback CTAs
-      const industryDefaults = {
-        saas: ['Start Free Trial', 'Get Started', 'Try It Now'],
-        ecommerce: ['Shop Now', 'Add to Cart', 'Buy Today'],
-        consulting: ['Schedule Consultation', 'Contact Us', 'Learn More'],
-        portfolio: ['View Portfolio', 'Get in Touch', 'Hire Me'],
-        restaurant: ['Order Now', 'Make Reservation', 'View Menu'],
-        default: ['Get Started', 'Learn More', 'Contact Us']
-      };
-
-      return industryDefaults[context.industry] || industryDefaults.default;
-    }
+  // Validate with Zod schema
+  const validation = schema.safeParse(parsedContent);
+  if (!validation.success) {
+    console.warn(`⚠️ Schema validation failed for ${componentId}:`, validation.error);
+    // Return default values if validation fails
+    const defaultValues = getDefaultValues(schema);
+    return { ...defaultValues, ...parsedContent };
   }
 
-  private buildContentPrompt(request: ContentRequest): string {
-    const { businessType, industry, targetAudience, sectionType, context } = request;
-    
-    return `Generate ${sectionType} content for a ${businessType} in the ${industry} industry.
+  return validation.data;
+}
 
-Target Audience: ${targetAudience}
-Tone: ${request.tone || 'professional'}
-Language: ${request.language || 'English'}
-
-Business Context:
-${context?.companyName ? `- Company: ${context.companyName}` : ''}
-${context?.productName ? `- Product: ${context.productName}` : ''}
-${context?.valueProposition ? `- Value Proposition: ${context.valueProposition}` : ''}
-${context?.keyFeatures ? `- Key Features: ${context.keyFeatures.join(', ')}` : ''}
-
-Section Type: ${sectionType}
-
-Generate content in this JSON format:
-{
-  "headline": "Main headline",
-  "subheadline": "Supporting headline (optional)",
-  "body": "Main content text",
-  "cta": "Call to action text",
-  "keywords": ["keyword1", "keyword2"],
-  "seoTitle": "SEO optimized title",
-  "seoDescription": "Meta description"
-}`;
+/**
+ * Generate content for simple components
+ */
+async function generateSimpleComponentContent(
+  componentId: string,
+  userInput: string,
+  context: SelectionContext
+): Promise<Record<string, any>> {
+  const template = SIMPLE_COMPONENT_PROPS[componentId as keyof typeof SIMPLE_COMPONENT_PROPS];
+  
+  if (!template) {
+    throw new Error(`No template found for simple component: ${componentId}`);
   }
 
-  private getSystemPrompt(request: ContentRequest): string {
-    return `You are an expert copywriter and content strategist specialized in ${request.industry} businesses.
+  // Use AI to fill in the template fields
+  const prompt = `Generate content for ${componentId} component.
+Business: ${userInput}
+Industry: ${context.industry || 'general'}
 
-Your mission:
-1. Create compelling, conversion-focused content
-2. Ensure content matches the business type and target audience
-3. Use industry-specific terminology appropriately
-4. Maintain consistent tone throughout
-5. Optimize for SEO without sacrificing readability
-6. Generate strong calls-to-action that drive conversions
+Fill in these fields with appropriate content:
+${JSON.stringify(template, null, 2)}
 
-Content Guidelines:
-- Headlines: Clear value proposition, benefit-focused
-- Body: Address pain points, highlight solutions
-- CTAs: Action-oriented, urgency when appropriate
-- SEO: Natural keyword integration, optimal length
-- Tone: Match brand personality and audience expectations
+Return only valid JSON matching the structure above.`;
 
-Always return valid JSON with all required fields.`;
-  }
+  // Generate content with AI (temporary mock implementation)
+  const result = { text: JSON.stringify(template) };
 
-  private parseContentResponse(response: string): GeneratedContent {
-    try {
-      const parsed = JSON.parse(response);
-      return {
-        headline: parsed.headline || 'Welcome to Our Business',
-        subheadline: parsed.subheadline,
-        body: parsed.body || 'We provide excellent service to our customers.',
-        cta: parsed.cta || 'Get Started',
-        keywords: parsed.keywords || [],
-        seoTitle: parsed.seoTitle || parsed.headline,
-        seoDescription: parsed.seoDescription || parsed.body?.substring(0, 160)
-      };
-    } catch (error) {
-      // Fallback parsing for malformed JSON
-      return {
-        headline: 'Welcome to Our Business',
-        body: 'We provide excellent service to our customers.',
-        cta: 'Get Started',
-        keywords: [],
-        seoTitle: 'Welcome to Our Business',
-        seoDescription: 'We provide excellent service to our customers.'
-      };
-    }
-  }
-
-  private async enhanceContent(content: GeneratedContent, request: ContentRequest): Promise<GeneratedContent> {
-    // Add industry-specific enhancements
-    if (request.industry === 'saas') {
-      content.keywords.push('software', 'cloud', 'productivity');
-    } else if (request.industry === 'ecommerce') {
-      content.keywords.push('shop', 'buy', 'products');
-    }
-
-    // Ensure CTA matches section type
-    if (request.sectionType === 'pricing') {
-      const pricingCTAs = await this.generateCTAs({
-        action: 'purchase',
-        urgency: 'high',
-        industry: request.industry
-      });
-      content.cta = pricingCTAs[0];
-    }
-
-    return content;
+  try {
+    return JSON.parse(result.text.trim());
+  } catch (error) {
+    console.warn(`⚠️ Failed to parse simple component content for ${componentId}, using template`);
+    return template;
   }
 }
 
-// Industry-specific content templates
-export const industryTemplates = {
-  saas: {
-    hero: {
-      headlines: [
-        'Transform Your {business_area} with AI',
-        'Scale Your {business_area} Operations',
-        'Automate {pain_point} in Minutes'
-      ],
-      features: ['Automation', 'Analytics', 'Integration', 'Security'],
-      tone: 'professional'
-    },
-    features: {
-      focus: ['efficiency', 'automation', 'analytics', 'integration'],
-      keywords: ['productivity', 'workflow', 'optimization', 'insights']
-    }
-  },
-  ecommerce: {
-    hero: {
-      headlines: [
-        'Discover {product_category} You Love',
-        'Shop Premium {product_category}',
-        'Find Your Perfect {product_category}'
-      ],
-      features: ['Quality', 'Fast Shipping', 'Easy Returns', 'Customer Support'],
-      tone: 'friendly'
-    },
-    features: {
-      focus: ['quality', 'convenience', 'variety', 'service'],
-      keywords: ['shop', 'buy', 'quality', 'delivery']
-    }
-  },
-  consulting: {
-    hero: {
-      headlines: [
-        'Expert {service_area} Consulting',
-        'Grow Your Business with {expertise}',
-        'Strategic {service_area} Solutions'
-      ],
-      features: ['Expertise', 'Results', 'Partnership', 'Growth'],
-      tone: 'professional'
-    },
-    features: {
-      focus: ['expertise', 'results', 'strategy', 'growth'],
-      keywords: ['consulting', 'expert', 'strategy', 'growth']
-    }
-  }
-};
+/**
+ * Get component-specific prompt template
+ */
+function getComponentPromptTemplate(componentId: string): string {
+  const templates: Record<string, string> = {
+    'pricing-table': `Generate pricing plans for this business: {userInput}
+Industry: {industry}
+Business Type: {businessType}
 
-export default ContentGenerator;
+Create 3 pricing tiers (Starter, Professional, Enterprise) with:
+- Realistic pricing for {industry} industry  
+- 4-6 features per tier
+- Clear value progression
+- One tier highlighted as "popular"
+
+REQUIRED JSON STRUCTURE:
+{schema}
+
+Return only valid JSON:`,
+
+    'testimonials-slider': `Generate customer testimonials for: {userInput}
+Industry: {industry}
+
+Create 3-4 realistic testimonials with:
+- Diverse customer profiles
+- Specific benefits mentioned
+- Professional tone
+- Company names and roles
+
+REQUIRED JSON STRUCTURE:
+{schema}
+
+Return only valid JSON:`,
+
+    'stats-section': `Generate key statistics for: {userInput}
+Industry: {industry}
+
+Create 3-4 impressive but realistic metrics like:
+- Customer count, revenue growth, uptime, etc.
+- Include proper units (%, +, K, M, etc.)
+- Make them credible for {industry} industry
+
+REQUIRED JSON STRUCTURE:
+{schema}
+
+Return only valid JSON:`,
+
+    'team-grid': `Generate team members for: {userInput}
+Industry: {industry}
+
+Create 3-4 team members with:
+- Realistic names and roles for {industry}
+- Professional bios (2-3 sentences)
+- Diverse team composition
+- Relevant expertise areas
+
+REQUIRED JSON STRUCTURE:
+{schema}
+
+Return only valid JSON:`,
+
+    'faq-section': `Generate FAQ for: {userInput}
+Industry: {industry}
+
+Create 5-7 common questions and answers about:
+- Product/service features
+- Pricing and plans
+- Support and implementation
+- Security and compliance (if relevant)
+
+REQUIRED JSON STRUCTURE:
+{schema}
+
+Return only valid JSON:`,
+
+    'timeline': `Generate company timeline for: {userInput}
+Industry: {industry}
+
+Create 4-6 key milestones showing:
+- Company growth and development
+- Product launches or major features
+- Realistic dates and achievements
+- Professional milestone descriptions
+
+REQUIRED JSON STRUCTURE:
+{schema}
+
+Return only valid JSON:`
+  };
+
+  return templates[componentId] || `Generate content for ${componentId} component.
+Business: {userInput}
+Industry: {industry}
+
+REQUIRED STRUCTURE:
+{schema}
+
+Return only valid JSON:`;
+}
+
+/**
+ * Generate schema documentation from Zod schema
+ */
+function generateSchemaDocumentation(schema: z.ZodType): string {
+  try {
+    const defaultValues = getDefaultValues(schema);
+    return JSON.stringify(defaultValues, null, 2);
+  } catch (error) {
+    return 'Schema documentation unavailable';
+  }
+}
+
+/**
+ * Get default values from Zod schema
+ */
+function getDefaultValues(schema: z.ZodType): any {
+  if (schema instanceof z.ZodObject) {
+    const shape = schema.shape;
+    const defaults: any = {};
+    
+    for (const [key, value] of Object.entries(shape)) {
+      if (value instanceof z.ZodDefault) {
+        defaults[key] = value._def.defaultValue();
+      } else if (value instanceof z.ZodString) {
+        defaults[key] = 'string';
+      } else if (value instanceof z.ZodNumber) {
+        defaults[key] = 0;
+      } else if (value instanceof z.ZodBoolean) {
+        defaults[key] = false;
+      } else if (value instanceof z.ZodArray) {
+        defaults[key] = ['array of items'];
+      } else if (value instanceof z.ZodOptional) {
+        // Skip optional fields in documentation
+        continue;
+      }
+    }
+    
+    return defaults;
+  }
+  
+  return {};
+}
+
+/**
+ * Generate mock content for testing (temporary implementation)
+ */
+function generateMockContent(componentId: string, userInput: string, context: SelectionContext): string {
+  const mockData: Record<string, any> = {
+    'pricing-table': {
+      title: "Choose Your Plan",
+      subtitle: "Flexible pricing for teams of all sizes", 
+      currency: "$",
+      plans: [
+        {
+          name: "Starter",
+          price: "29",
+          period: "month",
+          description: "Perfect for small teams",
+          features: ["5 users", "10GB storage", "Basic support"],
+          ctaText: "Start Free Trial"
+        },
+        {
+          name: "Professional", 
+          price: "99",
+          period: "month",
+          description: "Best for growing businesses",
+          features: ["25 users", "100GB storage", "Priority support", "Advanced features"],
+          highlighted: true,
+          ctaText: "Get Started"
+        },
+        {
+          name: "Enterprise",
+          price: "299", 
+          period: "month",
+          description: "For large organizations",
+          features: ["Unlimited users", "1TB storage", "24/7 support", "All features"],
+          ctaText: "Contact Sales"
+        }
+      ]
+    },
+    'testimonials-slider': {
+      title: "What Our Customers Say",
+      testimonials: [
+        {
+          name: "John Smith",
+          company: "TechCorp",
+          content: "This service has transformed our workflow completely.",
+          rating: 5
+        }
+      ]
+    },
+    'stats-section': {
+      title: "Our Impact",
+      stats: [
+        { value: "10K+", label: "Happy Customers" },
+        { value: "99.9%", label: "Uptime" },
+        { value: "50+", label: "Countries" }
+      ]
+    }
+  };
+
+  return JSON.stringify(mockData[componentId] || {});
+}

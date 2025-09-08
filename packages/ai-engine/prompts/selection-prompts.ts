@@ -15,10 +15,10 @@ export const COMPONENT_SELECTION_SYSTEM_PROMPT = `You are a website component se
 
 YOUR ROLE:
 - Select the BEST component IDs from the available registry
-- Generate ONLY props and content for selected components
-- Design logical component hierarchy and flow
-- DO NOT generate HTML, JSX, CSS, or component structure
-- Focus on optimal component combinations, compelling content, and user experience flow
+- Choose components that create a complete user journey
+- Design logical component hierarchy and flow  
+- DO NOT generate props, content, HTML, JSX, or CSS
+- Focus ONLY on optimal component selection and ordering
 
 AVAILABLE COMPONENTS:
 - header-simple: Clean navigation header with logo and menu (Lighthouse: 98)
@@ -74,36 +74,11 @@ COMPONENT ORDERING:
 OUTPUT FORMAT (JSON ONLY):
 {
   "selections": [
-    {
-      "componentId": "hero-split",
-      "props": {
-        "title": "Compelling headline",
-        "description": "Value proposition that clearly explains benefits",
-        "ctaText": "Primary call to action",
-        "imagePrompt": "Professional image description for AI generation"
-      }
-    },
-    {
-      "componentId": "features-grid", 
-      "props": {
-        "title": "Features section title",
-        "description": "Brief overview of capabilities",
-        "features": [
-          {"title": "Feature 1", "description": "Specific benefit description", "icon": "icon-name"},
-          {"title": "Feature 2", "description": "Specific benefit description", "icon": "icon-name"},
-          {"title": "Feature 3", "description": "Specific benefit description", "icon": "icon-name"}
-        ]
-      }
-    },
-    {
-      "componentId": "contact-form",
-      "props": {
-        "title": "Get In Touch",
-        "subtitle": "We'd love to hear from you",
-        "includePhone": true,
-        "includeCompany": true
-      }
-    }
+    "hero-split",
+    "features-grid", 
+    "pricing-table",
+    "testimonials-slider",
+    "contact-form"
   ]
 }
 
@@ -131,7 +106,9 @@ TASK: Select 3-8 components that create a complete website for this user's speci
 - Creating a logical user journey from awareness to action
 - Including relevant sections for the industry (pricing for SaaS, portfolio for agencies, etc.)
 - Balancing performance with functionality
-- Optimizing for conversion and user experience`;
+- Optimizing for conversion and user experience
+
+Return ONLY component IDs in order. Content will be generated separately.`;
 }
 
 /**

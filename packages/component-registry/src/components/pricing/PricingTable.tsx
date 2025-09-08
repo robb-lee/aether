@@ -117,7 +117,7 @@ export const PricingTable: React.FC<PricingTablePropsInternal> = ({
         </div>
         
         <div className={`grid ${responsiveGrids['3-col']} gap-6 sm:gap-8 lg:gap-4`}>
-          {plans.map((plan, index) => (
+          {plans.filter(plan => plan != null).map((plan, index) => (
             <div 
               key={index}
               className={`relative bg-white rounded-lg border-2 ${responsiveSpacing.card.p} ${
@@ -147,7 +147,7 @@ export const PricingTable: React.FC<PricingTablePropsInternal> = ({
               </div>
               
               <ul className="space-y-3 mb-8" role="list">
-                {plan.features.map((feature, featureIndex) => (
+                {(plan.features || []).map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start">
                     <svg 
                       className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" 

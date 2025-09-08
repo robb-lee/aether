@@ -9,16 +9,18 @@ import { getRegistry } from '../../component-registry/src/registry';
 import { ComponentDefinition, SearchCriteria } from '../../component-registry/src/types/component';
 import { z } from 'zod';
 
-// Schema for AI selection response
+// Schema for Stage 1: Component ID selection only
 export const ComponentSelectionSchema = z.object({
-  selections: z.array(z.object({
-    componentId: z.string(),
-    props: z.record(z.any()),
-    reasoning: z.string().optional()
-  }))
+  selections: z.array(z.string())
 });
 
 export type ComponentSelection = z.infer<typeof ComponentSelectionSchema>;
+
+// Schema for Stage 2: Full component with props
+export const ComponentWithPropsSchema = z.object({
+  componentId: z.string(),
+  props: z.record(z.any())
+});
 
 /**
  * Context for component selection
@@ -205,7 +207,7 @@ Required: hero, features, pricing, cta
 Max components: 5
 
 JSON format:
-{"selections":[{"componentId":"hero-split","props":{"title":"...","subtitle":"...","ctaText":"..."}}]}`;
+{"selections":["hero-split","features-grid","pricing-table","contact-form"]}`;
   }
 
   /**
@@ -215,7 +217,7 @@ JSON format:
     const kit = context.designKit || this.selectOptimalDesignKit(context);
     const industry = context.industry || 'general';
     
-    return `${industry} site, ${kit} kit. Select: hero,features,pricing,cta. JSON only:{"selections":[{"componentId":"","props":{}}]}`;
+    return `${industry} site, ${kit} kit. Select: hero,features,pricing,cta. JSON only:{"selections":["component-id-1","component-id-2"]}`;
   }
 
   /**
@@ -315,7 +317,7 @@ export function getComponentSelector(): ComponentSelector {
 /**
  * Quick helper for getting selection prompt
  */
-export function createSelectionPrompt(context: SelectionContext): string {
+export async function createSelectionPrompt(context: SelectionContext): Promise<string> {
   return getComponentSelector().generateSelectionPrompt(context);
 }
 
@@ -324,4 +326,127 @@ export function createSelectionPrompt(context: SelectionContext): string {
  */
 export async function parseAISelection(response: string): Promise<ComponentSelection> {
   return getComponentSelector().parseSelectionResponse(response);
+}
+
+/**
+ * Two-stage website generation
+ */
+import { createSelectionPrompt as createPromptTemplate } from '../prompts/selection-prompts';
+import { generateComponentContent, ComponentContent } from '../generators/content-generator';
+
+export type ComponentWithProps = ComponentContent;
+
+export interface SiteGenerationResult {
+  success: boolean;
+  components: ComponentWithProps[];
+  errors: Array<{ stage: string; error: string }>;
+  metadata: {
+    selectedComponents: string[];
+    totalComponents: number;
+    generationTime: number;
+    tokensSaved: number;
+  };
+}
+
+/**
+ * Generate complete website using 2-stage process
+ */
+export async function generateWebsite(
+  userInput: string,
+  context: SelectionContext
+): Promise<SiteGenerationResult> {
+  const startTime = Date.now();
+  const errors: Array<{ stage: string; error: string }> = [];
+  
+  console.log('🚀 Starting 2-stage website generation');
+  console.log('📝 User input:', userInput);
+  console.log('🎯 Context:', context);
+
+  try {
+    // Stage 1: Component Selection
+    console.log('🔄 Stage 1: Selecting components...');
+    
+    const selectionPrompt = createPromptTemplate(userInput, context);
+    
+    // Mock AI response for testing (temporary implementation)
+    const mockSelectionResult = {
+      text: JSON.stringify({
+        selections: ['hero-split', 'features-grid', 'pricing-table', 'contact-form']
+      })
+    };
+
+    // Parse component IDs
+    let componentIds: string[] = [];
+    try {
+      const parsedSelection = JSON.parse(mockSelectionResult.text.trim());
+      componentIds = parsedSelection.selections || [];
+    } catch (parseError) {
+      throw new Error(`Failed to parse Stage 1 response: ${parseError}`);
+    }
+
+    console.log('✅ Stage 1 complete. Selected components:', componentIds);
+
+    if (componentIds.length === 0) {
+      throw new Error('No components selected in Stage 1');
+    }
+
+    // Stage 2: Content Generation
+    console.log('🔄 Stage 2: Generating component content...');
+    
+    const contentResult = await generateComponentContent(
+      componentIds,
+      userInput,
+      context
+    );
+
+    // Merge successful components with any that had errors
+    const allComponents: ComponentWithProps[] = contentResult.components;
+    
+    // Add error info
+    contentResult.errors.forEach(err => {
+      errors.push({ stage: 'content-generation', error: `${err.componentId}: ${err.error}` });
+    });
+
+    // Calculate metadata
+    const generationTime = Date.now() - startTime;
+    const selector = getComponentSelector();
+    const tokenSavings = selector.estimateTokenSavings(componentIds.length);
+
+    console.log('✅ 2-stage generation complete:', {
+      totalComponents: allComponents.length,
+      errors: errors.length,
+      generationTime: `${generationTime}ms`,
+      tokensSaved: tokenSavings.savings
+    });
+
+    return {
+      success: errors.length < componentIds.length, // Success if at least some components worked
+      components: allComponents,
+      errors,
+      metadata: {
+        selectedComponents: componentIds,
+        totalComponents: allComponents.length,
+        generationTime,
+        tokensSaved: tokenSavings.savings
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ 2-stage generation failed:', error);
+    
+    return {
+      success: false,
+      components: [],
+      errors: [{ 
+        stage: 'generation', 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }],
+      metadata: {
+        selectedComponents: [],
+        totalComponents: 0,
+        generationTime: Date.now() - startTime,
+        tokensSaved: 0
+      }
+    };
+  }
 }

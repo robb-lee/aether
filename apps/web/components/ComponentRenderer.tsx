@@ -64,13 +64,7 @@ export function ComponentRenderer({
   const Component = componentMap[componentKey as keyof typeof componentMap]
   
   // Get design kit context if available
-  let kitContext;
-  try {
-    kitContext = useDesignKit();
-  } catch {
-    // Not within DesignKitProvider, continue without kit
-    kitContext = null;
-  }
+  const kitContext = useDesignKit();
 
   // For editor mode, show placeholder if component not found
   if (!Component && isEditor) {

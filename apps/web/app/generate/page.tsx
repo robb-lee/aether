@@ -253,7 +253,7 @@ export default function GeneratePage() {
             <div className="space-y-6">
               <div className="glass p-6 rounded-xl space-y-4">
                 <h2 className="text-xl font-semibold text-white">
-                  What You'll Get
+                  What You&apos;ll Get
                 </h2>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">

@@ -598,7 +598,7 @@ export default function WorkingShowcasePage() {
               title="Get In Touch"
               subtitle="Have questions? We're here to help. Send us a message and we'll respond within 24 hours."
               onSubmit={(data) => {
-                console.log('Form submitted:', data);
+                // Handle form submission
               }}
             />
           </ComponentDemo>

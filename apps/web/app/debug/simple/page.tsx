@@ -62,7 +62,6 @@ export default function SimpleDebugPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        console.log('🔍 Fetching data from API...')
         
         const response = await fetch('/api/ai/generate?id=fe6c6ac4-5c6c-409d-b5c0-d798b187f860')
         
@@ -71,7 +70,6 @@ export default function SimpleDebugPage() {
         }
 
         const result = await response.json()
-        console.log('✅ API Response received:', result)
         
         setData(result)
         setLoading(false)

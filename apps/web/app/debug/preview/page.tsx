@@ -43,8 +43,6 @@ export default function DebugPreviewPage() {
 
   useEffect(() => {
     try {
-      console.log('✅ Component imports loaded successfully')
-      console.log('📊 Test data:', testData)
       setLoading(false)
     } catch (err) {
       console.error('❌ Component import error:', err)

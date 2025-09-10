@@ -6,7 +6,7 @@ import type { Database } from '../../../../types/database'
 export const dynamic = 'force-dynamic'
 
 // Temporarily disable Edge Runtime due to component registry Node.js dependencies
-// export const runtime = 'edge'
+export const runtime = 'edge';
 
 // In-memory storage for generated sites (temporary solution)
 const generatedSites = new Map<string, any>()
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       console.log('📊 Generation result:', siteResult);
       
       if (!siteResult.success) {
-        throw new Error(`Generation failed: ${siteResult.errors.map(e => e.error).join(', ')}`);
+        throw new Error(`Generation failed: ${siteResult.errors.map((e: any) => e.error).join(', ')}`);
       }
       
       // Convert 2-stage result to legacy format for compatibility
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         root: {
           type: 'page',
           props: {},
-          children: siteResult.components.map((comp, index) => ({
+          children: siteResult.components.map((comp: any, index: number) => ({
             id: `${comp.componentId}_${index}`,
             componentId: comp.componentId,
             type: comp.componentId,

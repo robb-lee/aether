@@ -3,8 +3,7 @@ import { handleAPIError } from '@aether/ai-engine/lib/error-handler'
 import { ValidationError } from '@aether/ai-engine/lib/errors'
 import { createClient } from '../../../../../lib/supabase/server'
 
-// Temporarily disable Edge Runtime due to component registry Node.js dependencies
-// export const runtime = 'edge'
+export const runtime = 'edge';
 
 export async function GET(
   request: NextRequest,

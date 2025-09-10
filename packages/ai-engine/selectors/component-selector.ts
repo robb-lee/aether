@@ -9,14 +9,23 @@ import { getRegistry } from '../../component-registry/src/registry';
 import { ComponentDefinition, SearchCriteria } from '../../component-registry/src/types/component';
 import { z } from 'zod';
 
-// Schema for Stage 1: Component ID selection only
+// Schema for component selection with basic info
+export const ComponentSelectionItemSchema = z.object({
+  componentId: z.string(),
+  props: z.record(z.any()).optional(),
+  reasoning: z.string().optional()
+});
+
+export type ComponentSelectionItem = z.infer<typeof ComponentSelectionItemSchema>;
+
+// Schema for full selection response
 export const ComponentSelectionSchema = z.object({
-  selections: z.array(z.string())
+  selections: z.array(ComponentSelectionItemSchema)
 });
 
 export type ComponentSelection = z.infer<typeof ComponentSelectionSchema>;
 
-// Schema for Stage 2: Full component with props
+// Legacy schema for backward compatibility - Stage 2: Full component with props
 export const ComponentWithPropsSchema = z.object({
   componentId: z.string(),
   props: z.record(z.any())
